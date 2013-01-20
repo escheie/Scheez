@@ -1,0 +1,29 @@
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+defaultTasks 'build'
+
+sourceCompatibility = 1.6
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Scheez', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://ebr.springsource.com/repository/app"
+    }
+}
+
+dependencies {
+    compile 'org.springframework:spring-core:3.2.0.RELEASE'
+    compile 'org.springframework:spring-jdbc:3.2.0.RELEASE'
+    compile 'org.hsqldb:hsqldb:2.2.9'
+    testCompile 'junit:junit:4.+'
+    
+}
+
