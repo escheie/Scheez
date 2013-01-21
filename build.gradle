@@ -20,10 +20,12 @@ repositories {
 }
 
 dependencies {
+    compile 'commons-lang:commons-lang:2.6'
     compile 'org.springframework:spring-core:3.2.0.RELEASE'
     compile 'org.springframework:spring-jdbc:3.2.0.RELEASE'
-    compile 'org.hsqldb:hsqldb:2.2.9'
+    testCompile 'log4j:log4j:1.2.17'
     testCompile 'junit:junit:4.+'
-    
+    testCompile 'org.hsqldb:hsqldb:2.2.9'
+    testCompile 'postgresql:postgresql:9.1-901-1.jdbc4' 
 }
 
