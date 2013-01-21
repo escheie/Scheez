@@ -27,5 +27,6 @@ dependencies {
     testCompile 'junit:junit:4.+'
     testCompile 'org.hsqldb:hsqldb:2.2.9'
     testCompile 'postgresql:postgresql:9.1-901-1.jdbc4' 
+    testCompile 'mysql:mysql-connector-java:5.1.22'
 }
 
