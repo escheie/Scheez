@@ -24,17 +24,55 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
 {
     private static final Log log = LogFactory.getLog(SchemaDaoAnsi.class);
+    
+    protected boolean supportsCascade = true;
+    
+    protected boolean supportsIfExist = true;
 
     public SchemaDaoAnsi(DataSource dataSource)
     {
         super(dataSource);
-        // TODO Auto-generated constructor stub
     }
 
     public SchemaDaoAnsi(JdbcTemplate jdbcTemplate)
     {
         super(jdbcTemplate);
-        // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public void createSchema(String schemaName)
+    {
+        StringBuilder sb = new StringBuilder("CREATE SCHEMA ");
+        sb.append(schemaName);
+        jdbcTemplate.execute(sb.toString());
+    }
+
+    @Override
+    public void dropSchema(String schemaName)
+    {
+        StringBuilder sb = new StringBuilder("DROP SCHEMA ");
+        sb.append(schemaName);
+        if(supportsCascade)
+        {
+            sb.append(" CASCADE");
+        }
+        jdbcTemplate.execute(sb.toString());
+    }
+
+    @Override
+    public boolean schemaExists(final String schemaName)
+    {
+        return jdbcTemplate.execute(new ConnectionCallback<Boolean>()
+        {
+            @Override
+            public Boolean doInConnection(Connection con) throws SQLException,
+                    DataAccessException
+            {
+                DatabaseMetaData metaData = con.getMetaData();
+                ResultSet resultSet = metaData.getSchemas(null, schemaName);
+                return resultSet.next();
+            }
+        });
     }
 
     @Override

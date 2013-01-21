@@ -17,6 +17,12 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
     {
         super(jdbcTemplate);
     }
+    
+    @Override
+    public boolean schemaExists(String schemaName)
+    {
+        return super.schemaExists(schemaName.toUpperCase());
+    }
 
     @Override
     public Table getTable(TableName tableName)

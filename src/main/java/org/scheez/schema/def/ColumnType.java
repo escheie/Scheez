@@ -1,38 +1,48 @@
 package org.scheez.schema.def;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.sql.Types;
 
 public enum ColumnType
-{
-    TINYINT (Types.TINYINT),
+{ 
+    TINYINT (Byte.class, Types.TINYINT),
     
-    SMALLINT (Types.SMALLINT), 
+    SMALLINT (Short.class, Types.SMALLINT), 
     
-    INTEGER (Types.INTEGER),  
+    INTEGER (Integer.class, Types.INTEGER),  
     
-    BIGINT (Types.BIGINT),
+    BIGINT (Long.class, Types.BIGINT),
     
-    FLOAT (Types.FLOAT, Types.REAL),
+    FLOAT (Float.class, Types.FLOAT, Types.REAL),
     
-    DOUBLE (Types.DOUBLE),
+    DOUBLE (Double.class, Types.DOUBLE),
     
-    DECIMAL (Types.DECIMAL, Types.NUMERIC),
+    DECIMAL (BigDecimal.class, Types.DECIMAL, Types.NUMERIC),
     
-    BOOLEAN (Types.BOOLEAN, Types.BIT),
+    BOOLEAN (Boolean.class, Types.BOOLEAN, Types.BIT),
     
-    CHAR (Types.CHAR),
+    CHAR (String.class, Types.CHAR),
     
-    VARCHAR (Types.VARCHAR), 
+    VARCHAR (String.class, Types.VARCHAR), 
     
-    TIMESTAMP (Types.TIMESTAMP, Types.TIME, Types.DATE), 
+    TIMESTAMP (Timestamp.class, Types.TIMESTAMP, Types.TIME, Types.DATE), 
     
-    BINARY (Types.BINARY, Types.BLOB);
+    BINARY (byte[].class, Types.BINARY, Types.BLOB, Types.OTHER, Types.ARRAY);
+    
+    private Class<? extends Object> cls;
       
     private Integer[] types;
     
-    private ColumnType(Integer... types)
+    private ColumnType(Class<? extends Object> cls, Integer... types)
     {
+        this.cls = cls;
         this.types = types;
+    }
+    
+    public Class<? extends Object> getJavaClass ()
+    {
+        return cls;
     }
     
     public boolean isEquivalent (int sqlTypeCode)

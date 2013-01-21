@@ -24,13 +24,22 @@ public abstract class SchemaDaoTest
     }
     
     @Test
-    public void test()
+    public void testSchemaDao ()
     {
-        TableName tableName = new TableName("table1");
+        TableName tableName = new TableName("schema1", "table1");
         Table table = new Table(tableName);
+    
+        if(schemaDao.schemaExists(tableName.getSchemaName()))
+        {
+            schemaDao.dropSchema("schema1");
+        }
         
-        schemaDao.dropTable(tableName);
+        assertFalse(schemaDao.schemaExists(tableName.getSchemaName()));
         assertNull(schemaDao.getTable(tableName));
+        
+        
+        schemaDao.createSchema(tableName.getSchemaName());
+        assertTrue(schemaDao.schemaExists(tableName.getSchemaName()));
         
         ColumnType[] types = ColumnType.values();
         for(int index = 0; index < types.length; index++)
@@ -51,5 +60,13 @@ public abstract class SchemaDaoTest
         
         schemaDao.dropTable(tableName);
         assertNull(schemaDao.getTable(tableName));
+        
+        schemaDao.createTable(table);
+        assertNotNull(schemaDao.getTable(tableName));
+        
+        schemaDao.dropSchema(tableName.getSchemaName());
+        
+        assertNull(schemaDao.getTable(tableName));
+        assertFalse(schemaDao.schemaExists(tableName.getSchemaName()));
     }
 }
