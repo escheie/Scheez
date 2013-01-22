@@ -13,7 +13,7 @@ import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.objects.Column;
 import org.springframework.jdbc.core.RowMapper;
 
-public class CodeGenerator implements RowMapper
+public class CodeGenerator implements RowMapper<Object>
 {
     private static final Log log = LogFactory.getLog(CodeGenerator.class);
     
@@ -58,39 +58,57 @@ public class CodeGenerator implements RowMapper
         String clsName = className.substring(index + 1);
         
         StringBuilder sb = new StringBuilder();
-        sb.append(codeTemplate.getFileHeader(packageName, clsName));
-        sb.append(codeTemplate.getPackage(packageName));
-        sb.append("\n\n");
-        sb.append(codeTemplate.getImports(columns));
-        sb.append("\n\n");
-        sb.append(codeTemplate.getClassComment(clsName));
-        sb.append("\n");
-        sb.append(codeTemplate.getClassDefinition(clsName));
-        sb.append("\n{\n");
-        sb.append(codeTemplate.getTopContent());
-        sb.append("\n\n");
+        appendOptional(sb, codeTemplate.getFileHeader(packageName, clsName), 1);
+        appendRequired(sb, codeTemplate.getPackage(packageName), 2, "getPackage");
+        appendOptional(sb, codeTemplate.getImports(columns), 2);
+        appendOptional(sb, codeTemplate.getClassComment(clsName), 1);
+        appendRequired(sb, codeTemplate.getClassDeclaration(clsName), 1, "getClassDeclaration");
+        sb.append("{\n");
+        appendOptional(sb, codeTemplate.getTopContent(), 2);
         for(Column column : columns)
         {
-            sb.append(codeTemplate.getMemberComment(column));
-            sb.append("\n");
-            sb.append(codeTemplate.getMemberVariable(column));
-            sb.append("\n\n");
+            appendOptional(sb, codeTemplate.getMemberComment(column), 1);
+            appendOptional(sb, codeTemplate.getMemberVariable(column), 2);
         }
-        sb.append(codeTemplate.getConstructors(columns));
-        sb.append("\n\n");
+        appendOptional(sb, codeTemplate.getConstructors(columns), 2);
         for(Column column : columns)
         {
-            sb.append(codeTemplate.getSetterComment(column));
-            sb.append("\n");
-            sb.append(codeTemplate.getSetter(column));
-            sb.append("\n\n");
-            sb.append(codeTemplate.getGetterComment(column));
-            sb.append("\n");
-            sb.append(codeTemplate.getGetter(column));
-            sb.append("\n\n");
+            appendOptional(sb, codeTemplate.getSetterComment(column), 1);
+            appendOptional(sb, codeTemplate.getSetter(column), 2);
+            appendOptional(sb, codeTemplate.getGetterComment(column), 1);
+            appendOptional(sb, codeTemplate.getGetter(column), 2);
         }
-        sb.append(codeTemplate.getBottomContent());
-        sb.append("\n}\n");
+        appendOptional(sb, codeTemplate.getBottomContent(), 1);
+        sb.append("}\n");
         return sb.toString();
+    }
+
+    private void appendOptional (StringBuilder sb, String str, int newLineCount)
+    {
+        if(str != null)
+        {
+            sb.append(str);
+            for(int index = 0; index < newLineCount; index++)
+            {
+                sb.append("\n");
+            }
+        }
+    }
+    
+    private void appendRequired (StringBuilder sb, String str, int newLineCount, String methodName)
+    {
+        if(str != null)
+        {
+            sb.append(str);
+            for(int index = 0; index < newLineCount; index++)
+            {
+                sb.append("\n");
+            }
+        }
+        else
+        {
+            throw new IllegalArgumentException("CodeTemplate." + methodName + " is required to return a non-null value.");
+        }
+        
     }
 }

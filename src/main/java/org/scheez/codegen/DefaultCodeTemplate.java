@@ -9,9 +9,7 @@ public class DefaultCodeTemplate implements CodeTemplate
     @Override
     public String getFileHeader(String packageName, String clsName)
     {
-        return "/**\n" +
-        	   " * " + clsName + ".java\n" +
-               " */";
+        return "/**\n" + " * " + clsName + ".java\n" + " */";
     }
 
     @Override
@@ -29,15 +27,14 @@ public class DefaultCodeTemplate implements CodeTemplate
     @Override
     public String getClassComment(String clsName)
     {
-        return "/**\n" +
-               " * " + clsName + "was auto generated from a SQL query using scheez.\n" +
-               " * @author : " + System.getProperty("user.name") + "\n" + 
-               " * @version : $Id$\n" +
-               " */";
+        return "/**\n"
+                + " * This class was auto generated from the contents of a ResultSet using scheez.\n"
+                + " *\n" + " * @author : " + System.getProperty("user.name")
+                + "\n" + " * @version : $Id$\n" + " */";
     }
 
     @Override
-    public String getClassDefinition(String clsName)
+    public String getClassDeclaration(String clsName)
     {
         return "public class " + clsName + " extends BaseObject";
     }
@@ -45,54 +42,71 @@ public class DefaultCodeTemplate implements CodeTemplate
     @Override
     public String getTopContent()
     {
-        return "";
+        return null;
     }
 
     @Override
     public String getMemberComment(Column column)
     {
-        return "";
+        return null;
     }
 
     @Override
     public String getMemberVariable(Column column)
     {
-        return "    private " + column.getType().getJavaClass().getSimpleName() + " " + column.getName() + ";";
+        return "    private " + column.getType().getJavaClass().getSimpleName()
+                + " " + column.getName() + ";";
     }
 
     @Override
     public String getConstructors(List<Column> columns)
     {
-        return "";
+        return null;
     }
 
     @Override
     public String getSetterComment(Column column)
     {
-        return "";
+        return "    /**\n" + "     * Setter for " + column.getName() + ".\n"
+                + "     *\n" + "     * @param " + column.getName()
+                + "  The value to set.\n" + "     */";
     }
 
     @Override
     public String getSetter(Column column)
     {
-        return "";
+        return "    public void set"
+                + Character.toUpperCase(column.getName().charAt(0))
+                + column.getName().substring(1) + "("
+                + column.getType().getJavaClass().getSimpleName() + " "
+                + column.getName() + ")\n" +
+                "    {\n" +
+                "        this." + column.getName() + " = " + column.getName() + ";\n" +
+                "    }";
     }
 
     @Override
     public String getGetterComment(Column column)
     {
-        return "";
+        return "    /**\n" + "     * Getter for " + column.getName() + ".\n"
+                + "     *\n" + "     * @return The value of "
+                + column.getName() + ".\n" + "     */";
     }
 
     @Override
     public String getGetter(Column column)
     {
-        return "";
+        return "    public " + column.getType().getJavaClass().getSimpleName() + " get"
+                + Character.toUpperCase(column.getName().charAt(0))
+                + column.getName().substring(1) + "()\n" +
+                "    {\n" +
+                "        return " + column.getName() + ";\n" +
+                "    }";
     }
 
     @Override
     public String getBottomContent()
     {
-        return "";
+        return null;
     }
 }

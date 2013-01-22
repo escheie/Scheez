@@ -3,7 +3,7 @@ package org.scheez.schema.dao.impl;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoTest;
 import org.scheez.schema.def.ColumnType;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.scheez.test.util.DataSourceUtil;
 
 public class SchemaDaoTestMysql extends SchemaDaoTest
 {
@@ -11,8 +11,7 @@ public class SchemaDaoTestMysql extends SchemaDaoTest
     @Override
     protected SchemaDao initSchemaDao()
     {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource("jdbc:mysql://localhost/scheez", "scheez", "scheez");
-        return new SchemaDaoMysql (dataSource); 
+        return new SchemaDaoMysql (DataSourceUtil.getMysqlDataSource()); 
     }
     
     @Override

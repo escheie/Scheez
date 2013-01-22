@@ -14,7 +14,7 @@ public interface CodeTemplate
     
     String getClassComment (String clsName);
     
-    String getClassDefinition (String clsName);
+    String getClassDeclaration (String clsName);
     
     String getTopContent ();
     

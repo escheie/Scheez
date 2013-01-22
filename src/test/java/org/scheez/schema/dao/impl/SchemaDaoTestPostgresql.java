@@ -8,8 +8,8 @@ import org.scheez.codegen.DefaultCodeTemplate;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoTest;
 import org.scheez.schema.def.ColumnType;
+import org.scheez.test.util.DataSourceUtil;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 public class SchemaDaoTestPostgresql extends SchemaDaoTest
 {
@@ -19,8 +19,7 @@ public class SchemaDaoTestPostgresql extends SchemaDaoTest
     @Override
     protected SchemaDao initSchemaDao()
     {
-        dataSource = new DriverManagerDataSource("jdbc:postgresql://localhost/scheez", "postgres", "dbc");
-        return new SchemaDaoPostgresql (dataSource); 
+        return new SchemaDaoPostgresql (DataSourceUtil.getPostgresqlDataSource()); 
     }
     
     @Override
