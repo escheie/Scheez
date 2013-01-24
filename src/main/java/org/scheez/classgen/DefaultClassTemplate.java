@@ -1,10 +1,10 @@
-package org.scheez.codegen;
+package org.scheez.classgen;
 
 import java.util.List;
 
 import org.scheez.schema.objects.Column;
 
-public class DefaultCodeTemplate implements CodeTemplate
+public class DefaultClassTemplate implements ClassTemplate
 {
     @Override
     public String getFileHeader(String packageName, String clsName)
@@ -21,7 +21,7 @@ public class DefaultCodeTemplate implements CodeTemplate
     @Override
     public String getImports(List<Column> columns)
     {
-        return "import org.scheez.util.BaseObject";
+        return "import org.scheez.util.BaseObject;";
     }
 
     @Override

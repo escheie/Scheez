@@ -3,8 +3,8 @@ package org.scheez.schema.dao.impl;
 import javax.sql.DataSource;
 
 import org.junit.Test;
-import org.scheez.codegen.CodeGenerator;
-import org.scheez.codegen.DefaultCodeTemplate;
+import org.scheez.classgen.ClassGenerator;
+import org.scheez.classgen.DefaultClassTemplate;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoTest;
 import org.scheez.schema.def.ColumnType;
@@ -34,16 +34,5 @@ public class SchemaDaoTestPostgresql extends SchemaDaoTest
             columnType = ColumnType.DOUBLE;
         }
         return columnType;
-    }
-    
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testCodeGeneration ()
-    {
-        JdbcTemplate template = new JdbcTemplate (dataSource);
-        CodeGenerator codeGenerator = new CodeGenerator("org.scheez.test.GenTest", null, new DefaultCodeTemplate());
-        
-        template.query("SELECT * FROM pg_class LIMIT 1", codeGenerator);
-        
     }
 }

@@ -1,10 +1,10 @@
-package org.scheez.codegen;
+package org.scheez.classgen;
 
 import java.util.List;
 
 import org.scheez.schema.objects.Column;
 
-public interface CodeTemplate
+public interface ClassTemplate
 {
     String getFileHeader (String packageName, String clsName);
     
