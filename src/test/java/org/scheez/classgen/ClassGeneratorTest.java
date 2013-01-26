@@ -1,37 +1,48 @@
 package org.scheez.classgen;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.Collection;
 
 import org.junit.Test;
-import org.scheez.classgen.ClassGenerator;
-import org.scheez.classgen.DefaultClassTemplate;
-import org.scheez.test.util.DataSourceUtil;
-import org.springframework.dao.DataAccessException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.scheez.schema.objects.TableName;
+import org.scheez.test.db.TestDatabase;
+import org.scheez.test.db.TestDatabaseManager;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 
+@RunWith(Parameterized.class)
 public class ClassGeneratorTest
 {
+    private TestDatabase testDatabase;
+
+    public ClassGeneratorTest(TestDatabase testDatabase)
+    {
+        this.testDatabase = testDatabase;
+    }
+
     @Test
     public void test()
     {
-        final ClassGenerator codeGenerator = new ClassGenerator(new File("src/test/java"), new DefaultClassTemplate());
-        JdbcTemplate template = new JdbcTemplate(DataSourceUtil.getMysqlDataSource());
-        template.query("select * from information_schema.tables", new ResultSetExtractor<Object>()
+        File srcDir = new File("build/generated/java");
+        srcDir.mkdirs();
+        
+        final ClassGenerator codeGenerator = new ClassGenerator(srcDir, new DefaultClassTemplate());
+        JdbcTemplate template = new JdbcTemplate(testDatabase.getDataSource());
+        for (TableName tableName : testDatabase.getSystemTableNames())
         {
-
-            @Override
-            public Object extractData(ResultSet rs) throws SQLException,
-                    DataAccessException
-            {
-              
-                codeGenerator.generateClass("org.scheez.test.mysql.Tables", rs);  
-                
-                return null;
-            }
-            
-        });
+            String clsName = "org.scheez.test." + testDatabase.getName() + "." + tableName;
+            File clsFile = template.query("SELECT * FROM " + tableName, codeGenerator.generateClass(clsName));
+            assertNotNull(clsFile);
+        }
+    }
+    
+    @Parameters (name="{0}")
+    public static Collection<Object[]> profiles ()
+    {
+        return TestDatabaseManager.getInstance().getDatabaseParameters();
     }
 }

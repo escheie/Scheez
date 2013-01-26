@@ -16,6 +16,8 @@ import org.apache.commons.logging.LogFactory;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.objects.Column;
 import org.scheez.schema.objects.Table;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 public class ClassGenerator 
 {
@@ -31,12 +33,12 @@ public class ClassGenerator
         this.codeTemplate = codeTemplate;
     }
 
-    public void generateClass(String fullyQualifiedClass, Table table) throws IOException
+    public File generateClass (String fullyQualifiedClass, Table table) throws IOException
     {
-        generateClass(fullyQualifiedClass, table.getColumns());
+        return generateClass(fullyQualifiedClass, table.getColumns());
     }
 
-    public void generateClass(String fullyQualifiedClass, ResultSet resultSet) throws SQLException
+    public File generateClass(String fullyQualifiedClass, ResultSet resultSet) throws SQLException
     {
         ResultSetMetaData metaData = resultSet.getMetaData();
         List<Column> columns = new ArrayList<Column>();
@@ -50,15 +52,30 @@ public class ClassGenerator
         }
         try
         {
-            generateClass(fullyQualifiedClass, columns);
+            return generateClass(fullyQualifiedClass, columns);
         }
         catch (IOException e)
         {
-            throw new SQLException("Unable to generate class.", e.getMessage());
+            throw new SQLException("Unable to generate class.", e);
         }
     }
+    
+    public ResultSetExtractor<File> generateClass (final String fullyQualifiedClass)
+    {
+        return new ResultSetExtractor<File>()
+        {
 
-    private void generateClass(String fullyQualifiedClass, List<Column> columns) throws IOException
+            @Override
+            public File extractData(ResultSet rs) throws SQLException,
+                    DataAccessException
+            {
+                return generateClass(fullyQualifiedClass, rs);
+            }
+            
+        };
+    }
+
+    private File generateClass(String fullyQualifiedClass, List<Column> columns) throws IOException
     {
         int index = fullyQualifiedClass.lastIndexOf(".");
         String packageName = fullyQualifiedClass.substring(0, index);
@@ -88,19 +105,20 @@ public class ClassGenerator
         }
         appendOptional(sb, codeTemplate.getBottomContent(), 1);
         sb.append("}\n");
-        save(fullyQualifiedClass, sb.toString());
+        return save(fullyQualifiedClass, sb.toString());
     }
 
-    protected void save(String fullyQualifiedClass, String classDefinition) throws IOException
+    protected File save(String fullyQualifiedClass, String classDefinition) throws IOException
     {
         if (log.isDebugEnabled())
         {
             log.debug(classDefinition);
         }
         BufferedWriter writer = null;
+        File file = getFile(fullyQualifiedClass);
         try
         {
-            writer = new BufferedWriter(new FileWriter(getFile(fullyQualifiedClass)));
+            writer = new BufferedWriter(new FileWriter(file));
             StringTokenizer tokenizer = new StringTokenizer(classDefinition, "\n", true);
             while (tokenizer.hasMoreTokens())
             {
@@ -122,6 +140,8 @@ public class ClassGenerator
                 writer.close();
             }
         }
+        
+        return file;
     }
 
     protected File getFile(String fullyQualifiedClass)

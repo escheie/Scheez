@@ -1,4 +1,4 @@
-package org.scheez.test.util;
+package org.scheez.test.db;
 
 import javax.sql.DataSource;
 

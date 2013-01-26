@@ -2,25 +2,29 @@ package org.scheez.schema.dao;
 
 import static org.junit.Assert.*;
 
-import org.junit.Before;
+import java.util.Collection;
+
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.objects.Column;
 import org.scheez.schema.objects.Table;
 import org.scheez.schema.objects.TableName;
+import org.scheez.test.db.TestDatabase;
+import org.scheez.test.db.TestDatabaseManager;
 
+@RunWith(Parameterized.class)
 public abstract class SchemaDaoTest
 {
+    private TestDatabase testDatabase;
+    
     private SchemaDao schemaDao;
     
-    protected abstract SchemaDao initSchemaDao();
-    
-    protected abstract ColumnType getExpectedColumnType (ColumnType columnType);
-    
-    @Before
-    public void setUp ()
+    public SchemaDaoTest (TestDatabase testDatabase)
     {
-        schemaDao = initSchemaDao();
+        this.testDatabase = testDatabase;
     }
     
     @Test
@@ -55,7 +59,7 @@ public abstract class SchemaDaoTest
         for (Column column : table2.getColumns())
         {
             assertNotNull(column.getName());
-            assertEquals(getExpectedColumnType(types[index++]), column.getType());
+            assertEquals(testDatabase.getExpectedColumnType(types[index++]), column.getType());
         }
         
         schemaDao.dropTable(tableName);
@@ -68,5 +72,11 @@ public abstract class SchemaDaoTest
         
         assertNull(schemaDao.getTable(tableName));
         assertFalse(schemaDao.schemaExists(tableName.getSchemaName()));
+    }
+    
+    @Parameters (name="{0}")
+    public static Collection<Object[]> profiles ()
+    {
+        return TestDatabaseManager.getInstance().getDatabaseParameters();
     }
 }
