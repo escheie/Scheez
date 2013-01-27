@@ -1,4 +1,4 @@
-package org.scheez.dao;
+package org.scheez.schema.dao;
 
 import org.scheez.schema.objects.Table;
 import org.scheez.schema.objects.TableName;

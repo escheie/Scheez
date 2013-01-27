@@ -1,4 +1,4 @@
-package org.scheez.dao.impl;
+package org.scheez.schema.dao.impl;
 
 import java.util.Collections;
 import java.util.Map;
@@ -8,8 +8,8 @@ import java.util.TreeMap;
 
 import javax.sql.DataSource;
 
-import org.scheez.dao.SchemaDao;
-import org.scheez.dao.SchemaDaoFactory;
+import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.dao.SchemaDaoFactory;
 import org.scheez.util.DbC;
 
 public class SchemaDaoFactoryUrl implements SchemaDaoFactory

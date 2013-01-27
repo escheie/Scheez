@@ -1,4 +1,4 @@
-package org.scheez.dao;
+package org.scheez.schema.dao;
 
 public interface SchemaDaoFactory
 {

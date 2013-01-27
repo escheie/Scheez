@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.scheez.dao.SchemaDao;
+import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.objects.Column;
 import org.scheez.schema.objects.Table;

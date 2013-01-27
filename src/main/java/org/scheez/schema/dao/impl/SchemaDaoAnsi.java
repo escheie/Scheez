@@ -1,4 +1,4 @@
-package org.scheez.dao.impl;
+package org.scheez.schema.dao.impl;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.scheez.dao.SchemaDao;
+import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.def.ColumnMetaDataKey;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.objects.Column;
