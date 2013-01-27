@@ -1,4 +1,4 @@
-package org.scheez.dao;
+package org.scheez.dao.impl;
 
 import javax.sql.DataSource;
 

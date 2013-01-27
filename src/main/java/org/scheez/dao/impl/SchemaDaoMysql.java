@@ -1,4 +1,4 @@
-package org.scheez.schema.dao.impl;
+package org.scheez.dao.impl;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
