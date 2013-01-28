@@ -41,9 +41,12 @@ public class BaseObject
         try
         {
             BeanInfo beanInfo = Introspector.getBeanInfo(getClass());
-            for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
+            for (PropertyDescriptor descriptor : beanInfo
+                    .getPropertyDescriptors())
             {
-                if (descriptor.getReadMethod().invoke(this) == null)
+                if ((descriptor.getReadMethod() != null)
+                        && (!"class".equals(descriptor.getName()))
+                        && (descriptor.getReadMethod().invoke(this) == null))
                 {
                     nulls = true;
                     break;
@@ -56,18 +59,22 @@ public class BaseObject
         }
         return nulls;
     }
-    
-    public boolean allNulls()
+
+    public boolean hasValues ()
     {
-        boolean nulls = true;
+        boolean values = false;
         try
         {
             BeanInfo beanInfo = Introspector.getBeanInfo(getClass());
-            for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
+            for (PropertyDescriptor descriptor : beanInfo
+                    .getPropertyDescriptors())
             {
-                if (descriptor.getReadMethod().invoke(this) != null)
+                
+                if ((descriptor.getReadMethod() != null)
+                        && (!"class".equals(descriptor.getName()))
+                        && (descriptor.getReadMethod().invoke(this) != null))
                 {
-                    nulls = false;
+                    values = true;
                     break;
                 }
             }
@@ -76,6 +83,6 @@ public class BaseObject
         {
             throw new RuntimeException(e);
         }
-        return nulls;
+        return values;
     }
 }

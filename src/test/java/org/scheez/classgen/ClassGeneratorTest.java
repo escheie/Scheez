@@ -65,7 +65,7 @@ public class ClassGeneratorTest
             
             for (BaseObject obj : list)
             {
-                assertFalse(obj.allNulls());
+                assertTrue(obj.hasValues());
             }
         }
     }
