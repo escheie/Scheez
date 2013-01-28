@@ -5,6 +5,11 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.util.Collection;
 
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+import javax.tools.JavaCompiler.CompilationTask;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -27,8 +32,11 @@ public class ClassGeneratorTest
     @Test
     public void testClassGenerator()
     {
-        File srcDir = new File("build/generated/java");
+        File srcDir = new File("build/tmp/ClassGenerator");
         srcDir.mkdirs();
+        
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
         
         final ClassGenerator codeGenerator = new ClassGenerator(srcDir, new DefaultClassTemplate());
         JdbcTemplate template = new JdbcTemplate(testDatabase.getDataSource());
@@ -37,6 +45,9 @@ public class ClassGeneratorTest
             String clsName = "org.scheez.test." + testDatabase.getName() + "." + tableName;
             File clsFile = template.query("SELECT * FROM " + tableName, codeGenerator.generateClass(clsName));
             assertNotNull(clsFile);
+            
+            CompilationTask task = compiler.getTask(null, fileManager, null, null, null, fileManager.getJavaFileObjects(clsFile));
+            assertTrue(task.call());
         }
     }
     

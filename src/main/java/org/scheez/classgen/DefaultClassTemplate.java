@@ -1,6 +1,8 @@
 package org.scheez.classgen;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.scheez.schema.objects.Column;
 
@@ -21,7 +23,22 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getImports(List<Column> columns)
     {
-        return "import org.scheez.util.BaseObject;";
+        StringBuilder sb = new StringBuilder("import org.scheez.util.BaseObject;\n");
+        Set<Class<?>> columnClasses = new HashSet<Class<?>>();
+        for (Column column : columns)
+        {
+            columnClasses.add(column.getType().getJavaClass());
+        }
+        for (Class<?> cls : columnClasses)
+        {
+            if(!cls.getPackage().getName().equals("java.lang"))
+            {
+                sb.append("import ");
+                sb.append(cls.getName());
+                sb.append(";\n");
+            }
+        }
+        return sb.toString();
     }
 
     @Override
