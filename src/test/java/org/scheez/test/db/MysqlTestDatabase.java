@@ -7,9 +7,9 @@ import org.scheez.schema.def.ColumnType;
 public class MysqlTestDatabase extends AbstractTestDatabase
 {
 
-    public MysqlTestDatabase(DataSource dataSource)
+    public MysqlTestDatabase(String url, DataSource dataSource)
     {
-        super("mysql", dataSource);
+        super("mysql", url, dataSource);
     }
 
     @Override

@@ -80,7 +80,7 @@ public class SchemaDaoFactoryUrl implements SchemaDaoFactory
             Map<String, Class<? extends SchemaDao>> map = registerSchemaDaoClasses();
             if((map != null) && (!map.isEmpty()))
             {
-                schemaDaoClasses = new TreeMap<String, Class<? extends SchemaDao>>();
+                schemaDaoClasses = map;
             }
             else
             {

@@ -11,12 +11,15 @@ import org.scheez.schema.objects.TableName;
 public class AbstractTestDatabase implements TestDatabase
 {
     protected DataSource dataSource;
-    
+
     protected String name;
 
-    public AbstractTestDatabase(String name, DataSource dataSource)
+    protected String url;
+
+    public AbstractTestDatabase(String name, String url, DataSource dataSource)
     {
         this.name = name;
+        this.url = url;
         this.dataSource = dataSource;
     }
 
@@ -24,6 +27,12 @@ public class AbstractTestDatabase implements TestDatabase
     public String getName()
     {
         return name;
+    }
+
+    @Override
+    public String getUrl()
+    {
+        return url;
     }
 
     @Override
@@ -37,13 +46,13 @@ public class AbstractTestDatabase implements TestDatabase
     {
         return columnType;
     }
-    
+
     @Override
     public List<TableName> getSystemTableNames()
     {
         List<TableName> tableNames = new LinkedList<TableName>();
         tableNames.add(new TableName("INFORMATION_SCHEMA", "TABLES"));
-        //tableNames.add(new TableName("INFORMATION_SCHEMA", "SYSTEM_TABLES"));
+        // tableNames.add(new TableName("INFORMATION_SCHEMA", "SYSTEM_TABLES"));
         return tableNames;
     }
 }

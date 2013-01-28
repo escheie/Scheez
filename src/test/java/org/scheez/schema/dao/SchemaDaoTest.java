@@ -4,11 +4,12 @@ import static org.junit.Assert.*;
 
 import java.util.Collection;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.dao.impl.SchemaDaoFactoryUrl;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.objects.Column;
 import org.scheez.schema.objects.Table;
@@ -17,20 +18,28 @@ import org.scheez.test.db.TestDatabase;
 import org.scheez.test.db.TestDatabaseManager;
 
 @RunWith(Parameterized.class)
-public abstract class SchemaDaoTest
+public class SchemaDaoTest
 {
     private TestDatabase testDatabase;
     
-    private SchemaDao schemaDao;
+    private SchemaDaoFactory schemaDaoFactory;
     
     public SchemaDaoTest (TestDatabase testDatabase)
     {
         this.testDatabase = testDatabase;
     }
     
+    @Before
+    public void setUp ()
+    {
+        schemaDaoFactory = new SchemaDaoFactoryUrl(testDatabase.getUrl(), testDatabase.getDataSource());
+    }
+    
     @Test
     public void testSchemaDao ()
     {
+        SchemaDao schemaDao = schemaDaoFactory.getSchemaDao();
+        
         TableName tableName = new TableName("schema1", "table1");
         Table table = new Table(tableName);
     
@@ -76,7 +85,7 @@ public abstract class SchemaDaoTest
     }
     
     @Parameters (name="{0}")
-    public static Collection<Object[]> profiles ()
+    public static Collection<Object[]> testDatabases ()
     {
         return TestDatabaseManager.getInstance().getDatabaseParameters();
     }

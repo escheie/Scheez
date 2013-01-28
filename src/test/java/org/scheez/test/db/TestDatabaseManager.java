@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
 
 public class TestDatabaseManager
 {
@@ -24,9 +26,12 @@ public class TestDatabaseManager
     private TestDatabaseManager ()
     {
         testDatabases = new LinkedList<TestDatabase>();
-        testDatabases.add(new HsqldbTestDatabase(DataSourceUtil.getHsqldbDataSource()));
-        testDatabases.add(new MysqlTestDatabase(DataSourceUtil.getMysqlDataSource()));
-        testDatabases.add(new PostgresqlTestDatabase(DataSourceUtil.getPostgresqlDataSource()));
+        DriverManagerDataSource dataSource = DataSourceUtil.getHsqldbDataSource();
+        testDatabases.add(new HsqldbTestDatabase(dataSource.getUrl(), dataSource));
+        dataSource = DataSourceUtil.getMysqlDataSource();
+        testDatabases.add(new MysqlTestDatabase(dataSource.getUrl(), dataSource));
+        dataSource = DataSourceUtil.getPostgresqlDataSource();
+        testDatabases.add(new PostgresqlTestDatabase(dataSource.getUrl(), dataSource));
     }
     
     public Collection<Object[]> getDatabaseParameters()

@@ -1,22 +1,20 @@
 package org.scheez.test.db;
 
-import javax.sql.DataSource;
-
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 public class DataSourceUtil
 {  
-    public static DataSource getMysqlDataSource ()
+    public static DriverManagerDataSource getMysqlDataSource ()
     {
         return new DriverManagerDataSource("jdbc:mysql://localhost/scheez", "scheez", "scheez");
     } 
     
-    public static DataSource getPostgresqlDataSource ()
+    public static DriverManagerDataSource getPostgresqlDataSource ()
     {
         return new DriverManagerDataSource("jdbc:postgresql://localhost/scheez", "postgres", "dbc");
     }
     
-    public static DataSource getHsqldbDataSource ()
+    public static DriverManagerDataSource getHsqldbDataSource ()
     {
         return new DriverManagerDataSource("jdbc:hsqldb:mem:testdb", "SA", "");
     }

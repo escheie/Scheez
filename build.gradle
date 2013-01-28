@@ -1,8 +1,19 @@
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'clover'
 
 defaultTasks 'build'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.gradle.api.plugins:gradle-clover-plugin:0.5.3'
+    }
+}
 
 sourceCompatibility = 1.6
 version = '1.0'
@@ -24,10 +35,22 @@ dependencies {
     compile 'commons-collections:commons-collections:3.2.1'
     compile 'org.springframework:spring-core:3.2.0.RELEASE'
     compile 'org.springframework:spring-jdbc:3.2.0.RELEASE'
+    
+    
     testCompile 'log4j:log4j:1.2.17'
     testCompile 'junit:junit:4.+'
     testCompile 'org.hsqldb:hsqldb:2.2.9'
     testCompile 'postgresql:postgresql:9.1-901-1.jdbc4' 
     testCompile 'mysql:mysql-connector-java:5.1.22'
+    
+    clover 'com.cenqua.clover:clover:3.1.10'
 }
+
+clover {
+    report {
+        html = true
+    }
+}
+
+
 

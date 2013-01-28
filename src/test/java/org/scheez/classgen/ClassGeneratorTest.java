@@ -25,7 +25,7 @@ public class ClassGeneratorTest
     }
 
     @Test
-    public void test()
+    public void testClassGenerator()
     {
         File srcDir = new File("build/generated/java");
         srcDir.mkdirs();
@@ -41,7 +41,7 @@ public class ClassGeneratorTest
     }
     
     @Parameters (name="{0}")
-    public static Collection<Object[]> profiles ()
+    public static Collection<Object[]> testDatabases ()
     {
         return TestDatabaseManager.getInstance().getDatabaseParameters();
     }
