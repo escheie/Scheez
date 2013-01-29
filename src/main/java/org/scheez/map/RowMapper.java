@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.scheez.schema.def.ColumnType;
 
-public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>, ColumnMapper
+public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
 {
     private static final Log log = LogFactory.getLog(RowMapper.class);
 
@@ -36,7 +36,7 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>,
     public RowMapper(Class<T> cls)
     {
         this.cls = cls;
-        columnMapper = this;
+        columnMapper = new UnderscoreToCamelCaseColumnMapper();
         try
         {
             fields = new CaseInsensitiveMap();
@@ -51,12 +51,6 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>,
         {
             throw new IllegalArgumentException(e);
         }
-    }
-    
-    @Override
-    public String mapColumn(String columnName)
-    {
-        return columnName;
     }
 
     public Class<T> getMappedClass()

@@ -4,10 +4,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.scheez.map.UnderscoreToCamelCaseColumnMapper;
+import org.scheez.map.ColumnMapper;
 import org.scheez.schema.objects.Column;
 
 public class DefaultClassTemplate implements ClassTemplate
 {
+    private ColumnMapper columnMapper;
+   
+    public DefaultClassTemplate()
+    {
+        this(new UnderscoreToCamelCaseColumnMapper());
+    }
+
+    public DefaultClassTemplate (ColumnMapper columnMapper)
+    {
+        this.columnMapper = columnMapper;
+    }
+    
     @Override
     public String getFileHeader(String packageName, String clsName)
     {
@@ -72,7 +86,7 @@ public class DefaultClassTemplate implements ClassTemplate
     public String getMemberVariable(Column column)
     {
         return "    private " + column.getType().getJavaClass().getSimpleName()
-                + " " + column.getName() + ";";
+                + " " + columnMapper.mapColumn(column.getName()) + ";";
     }
 
     @Override
@@ -84,40 +98,44 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getSetterComment(Column column)
     {
-        return "    /**\n" + "     * Setter for " + column.getName() + ".\n"
-                + "     *\n" + "     * @param " + column.getName()
+        String columnName = columnMapper.mapColumn(column.getName());
+        return "    /**\n" + "     * Setter for " + columnName + ".\n"
+                + "     *\n" + "     * @param " + columnName
                 + "  The value to set.\n" + "     */";
     }
 
     @Override
     public String getSetter(Column column)
     {
+        String columnName = columnMapper.mapColumn(column.getName());
         return "    public void set"
-                + Character.toUpperCase(column.getName().charAt(0))
-                + column.getName().substring(1) + "("
+                + Character.toUpperCase(columnName.charAt(0))
+                + columnName.substring(1) + "("
                 + column.getType().getJavaClass().getSimpleName() + " "
-                + column.getName() + ")\n" +
+                + columnName + ")\n" +
                 "    {\n" +
-                "        this." + column.getName() + " = " + column.getName() + ";\n" +
+                "        this." + columnName + " = " + columnName + ";\n" +
                 "    }";
     }
 
     @Override
     public String getGetterComment(Column column)
     {
-        return "    /**\n" + "     * Getter for " + column.getName() + ".\n"
+        String columnName = columnMapper.mapColumn(column.getName());
+        return "    /**\n" + "     * Getter for " + columnName + ".\n"
                 + "     *\n" + "     * @return The value of "
-                + column.getName() + ".\n" + "     */";
+                + columnName + ".\n" + "     */";
     }
 
     @Override
     public String getGetter(Column column)
     {
+        String columnName = columnMapper.mapColumn(column.getName());
         return "    public " + column.getType().getJavaClass().getSimpleName() + " get"
-                + Character.toUpperCase(column.getName().charAt(0))
-                + column.getName().substring(1) + "()\n" +
+                + Character.toUpperCase(columnName.charAt(0))
+                + columnName.substring(1) + "()\n" +
                 "    {\n" +
-                "        return " + column.getName() + ";\n" +
+                "        return " + columnName + ";\n" +
                 "    }";
     }
 
