@@ -1,18 +1,21 @@
-package org.scheez.classgen;
+package org.scheez.schema.classgen;
 
 import java.util.List;
 
 import org.scheez.schema.objects.Column;
+import org.scheez.schema.objects.TableName;
 
 public interface ClassTemplate
 {
-    String getFileHeader (String packageName, String clsName);
+    String getClassName (TableName tableName);
+    
+    String getFileHeader (String packageName, String clsName, TableName tableName);
     
     String getPackage (String packageName);
     
     String getImports (List<Column> columns);
     
-    String getClassComment (String clsName);
+    String getClassComment (String clsName, TableName tableName);
     
     String getClassDeclaration (String clsName);
     

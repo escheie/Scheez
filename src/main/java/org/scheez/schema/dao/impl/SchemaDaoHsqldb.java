@@ -1,5 +1,7 @@
 package org.scheez.schema.dao.impl;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.scheez.schema.objects.Table;
@@ -28,5 +30,12 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
     public Table getTable(TableName tableName)
     {
         return super.getTable(tableName.toUpperCase());
+    }
+    
+    @Override
+    public List<Table> getTables(String schemaName)
+    {
+        // TODO Auto-generated method stub
+        return super.getTables(schemaName.toUpperCase());
     }
 }

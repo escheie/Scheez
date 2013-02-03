@@ -1,4 +1,4 @@
-package org.scheez.map;
+package org.scheez.schema.mapper;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -28,7 +28,7 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
 
     private Class<T> cls;
 
-    private ColumnMapper columnMapper;
+    private NameMapper nameMapper;
 
     private Map<String, Method> fields;
 
@@ -36,7 +36,7 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
     public RowMapper(Class<T> cls)
     {
         this.cls = cls;
-        columnMapper = new UnderscoreToCamelCaseColumnMapper();
+        nameMapper = new NameMapperUnderscoreToCamelCase();
         try
         {
             fields = new CaseInsensitiveMap();
@@ -68,10 +68,11 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
             for (int index = 1; index <= rsmd.getColumnCount(); index++)
             {
                 String columnName = rsmd.getColumnLabel(index);
-                Method method = fields.get(columnMapper.mapColumn(columnName));
+                Method method = fields.get(nameMapper.mapName(columnName));
                 if (method != null)
                 {
-                    method.invoke(t,
+                    method.invoke(
+                            t,
                             getValue(rs, index, columnName, ColumnType
                                     .getType(rsmd.getColumnType(index)), method
                                     .getParameterTypes()[0]));
@@ -176,17 +177,18 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
         return value;
     }
 
-    public void setColumnMapper(ColumnMapper columnMapper)
+    public NameMapper getNameMapper()
     {
-        if(columnMapper == null)
-        {
-            throw new IllegalArgumentException("columnMapper argument cannot be null.");
-        }
-        this.columnMapper = columnMapper;
+        return nameMapper;
     }
 
-    public ColumnMapper getColumnMapper()
+    public void setNameMapper(NameMapper nameMapper)
     {
-        return columnMapper;
+        if (nameMapper == null)
+        {
+            throw new IllegalArgumentException(
+                    "nameMapper argument cannot be null.");
+        }
+        this.nameMapper = nameMapper;
     }
 }

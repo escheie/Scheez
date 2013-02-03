@@ -3,6 +3,7 @@ package org.scheez.schema.dao;
 import static org.junit.Assert.*;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,12 +49,28 @@ public class SchemaDaoTest
             schemaDao.dropSchema("schema1");
         }
         
+        List<String> schemas = schemaDao.getSchemas();
+        for (String schemaName : schemas)
+        {
+            assertNotNull(schemaName);
+        }
+        
         assertFalse(schemaDao.schemaExists(tableName.getSchemaName()));
         assertNull(schemaDao.getTable(tableName));
         
         
         schemaDao.createSchema(tableName.getSchemaName());
         assertTrue(schemaDao.schemaExists(tableName.getSchemaName()));
+        
+        assertEquals (0, schemaDao.getTables(tableName.getSchemaName()).size());
+        
+        int schemaCount = schemas.size();
+        schemas = schemaDao.getSchemas();
+        assertEquals(schemaCount + 1, schemas.size());
+        for (String schemaName : schemas)
+        {
+            assertNotNull(schemaName);
+        }
         
         ColumnType[] types = ColumnType.values();
         for(int index = 0; index < types.length; index++)
@@ -71,6 +88,8 @@ public class SchemaDaoTest
             assertNotNull(column.getName());
             assertEquals(testDatabase.getExpectedColumnType(types[index++]), column.getType());
         }
+        
+        assertEquals (1, schemaDao.getTables(tableName.getSchemaName()).size());
         
         schemaDao.dropTable(tableName);
         assertNull(schemaDao.getTable(tableName));

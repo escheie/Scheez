@@ -1,15 +1,15 @@
-package org.scheez.map;
+package org.scheez.schema.mapper;
 
 import java.util.StringTokenizer;
 
-public class UnderscoreToCamelCaseColumnMapper implements ColumnMapper
+public class NameMapperUnderscoreToCamelCase implements NameMapper
 {
     @Override
-    public String mapColumn(String columnName)
+    public String mapName(String name)
     {
         boolean first = true;
         StringTokenizer tokenizer = new StringTokenizer(
-                columnName.toLowerCase(), "_");
+                name.toLowerCase(), "_");
         StringBuilder sb = new StringBuilder();
         while (tokenizer.hasMoreTokens())
         {

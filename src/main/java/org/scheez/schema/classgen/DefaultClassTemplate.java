@@ -1,29 +1,37 @@
-package org.scheez.classgen;
+package org.scheez.schema.classgen;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.scheez.map.UnderscoreToCamelCaseColumnMapper;
-import org.scheez.map.ColumnMapper;
+import org.scheez.schema.mapper.NameMapper;
+import org.scheez.schema.mapper.NameMapperUnderscoreToCamelCase;
 import org.scheez.schema.objects.Column;
+import org.scheez.schema.objects.TableName;
 
 public class DefaultClassTemplate implements ClassTemplate
 {
-    private ColumnMapper columnMapper;
+    private NameMapper nameMapper;
    
     public DefaultClassTemplate()
     {
-        this(new UnderscoreToCamelCaseColumnMapper());
+        this(new NameMapperUnderscoreToCamelCase());
     }
 
-    public DefaultClassTemplate (ColumnMapper columnMapper)
+    public DefaultClassTemplate (NameMapper nameMapper)
     {
-        this.columnMapper = columnMapper;
+        this.nameMapper = nameMapper;
     }
     
     @Override
-    public String getFileHeader(String packageName, String clsName)
+    public String getClassName (TableName tableName)
+    {
+        String clsName = nameMapper.mapName(tableName.getTableName());
+        return clsName.substring(0 , 1).toUpperCase() + clsName.substring(1);
+    }
+
+    @Override
+    public String getFileHeader(String packageName, String clsName, TableName tableName)
     {
         return "/**\n" + " * " + clsName + ".java\n" + " */";
     }
@@ -56,10 +64,11 @@ public class DefaultClassTemplate implements ClassTemplate
     }
 
     @Override
-    public String getClassComment(String clsName)
+    public String getClassComment(String clsName, TableName tableName)
     {
-        return "/**\n"
-                + " * This class was auto generated from the contents of a ResultSet using scheez.\n"
+        return "/**\n" + ((tableName == null) ?
+                " * This class was auto generated from the contents of a ResultSet.\n" :
+                " * This class was auto generated from the table named \"" + tableName + "\".\n" )       
                 + " *\n" + " * @author : " + System.getProperty("user.name")
                 + "\n" + " * @version : $Id$\n" + " */";
     }
@@ -86,7 +95,7 @@ public class DefaultClassTemplate implements ClassTemplate
     public String getMemberVariable(Column column)
     {
         return "    private " + column.getType().getJavaClass().getSimpleName()
-                + " " + columnMapper.mapColumn(column.getName()) + ";";
+                + " " + nameMapper.mapName(column.getName()) + ";";
     }
 
     @Override
@@ -98,7 +107,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getSetterComment(Column column)
     {
-        String columnName = columnMapper.mapColumn(column.getName());
+        String columnName = nameMapper.mapName(column.getName());
         return "    /**\n" + "     * Setter for " + columnName + ".\n"
                 + "     *\n" + "     * @param " + columnName
                 + "  The value to set.\n" + "     */";
@@ -107,7 +116,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getSetter(Column column)
     {
-        String columnName = columnMapper.mapColumn(column.getName());
+        String columnName = nameMapper.mapName(column.getName());
         return "    public void set"
                 + Character.toUpperCase(columnName.charAt(0))
                 + columnName.substring(1) + "("
@@ -121,7 +130,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getGetterComment(Column column)
     {
-        String columnName = columnMapper.mapColumn(column.getName());
+        String columnName = nameMapper.mapName(column.getName());
         return "    /**\n" + "     * Getter for " + columnName + ".\n"
                 + "     *\n" + "     * @return The value of "
                 + columnName + ".\n" + "     */";
@@ -130,7 +139,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getGetter(Column column)
     {
-        String columnName = columnMapper.mapColumn(column.getName());
+        String columnName = nameMapper.mapName(column.getName());
         return "    public " + column.getType().getJavaClass().getSimpleName() + " get"
                 + Character.toUpperCase(columnName.charAt(0))
                 + columnName.substring(1) + "()\n" +

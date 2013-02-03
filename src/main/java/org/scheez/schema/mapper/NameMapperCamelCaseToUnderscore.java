@@ -1,19 +1,15 @@
-package org.scheez.map;
+package org.scheez.schema.mapper;
 
-public interface FieldMapper
+public class NameMapperCamelCaseToUnderscore implements NameMapper
 {
-    
-    
-    String mapField (String fieldName);
-    
-    /*@Override
-    public String mapField (String fieldName)
+    @Override
+    public String mapName (String name)
     {
         StringBuilder sb = new StringBuilder();
         boolean lastCapital = true;
-        for(int index = 0; index < fieldName.length(); index++)
+        for(int index = 0; index < name.length(); index++)
         {
-            char ch = fieldName.charAt(index);
+            char ch = name.charAt(index);
             if(Character.isUpperCase(ch))
             {
                 if(!lastCapital)
@@ -29,5 +25,5 @@ public interface FieldMapper
             }
         }
         return sb.toString();
-    }*/
+    }
 }

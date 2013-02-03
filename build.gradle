@@ -35,6 +35,8 @@ dependencies {
     compile 'commons-collections:commons-collections:3.2.1'
     compile 'org.springframework:spring-core:3.2.0.RELEASE'
     compile 'org.springframework:spring-jdbc:3.2.0.RELEASE'
+    compile 'com.mysema.querydsl:querydsl-sql:2.9.0'
+    compile 'org.reflections:reflections:0.9.8'
     
     
     testCompile 'log4j:log4j:1.2.17'
