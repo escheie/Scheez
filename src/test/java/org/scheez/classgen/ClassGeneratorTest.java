@@ -3,15 +3,8 @@ package org.scheez.classgen;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.List;
-
-import javax.tools.JavaCompiler;
-import javax.tools.JavaCompiler.CompilationTask;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,9 +13,9 @@ import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.classgen.ClassGenerator;
 import org.scheez.schema.classgen.DefaultClassTemplate;
 import org.scheez.schema.classgen.GeneratedClass;
+import org.scheez.schema.mapper.DefaultNameMapper;
 import org.scheez.schema.mapper.NameMapper;
-import org.scheez.schema.mapper.NameMapperUnderscoreToCamelCase;
-import org.scheez.schema.mapper.RowMapper;
+import org.scheez.schema.mapper.ObjectMapper;
 import org.scheez.schema.objects.TableName;
 import org.scheez.test.db.TestDatabase;
 import org.scheez.test.db.TestDatabaseManager;
@@ -48,7 +41,7 @@ public class ClassGeneratorTest
         File outputDir = new File("build/tmp/ClassGenerator/build");
         outputDir.mkdirs();
 
-        NameMapper nameMapper = new NameMapperUnderscoreToCamelCase();
+        NameMapper nameMapper = new DefaultNameMapper();
 
         final ClassGenerator codeGenerator = new ClassGenerator(srcDir, new DefaultClassTemplate());
         JdbcTemplate template = new JdbcTemplate(testDatabase.getDataSource());
@@ -56,14 +49,14 @@ public class ClassGeneratorTest
         {
             String sql = "SELECT * FROM " + tableName;
             String pkgName = "org.scheez.test." + testDatabase.getName() + "."
-                    + nameMapper.mapName(tableName.getSchemaName()).toLowerCase();
+                    + nameMapper.mapDatabaseNameToJavaName(tableName.getSchemaName()).toLowerCase();
             GeneratedClass generatedClass = template.query(sql, codeGenerator.generateClass(pkgName, tableName));
             assertNotNull(generatedClass);
 
             Class<?> cls = generatedClass.compile(outputDir);
             assertNotNull(cls);
 
-            List<? extends BaseObject> list = template.query(sql, new RowMapper(cls));
+            List<? extends BaseObject> list = template.query(sql, new ObjectMapper(cls));
             assertNotNull(list);
 
             for (BaseObject obj : list)

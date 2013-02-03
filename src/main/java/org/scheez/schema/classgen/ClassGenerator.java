@@ -183,7 +183,7 @@ public class ClassGenerator
             }
         }
 
-        return new GeneratedClass(file, sourceDir, fullyQualifiedClassName);
+        return new GeneratedClass(file, fullyQualifiedClassName);
     }
 
     protected File getFile(String fullyQualifiedClassName)

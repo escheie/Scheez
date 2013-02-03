@@ -4,34 +4,18 @@ public interface SchemaDifference
 {
     enum Type 
     {
-        TABLE_MISSING,
+        MISSING_TABLE,
         
-        EXTRA_TABLE,
+        MISSING_COLUMN,
         
-        TABLE_NAME_CHANGE,
+        UNKNOWN_TABLE,
         
-        COLUMN_MISSING,
-        
-        EXTRA_COLUMN,
-        
-        COLUMN_NAME_CHANGE,
-        
-        COLUMN_TYPE_CHANGE,
-        
-        MISSING_FOREIGN_KEY,
-        
-        EXTRA_FOREIGN_KEY,
-        
-        MISSING_CONSTRAINT,
-        
-        EXTRA_CONSTRAINT,
-        
-        MISSING_INDEX,
-        
-        EXTRA_INDEX
+        UNKNOWN_COLUMN,
     }
     
     Type getType ();
     
     String getMessage ();
+    
+    String getTableName ();
 }

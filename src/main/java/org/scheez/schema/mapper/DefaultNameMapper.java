@@ -2,10 +2,11 @@ package org.scheez.schema.mapper;
 
 import java.util.StringTokenizer;
 
-public class NameMapperUnderscoreToCamelCase implements NameMapper
+public class DefaultNameMapper implements NameMapper
 {
+    
     @Override
-    public String mapName(String name)
+    public String mapDatabaseNameToJavaName (String name)
     {
         boolean first = true;
         StringTokenizer tokenizer = new StringTokenizer(
@@ -26,6 +27,31 @@ public class NameMapperUnderscoreToCamelCase implements NameMapper
                 {
                     sb.append(token.substring(1, token.length()));
                 }
+            }
+        }
+        return sb.toString();
+    }
+    
+    @Override
+    public String mapJavaNameToDatabaseName (String name)
+    {
+        StringBuilder sb = new StringBuilder();
+        boolean lastCapital = true;
+        for(int index = 0; index < name.length(); index++)
+        {
+            char ch = name.charAt(index);
+            if(Character.isUpperCase(ch))
+            {
+                if(!lastCapital)
+                {
+                    sb.append("_");
+                }
+                sb.append(Character.toLowerCase(ch));
+                lastCapital = true;
+            }
+            else
+            {
+                sb.append(ch);
             }
         }
         return sb.toString();

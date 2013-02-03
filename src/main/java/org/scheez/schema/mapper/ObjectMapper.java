@@ -1,10 +1,7 @@
 package org.scheez.schema.mapper;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -15,42 +12,25 @@ import java.sql.SQLException;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Map;
 
-import org.apache.commons.collections.map.CaseInsensitiveMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.scheez.schema.def.ColumnType;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.util.ReflectionUtils;
 
-public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
+public class ObjectMapper<T> implements RowMapper<T>
 {
-    private static final Log log = LogFactory.getLog(RowMapper.class);
+    private static final Log log = LogFactory.getLog(ObjectMapper.class);
 
     private Class<T> cls;
 
-    private NameMapper nameMapper;
+    private FieldMapper fieldMapper;
 
-    private Map<String, Method> fields;
-
-    @SuppressWarnings("unchecked")
-    public RowMapper(Class<T> cls)
+    public ObjectMapper(Class<T> cls)
     {
         this.cls = cls;
-        nameMapper = new NameMapperUnderscoreToCamelCase();
-        try
-        {
-            fields = new CaseInsensitiveMap();
-            BeanInfo beanInfo = Introspector.getBeanInfo(cls);
-            for (PropertyDescriptor descriptor : beanInfo
-                    .getPropertyDescriptors())
-            {
-                fields.put(descriptor.getName(), descriptor.getWriteMethod());
-            }
-        }
-        catch (IntrospectionException e)
-        {
-            throw new IllegalArgumentException(e);
-        }
+        fieldMapper = new DefaultFieldMapper();
     }
 
     public Class<T> getMappedClass()
@@ -68,14 +48,16 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
             for (int index = 1; index <= rsmd.getColumnCount(); index++)
             {
                 String columnName = rsmd.getColumnLabel(index);
-                Method method = fields.get(nameMapper.mapName(columnName));
-                if (method != null)
+                Field field = fieldMapper.mapField(cls, columnName);
+                if (field != null)
                 {
-                    method.invoke(
-                            t,
+                    if(!Modifier.isPublic(field.getModifiers()))
+                    {
+                        field.setAccessible(true);
+                    }
+                    ReflectionUtils.setField(field, t, 
                             getValue(rs, index, columnName, ColumnType
-                                    .getType(rsmd.getColumnType(index)), method
-                                    .getParameterTypes()[0]));
+                                    .getType(rsmd.getColumnType(index)), field.getType()));
                 }
             }
             return t;
@@ -177,18 +159,18 @@ public class RowMapper<T> implements org.springframework.jdbc.core.RowMapper<T>
         return value;
     }
 
-    public NameMapper getNameMapper()
+    public FieldMapper getFieldMapper()
     {
-        return nameMapper;
+        return fieldMapper;
     }
 
-    public void setNameMapper(NameMapper nameMapper)
+    public void setFieldMapper(FieldMapper fieldMapper)
     {
-        if (nameMapper == null)
+        if (fieldMapper == null)
         {
             throw new IllegalArgumentException(
-                    "nameMapper argument cannot be null.");
+                    "fieldMapper argument cannot be null.");
         }
-        this.nameMapper = nameMapper;
+        this.fieldMapper = fieldMapper;
     }
 }

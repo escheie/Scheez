@@ -13,17 +13,14 @@ import javax.tools.ToolProvider;
 
 public class GeneratedClass
 {
-    private File srcDir;
-
     private File file;
 
     private String fullyQualifiedClassName;
 
-    public GeneratedClass(File file, File srcDir, String fullyQualifiedClassName)
+    public GeneratedClass(File file, String fullyQualifiedClassName)
     {
         super();
         this.file = file;
-        this.srcDir = srcDir;
         this.fullyQualifiedClassName = fullyQualifiedClassName;
     }
 
