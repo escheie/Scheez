@@ -98,9 +98,10 @@ public class BasicSchemaManager implements SchemaManager
             map.put(column.getName().toLowerCase(), column);
         }
 
-        while (cls != null)
+        Class<?> c = cls;
+        while (c != null)
         {
-            for (Field field : cls.getDeclaredFields())
+            for (Field field : c.getDeclaredFields())
             {
                 Column expectedColumn = fieldMapper.mapField(field);
                 Column column = map.remove(expectedColumn.getName().toLowerCase());
@@ -113,12 +114,12 @@ public class BasicSchemaManager implements SchemaManager
                     diffColumn(field, column, diff);
                 }
             }
-            cls = cls.getSuperclass();
+            c = c.getSuperclass();
         }
 
         for (Column column : map.values())
         {
-            diff.add(new UnknownColumn(table, column));
+            diff.add(new UnknownColumn(table, column, cls));
         }
     }
 

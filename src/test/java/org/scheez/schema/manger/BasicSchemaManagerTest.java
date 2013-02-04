@@ -14,10 +14,15 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.impl.SchemaDaoFactoryUrl;
+import org.scheez.schema.def.ColumnType;
+import org.scheez.schema.diff.MissingColumn;
 import org.scheez.schema.diff.MissingTable;
 import org.scheez.schema.diff.SchemaDifference;
 import org.scheez.schema.diff.SchemaDifference.Type;
+import org.scheez.schema.diff.UnknownColumn;
 import org.scheez.schema.diff.UnknownTable;
+import org.scheez.schema.objects.Column;
+import org.scheez.schema.objects.TableName;
 import org.scheez.test.db.TestDatabase;
 import org.scheez.test.db.TestDatabaseManager;
 import org.scheez.test.schema.Person;
@@ -97,6 +102,87 @@ public class BasicSchemaManagerTest
         
         differences = schemaManager.findDifferences();
         
+        assertNotNull(differences);
+        assertEquals(0, differences.size());
+    }
+    
+    /**
+     * Test method for
+     * {@link org.scheez.schema.manger.BasicSchemaManager#findDifferences()}.
+     */
+    @Test
+    public void testMissingAndUnknownColumns()
+    {
+        SchemaClasses classes = new SchemaClasses();
+        classes.include(Person.class);
+        
+        BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
+        installSchema(schemaManager);
+        
+        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        
+        String droppedColumn = "first_name";
+        schemaDao.dropColumn(tableName, droppedColumn);
+        
+        List<SchemaDifference> differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(1, differences.size());
+        
+        MissingColumn missingColumn = (MissingColumn)differences.get(0);
+        
+        log.info(missingColumn);
+        assertEquals(Type.MISSING_COLUMN, missingColumn.getType());
+        assertEquals(Person.class, missingColumn.getTableClass());
+        assertNotNull(missingColumn.getTable());
+        assertNotNull(missingColumn.getColumn());
+        assertEquals(droppedColumn, missingColumn.getColumn().getName());
+        assertNotNull(missingColumn.getDescription());
+        assertNotNull(missingColumn.getField());
+        assertEquals("firstName", missingColumn.getField().getName());
+        
+        schemaManager.resolveDifferences(differences);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(0, differences.size());
+        
+        Column newColumn = new Column ("unknown", ColumnType.VARCHAR, 256);
+        schemaDao.addColumn(tableName, newColumn);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(1, differences.size());
+        
+        UnknownColumn unknownColumn = (UnknownColumn)differences.get(0);
+        
+        log.info(unknownColumn);
+        assertEquals(Type.UNKNOWN_COLUMN, unknownColumn.getType());
+        assertEquals(Person.class, unknownColumn.getTableClass());
+        assertNotNull(unknownColumn.getTable());
+        assertNotNull(unknownColumn.getColumn());
+        assertNull(unknownColumn.getField());
+        assertNotNull(unknownColumn.getDescription());
+        assertEquals(newColumn.getName(), newColumn.getName());
+        assertEquals(newColumn.getType(), newColumn.getType());
+        
+        schemaManager.resolveDifferences(differences);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(0, differences.size());
+        
+    }
+    
+    private void installSchema (SchemaManager schemaManager)
+    {
+        List<SchemaDifference> differences = schemaManager.findDifferences();
+        assertNotNull(differences);
+        schemaManager.resolveDifferences(differences);
+        differences = schemaManager.findDifferences();
         assertNotNull(differences);
         assertEquals(0, differences.size());
     }

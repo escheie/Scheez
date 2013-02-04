@@ -34,6 +34,5 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
     {
         return columnName.toUpperCase();
     }
-    
-    
+
 }

@@ -10,7 +10,7 @@ public class MissingColumn extends SchemaDifferenceColumn
 {
     public MissingColumn(Table table, Column column, Field field)
     {
-        super(table, column, field);
+        super(table, field.getDeclaringClass(), column, field);
     }
 
     @Override
@@ -28,6 +28,6 @@ public class MissingColumn extends SchemaDifferenceColumn
     @Override
     public void resolveDifference(SchemaDao schemaDao)
     {
-        throw new UnsupportedOperationException();
+        schemaDao.addColumn(table.getTableName(), column);
     }
 }

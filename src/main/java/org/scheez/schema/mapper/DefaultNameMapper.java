@@ -53,6 +53,7 @@ public class DefaultNameMapper implements NameMapper
             {
                 sb.append(ch);
             }
+            lastCapital = false;
         }
         return sb.toString();
     }

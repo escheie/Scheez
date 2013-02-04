@@ -6,11 +6,9 @@ import org.scheez.schema.objects.Table;
 
 public class UnknownColumn extends SchemaDifferenceColumn
 {
-    private Column column;
-
-    public UnknownColumn(Table table, Column column)
+    public UnknownColumn(Table table, Column column, Class<?> cls)
     {
-        super(table, column, null);
+        super(table, cls, column, null);
     }
 
     @Override
@@ -28,6 +26,6 @@ public class UnknownColumn extends SchemaDifferenceColumn
     @Override
     public void resolveDifference(SchemaDao schemaDao)
     {
-        throw new UnsupportedOperationException();
+        schemaDao.dropColumn(table.getTableName(), column.getName());
     }
 }

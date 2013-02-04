@@ -11,9 +11,9 @@ public abstract class SchemaDifferenceColumn extends SchemaDifferenceTable
 
     protected Column column;
 
-    public SchemaDifferenceColumn(Table table, Column column, Field field)
+    public SchemaDifferenceColumn(Table table, Class<?> cls, Column column, Field field)
     {
-        super(table, field.getDeclaringClass());
+        super(table, cls);
         this.column = column;
         this.field = field;
     }
