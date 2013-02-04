@@ -65,13 +65,11 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         return jdbcTemplate.execute(new ConnectionCallback<Boolean>()
         {
             @Override
-            public Boolean doInConnection(Connection con) throws SQLException,
-                    DataAccessException
+            public Boolean doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 TableName tableName = new TableName(schemaName, null);
                 DatabaseMetaData metaData = con.getMetaData();
-                ResultSet resultSet = metaData.getSchemas(
-                        getCatalogName(tableName), getSchemaName(tableName));
+                ResultSet resultSet = metaData.getSchemas(getCatalogName(tableName), getSchemaName(tableName));
                 return resultSet.next();
             }
         });
@@ -83,16 +81,14 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         return jdbcTemplate.execute(new ConnectionCallback<List<String>>()
         {
             @Override
-            public List<String> doInConnection(Connection con)
-                    throws SQLException, DataAccessException
+            public List<String> doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 DatabaseMetaData metaData = con.getMetaData();
                 ResultSet resultSet = metaData.getSchemas(null, null);
                 LinkedList<String> schemaNames = new LinkedList<String>();
                 while (resultSet.next())
                 {
-                    schemaNames.add(resultSet
-                            .getString(TableMetaDataKey.TABLE_SCHEM.toString()));
+                    schemaNames.add(resultSet.getString(TableMetaDataKey.TABLE_SCHEM.toString()));
                 }
                 return schemaNames;
             }
@@ -136,13 +132,11 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         return jdbcTemplate.execute(new ConnectionCallback<Table>()
         {
             @Override
-            public Table doInConnection(Connection con) throws SQLException,
-                    DataAccessException
+            public Table doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 DatabaseMetaData metaData = con.getMetaData();
                 Table table = null;
-                ResultSet tableResultSet = metaData.getTables(
-                        getCatalogName(tableName), getSchemaName(tableName),
+                ResultSet tableResultSet = metaData.getTables(getCatalogName(tableName), getSchemaName(tableName),
                         getTableName(tableName), null);
                 if (tableResultSet.next())
                 {
@@ -150,10 +144,8 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
                 }
                 if (table != null)
                 {
-                    ResultSet columns = metaData.getColumns(
-                            getCatalogName(table.getTableName()),
-                            getSchemaName(table.getTableName()),
-                            getTableName(table.getTableName()), null);
+                    ResultSet columns = metaData.getColumns(getCatalogName(table.getTableName()),
+                            getSchemaName(table.getTableName()), getTableName(table.getTableName()), null);
                     while (columns.next())
                     {
                         table.addColumn(getColumn(columns));
@@ -165,27 +157,24 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     }
 
     @Override
-    public List<Table> getTables (final String schemaName)
+    public List<Table> getTables(final String schemaName)
     {
         return jdbcTemplate.execute(new ConnectionCallback<List<Table>>()
         {
             @Override
-            public List<Table> doInConnection(Connection con) throws SQLException,
-                    DataAccessException
+            public List<Table> doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 TableName tableName = new TableName(schemaName, null);
                 DatabaseMetaData metaData = con.getMetaData();
                 List<Table> tables = new LinkedList<Table>();
-                ResultSet rs = metaData.getTables(
-                        getCatalogName(tableName), getSchemaName(tableName),
+                ResultSet rs = metaData.getTables(getCatalogName(tableName), getSchemaName(tableName),
                         getTableName(tableName), null);
                 while (rs.next())
                 {
-                    Table table = new Table(new TableName(schemaName, rs.getString(TableMetaDataKey.TABLE_NAME.toString())));
-                    ResultSet columns = metaData.getColumns(
-                            getCatalogName(table.getTableName()),
-                            getSchemaName(table.getTableName()),
-                            getTableName(table.getTableName()), null);
+                    Table table = new Table(new TableName(schemaName, rs.getString(TableMetaDataKey.TABLE_NAME
+                            .toString())));
+                    ResultSet columns = metaData.getColumns(getCatalogName(table.getTableName()),
+                            getSchemaName(table.getTableName()), getTableName(table.getTableName()), null);
                     while (columns.next())
                     {
                         table.addColumn(getColumn(columns));
@@ -197,21 +186,61 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         });
     }
 
+    @Override
+    public void addColumn(TableName tableName, Column column)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" ADD COLUMN ");
+        sb.append(getColumnString(column));
+        jdbcTemplate.execute(sb.toString());
+
+    }
+
+    @Override
+    public void dropColumn(TableName tableName, String columnName)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" DROP COLUMN ");
+        sb.append(columnName);
+        jdbcTemplate.execute(sb.toString());
+    }
+
+    @Override
+    public Column getColumn (final TableName tableName, final String columnName)
+    {
+        return jdbcTemplate.execute(new ConnectionCallback<Column>()
+        {
+            @Override
+            public Column doInConnection(Connection con) throws SQLException, DataAccessException
+            {
+                DatabaseMetaData metaData = con.getMetaData();
+                ResultSet columns = metaData.getColumns(getCatalogName(tableName),
+                        getSchemaName(tableName), getTableName(tableName), getColumnName(columnName));
+                Column column = null;
+                if(columns.next())
+                {
+                    column = getColumn(columns);
+                }
+                return column;
+            }
+        });
+    }
+
     protected List<String> getCatalogs()
     {
         return jdbcTemplate.execute(new ConnectionCallback<List<String>>()
         {
             @Override
-            public List<String> doInConnection(Connection con)
-                    throws SQLException, DataAccessException
+            public List<String> doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 DatabaseMetaData metaData = con.getMetaData();
                 ResultSet resultSet = metaData.getCatalogs();
                 LinkedList<String> schemaNames = new LinkedList<String>();
                 while (resultSet.next())
                 {
-                    schemaNames.add(resultSet
-                            .getString(TableMetaDataKey.TABLE_CAT.toString()));
+                    schemaNames.add(resultSet.getString(TableMetaDataKey.TABLE_CAT.toString()));
                 }
                 return schemaNames;
             }
@@ -223,16 +252,14 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         return jdbcTemplate.execute(new ConnectionCallback<Boolean>()
         {
             @Override
-            public Boolean doInConnection(Connection con) throws SQLException,
-                    DataAccessException
+            public Boolean doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 boolean exists = false;
                 DatabaseMetaData metaData = con.getMetaData();
                 ResultSet resultSet = metaData.getCatalogs();
                 while (resultSet.next())
                 {
-                    if (catalogName.equalsIgnoreCase(resultSet
-                            .getString(TableMetaDataKey.TABLE_CAT.name())))
+                    if (catalogName.equalsIgnoreCase(resultSet.getString(TableMetaDataKey.TABLE_CAT.name())))
                     {
                         exists = true;
                         break;
@@ -256,6 +283,11 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     protected String getTableName(TableName tableName)
     {
         return tableName.getTableName();
+    }
+    
+    protected String getColumnName (String columnName)
+    {
+        return columnName;
     }
 
     protected Column getColumn(ResultSet resultSet) throws SQLException
@@ -281,8 +313,7 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
             }
             log.debug(sb.toString());
         }
-        return new Column(resultSet.getString(ColumnMetaDataKey.COLUMN_NAME
-                .name()), ColumnType.getType(resultSet
+        return new Column(resultSet.getString(ColumnMetaDataKey.COLUMN_NAME.name()), ColumnType.getType(resultSet
                 .getInt(ColumnMetaDataKey.DATA_TYPE.name())));
     }
 

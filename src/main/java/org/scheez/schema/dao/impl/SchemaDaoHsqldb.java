@@ -1,10 +1,7 @@
 package org.scheez.schema.dao.impl;
 
-import java.util.List;
-
 import javax.sql.DataSource;
 
-import org.scheez.schema.objects.Table;
 import org.scheez.schema.objects.TableName;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -19,23 +16,24 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
     {
         super(jdbcTemplate);
     }
-    
+
     @Override
-    public boolean schemaExists(String schemaName)
+    protected String getSchemaName(TableName tableName)
     {
-        return super.schemaExists(schemaName.toUpperCase());
+       return tableName.toUpperCase().getSchemaName();
     }
 
     @Override
-    public Table getTable(TableName tableName)
+    protected String getTableName(TableName tableName)
     {
-        return super.getTable(tableName.toUpperCase());
+        return tableName.toUpperCase().getTableName();
+    }
+
+    @Override
+    protected String getColumnName(String columnName)
+    {
+        return columnName.toUpperCase();
     }
     
-    @Override
-    public List<Table> getTables(String schemaName)
-    {
-        // TODO Auto-generated method stub
-        return super.getTables(schemaName.toUpperCase());
-    }
+    
 }
