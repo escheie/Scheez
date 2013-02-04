@@ -1,5 +1,8 @@
 package org.scheez.schema.diff;
 
+import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.objects.Table;
+
 public interface SchemaDifference
 {
     enum Type 
@@ -15,7 +18,11 @@ public interface SchemaDifference
     
     Type getType ();
     
-    String getMessage ();
+    String getDescription ();
     
-    String getTableName ();
+    Table getTable ();
+    
+    Class<?> getTableClass ();
+    
+    void resolveDifference (SchemaDao schemaDao);
 }

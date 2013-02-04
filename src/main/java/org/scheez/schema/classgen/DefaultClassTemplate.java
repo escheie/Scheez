@@ -49,7 +49,7 @@ public class DefaultClassTemplate implements ClassTemplate
         Set<Class<?>> columnClasses = new HashSet<Class<?>>();
         for (Column column : columns)
         {
-            columnClasses.add(column.getType().getJavaClass());
+            columnClasses.add(column.getType().getTypeClass());
         }
         for (Class<?> cls : columnClasses)
         {
@@ -94,7 +94,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getMemberVariable(Column column)
     {
-        return "    private " + column.getType().getJavaClass().getSimpleName()
+        return "    private " + column.getType().getTypeClass().getSimpleName()
                 + " " + nameMapper.mapDatabaseNameToJavaName(column.getName()) + ";";
     }
 
@@ -120,7 +120,7 @@ public class DefaultClassTemplate implements ClassTemplate
         return "    public void set"
                 + Character.toUpperCase(columnName.charAt(0))
                 + columnName.substring(1) + "("
-                + column.getType().getJavaClass().getSimpleName() + " "
+                + column.getType().getTypeClass().getSimpleName() + " "
                 + columnName + ")\n" +
                 "    {\n" +
                 "        this." + columnName + " = " + columnName + ";\n" +
@@ -140,7 +140,7 @@ public class DefaultClassTemplate implements ClassTemplate
     public String getGetter(Column column)
     {
         String columnName = nameMapper.mapDatabaseNameToJavaName(column.getName());
-        return "    public " + column.getType().getJavaClass().getSimpleName() + " get"
+        return "    public " + column.getType().getTypeClass().getSimpleName() + " get"
                 + Character.toUpperCase(columnName.charAt(0))
                 + columnName.substring(1) + "()\n" +
                 "    {\n" +

@@ -1,54 +1,61 @@
 package org.scheez.schema.def;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.sql.Types;
 
 public enum ColumnType
 { 
-    TINYINT (Byte.class, Types.TINYINT),
+    TINYINT (new Class<?>[] {Byte.class}, Types.TINYINT),
     
-    SMALLINT (Short.class, Types.SMALLINT), 
+    SMALLINT (new Class<?>[] {Short.class}, Types.SMALLINT), 
     
-    INTEGER (Integer.class, Types.INTEGER),  
+    INTEGER (new Class<?>[] {Integer.class}, Types.INTEGER),  
     
-    BIGINT (Long.class, Types.BIGINT),
+    BIGINT (new Class<?>[] {Long.class, BigInteger.class}, Types.BIGINT),
     
-    FLOAT (Float.class, Types.FLOAT, Types.REAL),
+    FLOAT (new Class<?>[] {Float.class}, Types.FLOAT, Types.REAL),
     
-    DOUBLE (Double.class, Types.DOUBLE),
+    DOUBLE (new Class<?>[] {Double.class}, Types.DOUBLE),
     
-    DECIMAL (BigDecimal.class, Types.DECIMAL, Types.NUMERIC),
+    DECIMAL (new Class<?>[] {BigDecimal.class}, Types.DECIMAL, Types.NUMERIC),
     
-    BOOLEAN (Boolean.class, Types.BOOLEAN, Types.BIT),
+    BOOLEAN (new Class<?>[] {Boolean.class}, Types.BOOLEAN, Types.BIT),
     
-    CHAR (String.class, Types.CHAR),
+    CHAR (new Class<?>[] {String.class}, Types.CHAR),
     
-    VARCHAR (String.class, Types.VARCHAR), 
+    VARCHAR (new Class<?>[] {String.class, char[].class}, Types.VARCHAR, Types.CLOB), 
     
-    TIMESTAMP (Timestamp.class, Types.TIMESTAMP, Types.TIME, Types.DATE), 
+    TIMESTAMP (new Class<?>[] {Timestamp.class, Date.class, java.util.Date.class}, Types.TIMESTAMP, Types.TIME, Types.DATE), 
     
-    BINARY (byte[].class, Types.BINARY, Types.BLOB, Types.OTHER, Types.ARRAY);
+    BINARY (new Class<?>[] { byte[].class }, Types.BINARY, Types.BLOB, Types.OTHER, Types.ARRAY);
     
-    private Class<? extends Object> cls;
+    private Class<?>[] classes;
       
-    private Integer[] types;
+    private Integer[] sqlTypes;
     
-    private ColumnType(Class<? extends Object> cls, Integer... types)
+    private ColumnType(Class<?>[] classes, Integer... sqlTypes)
     {
-        this.cls = cls;
-        this.types = types;
+        this.classes = classes;
+        this.sqlTypes = sqlTypes;
     }
     
-    public Class<? extends Object> getJavaClass ()
+    public Class<?> getTypeClass ()
     {
-        return cls;
+        return classes[0];
+    }
+    
+    public Class<?>[] getTypeClasses ()
+    {
+        return classes;
     }
     
     public boolean isEquivalent (int sqlTypeCode)
     {
         boolean eq = false;
-        for(int type : types)
+        for(int type : sqlTypes)
         {
             if(type == sqlTypeCode)
             {
@@ -73,6 +80,30 @@ public enum ColumnType
                 break;
             }
             
+        }
+        return type;
+    }
+    
+    /**
+     * Maps the type from Java SQL types.
+     */
+    public static ColumnType getType (Class<?> cls)
+    {
+        ColumnType type = null;
+        for (ColumnType t : values())
+        {
+            for (Class<?> c : t.getTypeClasses())
+            {
+                if(c.equals(cls))
+                {
+                    type = t;
+                    break;
+                }
+            }
+            if (type != null)
+            {
+                break;
+            }
         }
         return type;
     }

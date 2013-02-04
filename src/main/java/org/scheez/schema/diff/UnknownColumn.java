@@ -1,16 +1,16 @@
 package org.scheez.schema.diff;
 
+import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.objects.Column;
 import org.scheez.schema.objects.Table;
 
-public class UnknownColumn extends AbstractSchemaDifference
+public class UnknownColumn extends SchemaDifferenceColumn
 {
     private Column column;
 
     public UnknownColumn(Table table, Column column)
     {
-        super(table);
-        this.column = column;
+        super(table, column, null);
     }
 
     @Override
@@ -20,14 +20,14 @@ public class UnknownColumn extends AbstractSchemaDifference
     }
 
     @Override
-    public String getMessage()
+    public String getDescription()
     {
-        return "Unknown column \"" + column.getName() + "\" on table \"" + getTable().getTableName() + "\".  No matching field found.";
+        return "Unknown column \"" + column.getName() + "\" on table \"" + table.getTableName() + "\".  No matching field found.";
     }
 
-    public Column getColumn()
+    @Override
+    public void resolveDifference(SchemaDao schemaDao)
     {
-        return column;
+        throw new UnsupportedOperationException();
     }
-
 }

@@ -6,5 +6,7 @@ import org.scheez.schema.diff.SchemaDifference;
 
 public interface SchemaManager
 {
-    List<SchemaDifference> diff ();  
+    List<SchemaDifference> findDifferences ();  
+    
+    void resolveDifferences (List<SchemaDifference> differences);
 }

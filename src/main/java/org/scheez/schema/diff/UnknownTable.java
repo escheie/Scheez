@@ -1,12 +1,13 @@
 package org.scheez.schema.diff;
 
+import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.objects.Table;
 
-public class UnknownTable extends AbstractSchemaDifference
+public class UnknownTable extends SchemaDifferenceTable
 {
     public UnknownTable(Table table)
     {
-        super(table);
+        super(table, null);
     }
 
     @Override
@@ -16,8 +17,14 @@ public class UnknownTable extends AbstractSchemaDifference
     }
 
     @Override
-    public String getMessage()
+    public String getDescription()
     {
-        return "Unknown table \"" + getTable().getTableName() + "\".  No matching class found.";
+        return "Unknown table \"" + table.getTableName() + "\".  No matching class found.";
+    }
+
+    @Override
+    public void resolveDifference(SchemaDao schemaDao)
+    {
+        schemaDao.dropTable(table.getTableName());
     }
 }

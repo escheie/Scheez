@@ -1,16 +1,13 @@
 package org.scheez.schema.diff;
 
-public class MissingTable extends AbstractSchemaDifference
+import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.objects.Table;
+
+public class MissingTable extends SchemaDifferenceTable
 {
-    private String tableName;
-
-    private Class<?> cls;
-
-    public MissingTable(String tableName, Class<?> cls)
+    public MissingTable(Table table, Class<?> tableClass)
     {
-        super();
-        this.tableName = tableName;
-        this.cls = cls;
+        super(table, tableClass);
     }
 
     @Override
@@ -20,20 +17,14 @@ public class MissingTable extends AbstractSchemaDifference
     }
 
     @Override
-    public String getMessage()
+    public String getDescription()
     {
-        return "Missing table \"" + tableName + "\" for class " + cls.getName() + ".";
+        return "Missing table \"" + table.getTableName() + "\" for class " + tableClass.getName() + ".";
     }
 
     @Override
-    public String getTableName()
+    public void resolveDifference (SchemaDao schemaDao)
     {
-        return tableName;
+        schemaDao.createTable(table);
     }
-
-    public Class<?> getTableClass ()
-    {
-        return cls;
-    }
-
 }

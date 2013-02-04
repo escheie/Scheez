@@ -1,7 +1,10 @@
 package org.scheez.schema.manger;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -9,14 +12,14 @@ import org.reflections.Reflections;
 
 public class SchemaClasses implements Iterable<Class<?>>
 {
-    private Set<Class<?>> includes;
+    private List<Class<?>> includes;
     
     private Set<Class<?>> excludes;
 
     public SchemaClasses()
     {
-        includes = new TreeSet<Class<?>>();
-        excludes = new TreeSet<Class<?>>();
+        includes = new LinkedList<Class<?>>();
+        excludes = new HashSet<Class<?>>();
     }
 
     public SchemaClasses include (Package... packages)
@@ -55,8 +58,8 @@ public class SchemaClasses implements Iterable<Class<?>>
     @Override
     public Iterator<Class<?>> iterator()
     {
-        TreeSet<Class<?>> set = new TreeSet<Class<?>>(includes);
-        set.removeAll(excludes);
-        return Collections.unmodifiableSet(set).iterator();
+        List<Class<?>> list = new LinkedList<Class<?>>(includes);
+        list.removeAll(excludes);
+        return list.iterator();
     }
 }

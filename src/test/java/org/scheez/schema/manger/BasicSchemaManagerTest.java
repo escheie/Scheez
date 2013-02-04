@@ -17,6 +17,7 @@ import org.scheez.schema.dao.impl.SchemaDaoFactoryUrl;
 import org.scheez.schema.diff.MissingTable;
 import org.scheez.schema.diff.SchemaDifference;
 import org.scheez.schema.diff.SchemaDifference.Type;
+import org.scheez.schema.diff.UnknownTable;
 import org.scheez.test.db.TestDatabase;
 import org.scheez.test.db.TestDatabaseManager;
 import org.scheez.test.schema.Person;
@@ -47,28 +48,57 @@ public class BasicSchemaManagerTest
 
     /**
      * Test method for
-     * {@link org.scheez.schema.manger.BasicSchemaManager#diff()}.
+     * {@link org.scheez.schema.manger.BasicSchemaManager#findDifferences()}.
      */
     @Test
-    public void testMissingTable()
+    public void testMissingAndUnknownTable()
     {
         SchemaClasses classes = new SchemaClasses();
         classes.include(Person.class);
         
         BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
-        List<SchemaDifference> diff = schemaManager.diff();
+        List<SchemaDifference> differences = schemaManager.findDifferences();
         
-        assertNotNull(diff);
-        assertEquals(1, diff.size());
+        assertNotNull(differences);
+        assertEquals(1, differences.size());
         
-        MissingTable missingTable = (MissingTable)diff.get(0);
+        MissingTable missingTable = (MissingTable)differences.get(0);
         
         log.info(missingTable);
         assertEquals(Type.MISSING_TABLE, missingTable.getType());
         assertEquals(Person.class, missingTable.getTableClass());
-        assertNull(missingTable.getTable());
-        assertEquals("persons", missingTable.getTableName());
-        assertNotNull(missingTable.getMessage());
+        assertNotNull(missingTable.getTable());
+        assertEquals("persons", missingTable.getTable().getName());
+        assertNotNull(missingTable.getDescription());
+        
+        schemaManager.resolveDifferences(differences);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(0, differences.size());
+        
+        classes.exclude(Person.class);
+        schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(1, differences.size());
+        
+        UnknownTable unknownTable = (UnknownTable)differences.get(0);
+        
+        log.info(unknownTable);
+        assertEquals(Type.UNKNOWN_TABLE, unknownTable.getType());
+        assertNull(unknownTable.getTableClass());
+        assertNotNull(unknownTable.getTable());
+        assertNotNull(unknownTable.getDescription());
+        
+        schemaManager.resolveDifferences(differences);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(0, differences.size());
     }
     
     @Parameters (name="{0}")

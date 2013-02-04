@@ -2,19 +2,15 @@ package org.scheez.schema.diff;
 
 import java.lang.reflect.Field;
 
+import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.objects.Column;
 import org.scheez.schema.objects.Table;
 
-public class MissingColumn extends AbstractSchemaDifference
+public class MissingColumn extends SchemaDifferenceColumn
 {
-    private Field field;
-
-    private String columnName;
-
-    public MissingColumn(Table table, Field field, String columnName)
+    public MissingColumn(Table table, Column column, Field field)
     {
-        super(table);
-        this.field = field;
-        this.columnName = columnName;
+        super(table, column, field);
     }
 
     @Override
@@ -24,19 +20,14 @@ public class MissingColumn extends AbstractSchemaDifference
     }
 
     @Override
-    public String getMessage()
+    public String getDescription()
     {
-        return "Table " + getTable().getTableName() + " is missing column \"" + columnName + "\" for field \"" + field.toString() + "\".";
-    }
-    
-    public Field getField()
-    {
-        return field;
+        return "Table " + table.getTableName() + " is missing column \"" + column.getName() + "\" for field \"" + field.toString() + "\".";
     }
 
-    public String getColumnName()
+    @Override
+    public void resolveDifference(SchemaDao schemaDao)
     {
-        return columnName;
+        throw new UnsupportedOperationException();
     }
-
 }
