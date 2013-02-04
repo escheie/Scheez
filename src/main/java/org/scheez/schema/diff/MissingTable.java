@@ -22,7 +22,7 @@ public class MissingTable extends AbstractSchemaDifference
     @Override
     public String getMessage()
     {
-        return "Missing table + \"" + tableName + "\" for \"" + cls.getName() + "\".";
+        return "Missing table \"" + tableName + "\" for class " + cls.getName() + ".";
     }
 
     @Override

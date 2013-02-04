@@ -1,5 +1,7 @@
 package org.scheez.schema.mapper;
 
+import org.atteo.evo.inflector.English;
+
 public class DefaultClassMapper implements ClassMapper
 {
     private NameMapper nameMapper;
@@ -17,7 +19,17 @@ public class DefaultClassMapper implements ClassMapper
     @Override
     public String mapClass (Class<?> cls)
     {
-        return nameMapper.mapJavaNameToDatabaseName(cls.getSimpleName());
+        String name = nameMapper.mapJavaNameToDatabaseName(cls.getSimpleName());
+        int index = name.lastIndexOf('_');
+        if (index < 0)
+        {
+            name = English.plural(name);
+        }
+        else
+        {
+            name = name.substring(0, index + 1) + English.plural(name.substring(index + 1));
+        }
+        return name;
     }
 
 }
