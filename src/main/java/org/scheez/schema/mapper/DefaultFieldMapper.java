@@ -2,8 +2,10 @@ package org.scheez.schema.mapper;
 
 import java.lang.reflect.Field;
 
+import org.scheez.reflect.PersistentField;
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.objects.Column;
+import org.scheez.schema.parts.Column;
+import org.springframework.dao.DuplicateKeyException;
 
 public class DefaultFieldMapper implements FieldMapper
 {
@@ -20,15 +22,23 @@ public class DefaultFieldMapper implements FieldMapper
     }
 
     @Override
-    public Column mapField (Field field)
+    public Column mapField (Field f)
     {
-        String name = nameMapper.mapJavaNameToDatabaseName(field.getName());
-        ColumnType type = ColumnType.getType(field.getType());
-        if(type == null)
+        PersistentField field = new PersistentField (f);
+        
+        String name = field.getColumnName();
+        if(name == null)
         {
-            throw new UnsupportedOperationException("The java type " + field.getType() + " is not supported");
+            name = nameMapper.mapJavaNameToDatabaseName(field.getName());
         }
-        Column column = new Column(name, type);
+        
+        Column column = new Column(name, field.getType());
+        
+        if(column.getType() == ColumnType.VARCHAR)
+        {
+            column.setLength(field.getLength());
+        }
+      
         return column;
     }
 
@@ -36,21 +46,33 @@ public class DefaultFieldMapper implements FieldMapper
     public Field mapField(Class<?> cls, String name)
     {
         String fieldName = nameMapper.mapDatabaseNameToJavaName(name);
-
+        
         Field retval = null;
-        while((retval == null) && (cls != null))
+        for (PersistentField field : PersistentField.getPersistentFields(cls))
         {
-            for (Field field : cls.getDeclaredFields())
+            Field f = null;
+            String columnName = field.getColumnName();
+            if(columnName != null) 
             {
-                if (field.getName().equalsIgnoreCase(fieldName))
+                if(name.equalsIgnoreCase(columnName))
                 {
-                    retval = field;
-                    break;
+                    f = field.getField();
                 }
             }
-            cls = cls.getSuperclass();
+            else if (field.getName().equalsIgnoreCase(fieldName))
+            {
+                f = field.getField();
+            }
+            if (f != null)
+            {
+                if(retval != null)
+                {
+                    throw new DuplicateKeyException("There are more than one field in " + cls.getName() + " or its super classes that map to the column \"" + name + "\".");
+                }
+                retval = f;
+            }
         }
-
+        
         return retval;
     }
 }

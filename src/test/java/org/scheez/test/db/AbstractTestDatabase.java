@@ -6,7 +6,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.TableName;
 
 public class AbstractTestDatabase implements TestDatabase
 {

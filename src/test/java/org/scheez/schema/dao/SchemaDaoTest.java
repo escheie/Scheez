@@ -12,9 +12,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.dao.impl.SchemaDaoFactoryUrl;
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.objects.Column;
-import org.scheez.schema.objects.Table;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.Table;
+import org.scheez.schema.parts.TableName;
 import org.scheez.test.db.TestDatabase;
 import org.scheez.test.db.TestDatabaseManager;
 
@@ -129,7 +129,7 @@ public class SchemaDaoTest
         ColumnType[] types = ColumnType.values();
         for(int index = 0; index < types.length; index++)
         {
-            schemaDao.addColumn(tableName, new Column("col" + (index + 1), types[index],  (types[index] == ColumnType.VARCHAR) ? 256 : null));
+            schemaDao.addColumn(tableName, new Column("col" + (index + 1), types[index]));
         } 
         
         Table table2 = schemaDao.getTable(tableName);

@@ -6,8 +6,8 @@ import java.util.Set;
 
 import org.scheez.schema.mapper.DefaultNameMapper;
 import org.scheez.schema.mapper.NameMapper;
-import org.scheez.schema.objects.Column;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.TableName;
 
 public class DefaultClassTemplate implements ClassTemplate
 {

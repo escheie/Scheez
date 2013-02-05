@@ -3,8 +3,10 @@ package org.scheez.schema.def;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Calendar;
 
 public enum ColumnType
 { 
@@ -26,11 +28,11 @@ public enum ColumnType
     
     CHAR (new Class<?>[] {String.class}, Types.CHAR),
     
-    VARCHAR (new Class<?>[] {String.class, char[].class}, Types.VARCHAR, Types.CLOB), 
+    VARCHAR (new Class<?>[] {String.class, char[].class, Character[].class}, Types.VARCHAR, Types.CLOB), 
     
-    TIMESTAMP (new Class<?>[] {Timestamp.class, Date.class, java.util.Date.class}, Types.TIMESTAMP, Types.TIME, Types.DATE), 
+    TIMESTAMP (new Class<?>[] {Timestamp.class, Date.class, Time.class, java.util.Date.class, Calendar.class}, Types.TIMESTAMP, Types.TIME, Types.DATE), 
     
-    BINARY (new Class<?>[] { byte[].class }, Types.BINARY, Types.BLOB, Types.OTHER, Types.ARRAY);
+    BINARY (new Class<?>[] { byte[].class, Byte[].class }, Types.BINARY, Types.BLOB, Types.OTHER, Types.ARRAY);
     
     private Class<?>[] classes;
       

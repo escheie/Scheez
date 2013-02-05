@@ -3,7 +3,7 @@ package org.scheez.schema.dao.impl;
 import javax.sql.DataSource;
 
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.objects.Column;
+import org.scheez.schema.parts.Column;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoPostgresql extends SchemaDaoAnsi 
@@ -17,6 +17,11 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
     {
         super(jdbcTemplate);
     }
+    
+    protected Integer getColumnLength (Column column)
+    {
+        return column.getLength();
+    }
 
     @Override
     protected String getColumnTypeString(Column column)
@@ -24,10 +29,6 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         String typeStr = null;
         switch (column.getType())
         {
-            case VARCHAR:
-                /// No need to specify character limits.
-                typeStr = ColumnType.VARCHAR.name();
-                break;
             case TINYINT:
                 typeStr = ColumnType.SMALLINT.name(); 
                 break;

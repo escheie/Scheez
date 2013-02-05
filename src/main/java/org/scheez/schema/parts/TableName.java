@@ -1,4 +1,4 @@
-package org.scheez.schema.objects;
+package org.scheez.schema.parts;
 
 import org.scheez.util.BaseObject;
 

@@ -1,7 +1,7 @@
 package org.scheez.schema.diff;
 
 import org.scheez.schema.dao.SchemaDao;
-import org.scheez.schema.objects.Table;
+import org.scheez.schema.parts.Table;
 
 public class UnknownTable extends SchemaDifferenceTable
 {

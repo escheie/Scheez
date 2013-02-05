@@ -1,7 +1,7 @@
 package org.scheez.schema.mapper;
 
-import org.scheez.schema.objects.Table;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.Table;
+import org.scheez.schema.parts.TableName;
 
 public interface ClassMapper
 {

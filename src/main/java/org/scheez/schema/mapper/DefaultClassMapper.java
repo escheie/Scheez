@@ -5,8 +5,8 @@ import java.lang.reflect.Field;
 import javassist.Modifier;
 
 import org.atteo.evo.inflector.English;
-import org.scheez.schema.objects.Table;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.Table;
+import org.scheez.schema.parts.TableName;
 
 public class DefaultClassMapper implements ClassMapper
 {
@@ -23,15 +23,24 @@ public class DefaultClassMapper implements ClassMapper
     @Override
     public String mapClass(Class<?> cls)
     {
+        javax.persistence.Table config = cls.getAnnotation(javax.persistence.Table.class);
+        
         String name = nameMapper.mapJavaNameToDatabaseName(cls.getSimpleName());
-        int index = name.lastIndexOf('_');
-        if (index < 0)
+        if((config != null) && (config.name() != null) && (!config.name().isEmpty()))
         {
-            name = English.plural(name);
+            name = config.name();
         }
         else
         {
-            name = name.substring(0, index + 1) + English.plural(name.substring(index + 1));
+            int index = name.lastIndexOf('_');
+            if (index < 0)
+            {
+                name = English.plural(name);
+            }
+            else
+            {
+                name = name.substring(0, index + 1) + English.plural(name.substring(index + 1));
+            }
         }
         return name;
     }

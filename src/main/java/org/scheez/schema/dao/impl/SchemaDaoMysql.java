@@ -5,8 +5,8 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.objects.Column;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.TableName;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoMysql extends SchemaDaoAnsi

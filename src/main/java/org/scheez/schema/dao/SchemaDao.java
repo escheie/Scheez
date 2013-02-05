@@ -2,9 +2,9 @@ package org.scheez.schema.dao;
 
 import java.util.List;
 
-import org.scheez.schema.objects.Column;
-import org.scheez.schema.objects.Table;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.Table;
+import org.scheez.schema.parts.TableName;
 
 public interface SchemaDao
 {

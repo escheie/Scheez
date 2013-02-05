@@ -2,7 +2,7 @@ package org.scheez.schema.dao.impl;
 
 import javax.sql.DataSource;
 
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.TableName;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoHsqldb extends SchemaDaoAnsi

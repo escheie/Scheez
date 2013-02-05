@@ -16,7 +16,7 @@ import org.scheez.schema.classgen.GeneratedClass;
 import org.scheez.schema.mapper.DefaultNameMapper;
 import org.scheez.schema.mapper.NameMapper;
 import org.scheez.schema.mapper.ObjectMapper;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.TableName;
 import org.scheez.test.db.TestDatabase;
 import org.scheez.test.db.TestDatabaseManager;
 import org.scheez.util.BaseObject;

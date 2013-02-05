@@ -16,9 +16,9 @@ import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.def.ColumnMetaDataKey;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.def.TableMetaDataKey;
-import org.scheez.schema.objects.Column;
-import org.scheez.schema.objects.Table;
-import org.scheez.schema.objects.TableName;
+import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.Table;
+import org.scheez.schema.parts.TableName;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,6 +26,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
 {
     private static final Log log = LogFactory.getLog(SchemaDaoAnsi.class);
+    
+    private static final int DEFAULT_LENGTH = 255;
 
     protected boolean supportsCascade = true;
 
@@ -37,6 +39,36 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     public SchemaDaoAnsi(JdbcTemplate jdbcTemplate)
     {
         super(jdbcTemplate);
+    }
+    
+    protected String getCatalogName(TableName tableName)
+    {
+        return null;
+    }
+
+    protected String getSchemaName(TableName tableName)
+    {
+        return tableName.getSchemaName();
+    }
+
+    protected String getTableName(TableName tableName)
+    {
+        return tableName.getTableName();
+    }
+    
+    protected String getColumnName (String columnName)
+    {
+        return columnName;
+    }
+    
+    protected Integer getColumnLength (Column column)
+    {
+        Integer length = column.getLength();
+        if(length == null)
+        {
+            length = DEFAULT_LENGTH;
+        }
+        return length;
     }
 
     @Override
@@ -270,25 +302,7 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         });
     }
 
-    protected String getCatalogName(TableName tableName)
-    {
-        return null;
-    }
-
-    protected String getSchemaName(TableName tableName)
-    {
-        return tableName.getSchemaName();
-    }
-
-    protected String getTableName(TableName tableName)
-    {
-        return tableName.getTableName();
-    }
     
-    protected String getColumnName (String columnName)
-    {
-        return columnName;
-    }
 
     protected Column getColumn(ResultSet resultSet) throws SQLException
     {
@@ -331,9 +345,10 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         switch (column.getType())
         {
             case VARCHAR:
-                if (column.getSize() != null)
+                Integer length = getColumnLength(column);
+                if (length != null)
                 {
-                    typeStr = "VARCHAR(" + column.getSize() + ")";
+                    typeStr = "VARCHAR(" + length + ")";
                 }
                 else
                 {

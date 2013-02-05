@@ -2,7 +2,7 @@ package org.scheez.schema.mapper;
 
 import java.lang.reflect.Field;
 
-import org.scheez.schema.objects.Column;
+import org.scheez.schema.parts.Column;
 
 public interface FieldMapper
 {

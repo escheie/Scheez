@@ -1,4 +1,4 @@
-package org.scheez.schema.objects;
+package org.scheez.schema.parts;
 
 import org.scheez.schema.def.ColumnType;
 import org.scheez.util.BaseObject;
@@ -6,23 +6,28 @@ import org.scheez.util.BaseObject;
 public class Column extends BaseObject
 {
     private String name;
+
     private ColumnType type;
-    private Integer size;
+
+    private Integer length;
+
     private Integer precision;
+
     private Integer scale;
-    private Object extraInfo;
+
+    private String definition;
 
     public Column(String name, ColumnType type)
     {
         this(name, type, null);
     }
 
-    public Column(String name, ColumnType type, Integer size)
+    public Column(String name, ColumnType type, Integer length)
     {
         super();
         this.name = name;
         this.type = type;
-        this.size = size;
+        this.length = length;
     }
 
     public void setName(String name)
@@ -45,14 +50,14 @@ public class Column extends BaseObject
         this.type = type;
     }
 
-    public Integer getSize()
+    public Integer getLength()
     {
-        return size;
+        return length;
     }
 
-    public void setSize(Integer size)
+    public void setLength(Integer length)
     {
-        this.size = size;
+        this.length = length;
     }
 
     public Integer getPrecision()
@@ -75,13 +80,14 @@ public class Column extends BaseObject
         this.scale = scale;
     }
 
-    public Object getExtraInfo()
+    public String getDefinition()
     {
-        return extraInfo;
+        return definition;
     }
 
-    public void setExtraInfo(Object extraInfo)
+    public void setDefinition(String definition)
     {
-        this.extraInfo = extraInfo;
+        this.definition = definition;
     }
+
 }

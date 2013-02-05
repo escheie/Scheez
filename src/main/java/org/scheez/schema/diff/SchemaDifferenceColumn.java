@@ -2,8 +2,8 @@ package org.scheez.schema.diff;
 
 import java.lang.reflect.Field;
 
-import org.scheez.schema.objects.Column;
-import org.scheez.schema.objects.Table;
+import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.Table;
 
 public abstract class SchemaDifferenceColumn extends SchemaDifferenceTable
 {

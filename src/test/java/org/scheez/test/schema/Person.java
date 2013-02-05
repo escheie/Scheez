@@ -2,6 +2,8 @@ package org.scheez.test.schema;
 
 import java.sql.Date;
 
+import javax.persistence.Column;
+
 public class Person
 {
     private Long id;
@@ -9,9 +11,11 @@ public class Person
     private String firstName;
 
     private String lastName;
-
+    
+    @Column (name="dob")
     private Date dateOfBirth;
 
+    @Column (name="bob")
     private Date dateOfDeath;
 
     public Long getId()
