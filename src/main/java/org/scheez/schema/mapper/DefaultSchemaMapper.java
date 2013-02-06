@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.atteo.evo.inflector.English;
 import org.scheez.reflect.PersistentField;
-import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
@@ -81,9 +80,14 @@ public class DefaultSchemaMapper implements SchemaMapper
 
         Column column = new Column(name, field.getType());
 
-        if (column.getType() == ColumnType.VARCHAR)
+        if (column.getType().isLengthSupported())
         {
             column.setLength(field.getLength());
+        }
+        else if (column.getType().isPrecisionSupported())
+        {
+            column.setPrecision(field.getPrecision());
+            column.setScale(field.getScale());
         }
 
         return column;

@@ -1,5 +1,6 @@
 package org.scheez.test.schema;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 
 import javax.persistence.Column;
@@ -8,16 +9,19 @@ public class Person
 {
     private Long id;
 
-    @Column (length=1024)
+    @Column(length = 1024)
     private String firstName;
-    
-    @Column (length=1024)
+
+    @Column(length = 1024)
     private String lastName;
-    
-    @Column (name="dob")
+
+    @Column(name = "dob")
     private Date dateOfBirth;
 
     private Date dateOfDeath;
+
+    @Column(precision = 3, scale = 2)
+    private BigDecimal iq;
 
     public Long getId()
     {
@@ -67,6 +71,16 @@ public class Person
     public void setDateOfDeath(Date dateOfDeath)
     {
         this.dateOfDeath = dateOfDeath;
+    }
+
+    public BigDecimal getIq()
+    {
+        return iq;
+    }
+
+    public void setIq(BigDecimal iq)
+    {
+        this.iq = iq;
     }
 
 }

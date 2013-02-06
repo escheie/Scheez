@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.scheez.reflect.PersistentField;
 import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.diff.MismatchedColumnLength;
+import org.scheez.schema.diff.MismatchedColumnPrecision;
 import org.scheez.schema.diff.MismatchedColumnType;
 import org.scheez.schema.diff.MissingColumn;
 import org.scheez.schema.diff.MissingTable;
@@ -83,7 +85,7 @@ public class BasicSchemaManager implements SchemaManager
         return diff;
     }
 
-    private void diffTable(Table table, Class<?> cls,  List<SchemaDifference> diff)
+    private void diffTable(Table table, Class<?> cls, List<SchemaDifference> diff)
     {
         diffColumns(table, cls, diff);
     }
@@ -95,11 +97,11 @@ public class BasicSchemaManager implements SchemaManager
         {
             map.put(column.getName().toLowerCase(), column);
         }
-        
+
         for (PersistentField field : schemaMapper.getPersistentFields(cls))
         {
             Column expectedColumn = schemaMapper.mapFieldToColumn(field);
-            
+
             Column existingColumn = map.remove(expectedColumn.getName().toLowerCase());
             if (existingColumn == null)
             {
@@ -117,11 +119,23 @@ public class BasicSchemaManager implements SchemaManager
         }
     }
 
-    private void diffColumn(Table table, Column existingColumn, Column expectedColumn, PersistentField field, List<SchemaDifference> diff)
+    private void diffColumn(Table table, Column existingColumn, Column expectedColumn, PersistentField field,
+            List<SchemaDifference> diff)
     {
-        if(existingColumn.getType() != expectedColumn.getType())
+        if (existingColumn.getType() != expectedColumn.getType())
         {
             diff.add(new MismatchedColumnType(table, existingColumn, expectedColumn, field));
+        }
+        else if ((existingColumn.getType().isLengthSupported()) && (expectedColumn.getLength() != null)
+                && (!expectedColumn.getLength().equals(existingColumn.getLength())))
+        {
+            diff.add(new MismatchedColumnLength(table, existingColumn, expectedColumn, field));
+        }
+        else if ((existingColumn.getType().isPrecisionSupported()) && (((expectedColumn.getPrecision() != null)
+                && (!expectedColumn.getPrecision().equals(existingColumn.getPrecision()))) || ((expectedColumn.getScale() != null)
+                        && (!expectedColumn.getScale().equals(existingColumn.getScale())))))
+        {
+            diff.add(new MismatchedColumnPrecision(table, existingColumn, expectedColumn, field));
         }
     }
 

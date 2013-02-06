@@ -69,11 +69,31 @@ public class PersistentField
     public Integer getLength ()
     {
         Integer length = null;
-        if ((config != null) && (config.name() != null) && (!config.name().isEmpty()))
+        if (config != null) 
         {
             length = config.length();
         }
         return length;
+    }
+    
+    public Integer getPrecision ()
+    {
+        Integer precision = null;
+        if (config != null) 
+        {
+            precision = config.precision();
+        }
+        return precision;
+    }
+    
+    public Integer getScale ()
+    {
+        Integer scale = null;
+        if (config != null) 
+        {
+            scale = config.scale();
+        }
+        return scale;
     }
     
     public void set (Object target, Object value)

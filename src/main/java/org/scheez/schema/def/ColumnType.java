@@ -91,6 +91,11 @@ public enum ColumnType
         return (this == CHAR) || (this == VARCHAR);
     }
     
+    public boolean isPrecisionSupported ()
+    {
+        return (this == DECIMAL);
+    }
+    
     /**
      * Maps the type from Java SQL types.
      */

@@ -15,6 +15,8 @@ import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.impl.SchemaDaoFactoryUrl;
 import org.scheez.schema.def.ColumnType;
+import org.scheez.schema.diff.MismatchedColumnLength;
+import org.scheez.schema.diff.MismatchedColumnPrecision;
 import org.scheez.schema.diff.MismatchedColumnType;
 import org.scheez.schema.diff.MissingColumn;
 import org.scheez.schema.diff.MissingTable;
@@ -213,6 +215,98 @@ public class BasicSchemaManagerTest
         assertEquals(ColumnType.VARCHAR, mismatchedColumnType.getExpectedColumn().getType());
         assertNotNull(mismatchedColumnType.getDescription());
         assertNotNull(mismatchedColumnType.getField());
+        
+        schemaManager.resolveDifferences(differences);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(0, differences.size()); 
+    }
+    
+    /**
+     * Test method for
+     * {@link org.scheez.schema.manger.BasicSchemaManager#findDifferences()}.
+     */
+    @Test
+    public void testMismatchedColumnLength()
+    {
+        SchemaClasses classes = new SchemaClasses();
+        classes.include(Person.class);
+        
+        BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
+        installSchema(schemaManager);
+        
+        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        
+        Column column = new Column("first_name", ColumnType.VARCHAR, 128);
+        schemaDao.alterColumnType(tableName, column);
+        
+        List<SchemaDifference> differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(1, differences.size());
+        
+        MismatchedColumnLength mismatchedColumnLength = (MismatchedColumnLength)differences.get(0);
+        
+        log.info(mismatchedColumnLength);
+        assertEquals(Type.MISMATCHED_COLUMN_LENGTH, mismatchedColumnLength.getType());
+        assertEquals(Person.class, mismatchedColumnLength.getTableClass());
+        assertNotNull(mismatchedColumnLength.getTable());
+        assertNotNull(mismatchedColumnLength.getExistingColumn());
+        assertNotNull(mismatchedColumnLength.getExpectedColumn());
+        assertEquals(128, mismatchedColumnLength.getExistingColumn().getLength().intValue());
+        assertEquals(1024, mismatchedColumnLength.getExpectedColumn().getLength().intValue());
+        assertNotNull(mismatchedColumnLength.getDescription());
+        assertNotNull(mismatchedColumnLength.getField());
+        
+        schemaManager.resolveDifferences(differences);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(0, differences.size()); 
+    }
+    
+    /**
+     * Test method for
+     * {@link org.scheez.schema.manger.BasicSchemaManager#findDifferences()}.
+     */
+    @Test
+    public void testMismatchedColumnPrecision()
+    {
+        SchemaClasses classes = new SchemaClasses();
+        classes.include(Person.class);
+        
+        BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
+        installSchema(schemaManager);
+        
+        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        
+        Column column = new Column("iq", ColumnType.DECIMAL);
+        column.setPrecision(6);
+        column.setScale(4);
+        schemaDao.alterColumnType(tableName, column);
+        
+        List<SchemaDifference> differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(1, differences.size());
+        
+        MismatchedColumnPrecision mismatchedColumnPrecision = (MismatchedColumnPrecision)differences.get(0);
+        
+        log.info(mismatchedColumnPrecision);
+        assertEquals(Type.MISMATCHED_COLUMN_PRECISION, mismatchedColumnPrecision.getType());
+        assertEquals(Person.class, mismatchedColumnPrecision.getTableClass());
+        assertNotNull(mismatchedColumnPrecision.getTable());
+        assertNotNull(mismatchedColumnPrecision.getExistingColumn());
+        assertNotNull(mismatchedColumnPrecision.getExpectedColumn());
+        assertEquals(6, mismatchedColumnPrecision.getExistingColumn().getPrecision().intValue());
+        assertEquals(3, mismatchedColumnPrecision.getExpectedColumn().getPrecision().intValue());
+        assertEquals(4, mismatchedColumnPrecision.getExistingColumn().getScale().intValue());
+        assertEquals(2, mismatchedColumnPrecision.getExpectedColumn().getScale().intValue());
+        assertNotNull(mismatchedColumnPrecision.getDescription());
+        assertNotNull(mismatchedColumnPrecision.getField());
         
         schemaManager.resolveDifferences(differences);
         
