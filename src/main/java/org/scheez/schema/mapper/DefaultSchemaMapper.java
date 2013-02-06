@@ -60,7 +60,7 @@ public class DefaultSchemaMapper implements SchemaMapper
         
         Table table = new Table (tableName);
         
-        for (PersistentField field : PersistentField.getPersistentFields(cls))
+        for (PersistentField field : getPersistentFields(cls))
         {
             table.addColumn(mapFieldToColumn(field));
         }

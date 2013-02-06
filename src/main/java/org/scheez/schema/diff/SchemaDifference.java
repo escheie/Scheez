@@ -14,6 +14,8 @@ public interface SchemaDifference
         UNKNOWN_TABLE,
         
         UNKNOWN_COLUMN,
+        
+        MISMATCHED_COLUMN_TYPE,
     }
     
     Type getType ();

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.scheez.reflect.PersistentField;
 import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.diff.MismatchedColumnType;
 import org.scheez.schema.diff.MissingColumn;
 import org.scheez.schema.diff.MissingTable;
 import org.scheez.schema.diff.SchemaDifference;
@@ -70,7 +71,7 @@ public class BasicSchemaManager implements SchemaManager
             }
             else
             {
-                diffTable(cls, table, diff);
+                diffTable(table, cls, diff);
             }
         }
 
@@ -82,12 +83,12 @@ public class BasicSchemaManager implements SchemaManager
         return diff;
     }
 
-    private void diffTable(Class<?> cls, Table table, List<SchemaDifference> diff)
+    private void diffTable(Table table, Class<?> cls,  List<SchemaDifference> diff)
     {
-        diffColumns(cls, table, diff);
+        diffColumns(table, cls, diff);
     }
 
-    private void diffColumns(Class<?> cls, Table table, List<SchemaDifference> diff)
+    private void diffColumns(Table table, Class<?> cls, List<SchemaDifference> diff)
     {
         Map<String, Column> map = new HashMap<String, Column>();
         for (Column column : table.getColumns())
@@ -106,7 +107,7 @@ public class BasicSchemaManager implements SchemaManager
             }
             else
             {
-                diffColumn(field, expectedColumn, existingColumn, diff);
+                diffColumn(table, existingColumn, expectedColumn, field, diff);
             }
         }
 
@@ -116,9 +117,12 @@ public class BasicSchemaManager implements SchemaManager
         }
     }
 
-    private void diffColumn(PersistentField field, Column expectedColumn, Column existingColumn, List<SchemaDifference> diff)
+    private void diffColumn(Table table, Column existingColumn, Column expectedColumn, PersistentField field, List<SchemaDifference> diff)
     {
-
+        if(existingColumn.getType() != expectedColumn.getType())
+        {
+            diff.add(new MismatchedColumnType(table, existingColumn, expectedColumn, field));
+        }
     }
 
     public SchemaMapper getSchemaMapper()

@@ -26,9 +26,9 @@ public enum ColumnType
     
     BOOLEAN (new Class<?>[] {Boolean.class}, Types.BOOLEAN, Types.BIT),
     
-    CHAR (new Class<?>[] {String.class}, Types.CHAR),
+    VARCHAR (new Class<?>[] {String.class, char[].class, Character[].class, Character.class}, Types.VARCHAR, Types.CLOB),
     
-    VARCHAR (new Class<?>[] {String.class, char[].class, Character[].class}, Types.VARCHAR, Types.CLOB), 
+    CHAR (VARCHAR.getTypeClasses(), Types.CHAR),
     
     TIMESTAMP (new Class<?>[] {Timestamp.class, Date.class, Time.class, java.util.Date.class, Calendar.class}, Types.TIMESTAMP, Types.TIME, Types.DATE), 
     
@@ -84,6 +84,11 @@ public enum ColumnType
             
         }
         return type;
+    }
+    
+    public boolean isLengthSupported ()
+    {
+        return (this == CHAR) || (this == VARCHAR);
     }
     
     /**

@@ -91,18 +91,18 @@ public class SchemaDaoTest
         ColumnType[] types = ColumnType.values();
         for(int index = 0; index < types.length; index++)
         {
-            table.addColumn(new Column("col" + (index + 1), types[index],  (types[index] == ColumnType.VARCHAR) ? 256 : null));
+            table.addColumn(new Column("col" + index, types[index]));
         } 
         schemaDao.createTable(table);
         
         Table table2 = schemaDao.getTable(tableName);
         assertNotNull(table2);
         assertEquals(table2.getColumns().size(), types.length);
-        int index = 0;
         for (Column column : table2.getColumns())
         {
             assertNotNull(column.getName());
-            assertEquals(testDatabase.getExpectedColumnType(types[index++]), column.getType());
+            int index = Integer.parseInt(column.getName().substring(3));
+            assertEquals(testDatabase.getExpectedColumnType(types[index]), column.getType());
         }
         
         assertEquals (1, schemaDao.getTables(tableName.getSchemaName()).size());
@@ -129,13 +129,12 @@ public class SchemaDaoTest
         ColumnType[] types = ColumnType.values();
         for(int index = 0; index < types.length; index++)
         {
-            schemaDao.addColumn(tableName, new Column("col" + (index + 1), types[index]));
+            schemaDao.addColumn(tableName, new Column("col" + index, types[index]));
         } 
         
         Table table2 = schemaDao.getTable(tableName);
         assertNotNull(table2);
         assertEquals(table2.getColumns().size(), types.length + 1);
-        int index = 0;
         for (Column column : table2.getColumns())
         {
             if(column.getName().equalsIgnoreCase("id"))
@@ -144,7 +143,8 @@ public class SchemaDaoTest
             }
             
             assertNotNull(column.getName());
-            assertEquals(testDatabase.getExpectedColumnType(types[index++]), column.getType());
+            int index = Integer.parseInt(column.getName().substring(3));
+            assertEquals(testDatabase.getExpectedColumnType(types[index]), column.getType());
             
             assertNotNull(schemaDao.getColumn(tableName, column.getName()));
         }
@@ -183,6 +183,31 @@ public class SchemaDaoTest
         assertNotNull(column2);
         assertEquals(column1.getPrecision(), column2.getPrecision());
         assertEquals(column1.getScale(), column2.getScale());
+    }
+    
+    @Test
+    public void testAlterColumnType ()
+    {
+        TableName tableName = new TableName (TEST_SCHEMA, "table1");
+        Table table = new Table(tableName);
+        Column column1 = new Column("changable", ColumnType.INTEGER);
+        table.addColumn(column1);
+        
+        schemaDao.createTable(table);
+        
+        Column column2 = schemaDao.getColumn(tableName, column1.getName());
+        
+        assertNotNull(column2);
+        assertEquals(ColumnType.INTEGER, column2.getType());
+        
+        column1.setType(ColumnType.BIGINT);
+        
+        schemaDao.alterColumnType(tableName, column1); 
+        
+        column2 = schemaDao.getColumn(tableName, column1.getName());
+        
+        assertNotNull(column2);
+        assertEquals(ColumnType.BIGINT, column2.getType());
     }
     
     @Parameters (name="{0}")

@@ -60,6 +60,16 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     {
         return null;
     }
+    
+    @Override
+    public void alterColumnType(TableName tableName, Column column)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" MODIFY COLUMN ");
+        sb.append(getColumnString(column));
+        jdbcTemplate.execute(sb.toString());
+    }
 
     @Override
     protected String getColumnTypeString(Column column)

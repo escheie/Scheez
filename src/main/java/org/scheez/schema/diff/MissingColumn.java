@@ -7,9 +7,9 @@ import org.scheez.schema.parts.Table;
 
 public class MissingColumn extends SchemaDifferenceColumn
 {
-    public MissingColumn(Table table, Column column, PersistentField field)
+    public MissingColumn(Table table, Column expectedColumn, PersistentField field)
     {
-        super(table, field.getField().getDeclaringClass(), column, field);
+        super(table, null, expectedColumn, field.getField().getDeclaringClass(), field);
     }
 
     @Override
@@ -21,12 +21,12 @@ public class MissingColumn extends SchemaDifferenceColumn
     @Override
     public String getDescription()
     {
-        return "Table " + table.getTableName() + " is missing column \"" + column.getName() + "\" for field \"" + field.toString() + "\".";
+        return "Table " + table.getTableName() + " is missing column \"" + expectedColumn.getName() + "\" for field \"" + field.toString() + "\".";
     }
 
     @Override
     public void resolveDifference(SchemaDao schemaDao)
     {
-        schemaDao.addColumn(table.getTableName(), column);
+        schemaDao.addColumn(table.getTableName(), expectedColumn);
     }
 }

@@ -8,14 +8,15 @@ public class Person
 {
     private Long id;
 
+    @Column (length=1024)
     private String firstName;
-
+    
+    @Column (length=1024)
     private String lastName;
     
     @Column (name="dob")
     private Date dateOfBirth;
 
-    @Column (name="bob")
     private Date dateOfDeath;
 
     public Long getId()

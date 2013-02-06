@@ -15,6 +15,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.impl.SchemaDaoFactoryUrl;
 import org.scheez.schema.def.ColumnType;
+import org.scheez.schema.diff.MismatchedColumnType;
 import org.scheez.schema.diff.MissingColumn;
 import org.scheez.schema.diff.MissingTable;
 import org.scheez.schema.diff.SchemaDifference;
@@ -135,8 +136,8 @@ public class BasicSchemaManagerTest
         assertEquals(Type.MISSING_COLUMN, missingColumn.getType());
         assertEquals(Person.class, missingColumn.getTableClass());
         assertNotNull(missingColumn.getTable());
-        assertNotNull(missingColumn.getColumn());
-        assertEquals(droppedColumn, missingColumn.getColumn().getName());
+        assertNotNull(missingColumn.getExpectedColumn());
+        assertEquals(droppedColumn, missingColumn.getExpectedColumn().getName());
         assertNotNull(missingColumn.getDescription());
         assertNotNull(missingColumn.getField());
         assertEquals("firstName", missingColumn.getField().getName());
@@ -162,7 +163,7 @@ public class BasicSchemaManagerTest
         assertEquals(Type.UNKNOWN_COLUMN, unknownColumn.getType());
         assertEquals(Person.class, unknownColumn.getTableClass());
         assertNotNull(unknownColumn.getTable());
-        assertNotNull(unknownColumn.getColumn());
+        assertNotNull(unknownColumn.getExistingColumn());
         assertNull(unknownColumn.getField());
         assertNotNull(unknownColumn.getDescription());
         assertEquals(newColumn.getName(), newColumn.getName());
@@ -175,6 +176,50 @@ public class BasicSchemaManagerTest
         assertNotNull(differences);
         assertEquals(0, differences.size());
         
+    }
+    
+    /**
+     * Test method for
+     * {@link org.scheez.schema.manger.BasicSchemaManager#findDifferences()}.
+     */
+    @Test
+    public void testMismatchedColumnTypes()
+    {
+        SchemaClasses classes = new SchemaClasses();
+        classes.include(Person.class);
+        
+        BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
+        installSchema(schemaManager);
+        
+        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        
+        Column column = new Column("first_name", ColumnType.CHAR);
+        schemaDao.alterColumnType(tableName, column);
+        
+        List<SchemaDifference> differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(1, differences.size());
+        
+        MismatchedColumnType mismatchedColumnType = (MismatchedColumnType)differences.get(0);
+        
+        log.info(mismatchedColumnType);
+        assertEquals(Type.MISMATCHED_COLUMN_TYPE, mismatchedColumnType.getType());
+        assertEquals(Person.class, mismatchedColumnType.getTableClass());
+        assertNotNull(mismatchedColumnType.getTable());
+        assertNotNull(mismatchedColumnType.getExistingColumn());
+        assertNotNull(mismatchedColumnType.getExpectedColumn());
+        assertEquals(ColumnType.CHAR, mismatchedColumnType.getExistingColumn().getType());
+        assertEquals(ColumnType.VARCHAR, mismatchedColumnType.getExpectedColumn().getType());
+        assertNotNull(mismatchedColumnType.getDescription());
+        assertNotNull(mismatchedColumnType.getField());
+        
+        schemaManager.resolveDifferences(differences);
+        
+        differences = schemaManager.findDifferences();
+        
+        assertNotNull(differences);
+        assertEquals(0, differences.size()); 
     }
     
     private void installSchema (SchemaManager schemaManager)

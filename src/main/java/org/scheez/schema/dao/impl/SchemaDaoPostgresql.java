@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.TableName;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoPostgresql extends SchemaDaoAnsi 
@@ -20,13 +21,30 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
     
     protected Integer getColumnLength (Column column)
     {
-        return column.getLength();
+        Integer length = null;
+        if(column.getType() != ColumnType.VARCHAR)
+        {
+            length = super.getColumnLength(column);
+        }
+        return length;
     }
     
     @Override
     protected String getColumnName (String columnName)
     {
         return columnName.toLowerCase();
+    }
+    
+    @Override
+    public void alterColumnType(TableName tableName, Column column)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" ALTER COLUMN ");
+        sb.append(getColumnName(column.getName()));
+        sb.append(" TYPE ");
+        sb.append( getColumnTypeString(column));
+        jdbcTemplate.execute(sb.toString());
     }
 
     @Override

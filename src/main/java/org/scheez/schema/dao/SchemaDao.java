@@ -29,4 +29,6 @@ public interface SchemaDao
     void dropColumn (TableName tableName, String columnName);
     
     Column getColumn (TableName tableName, String columnName);
+    
+    void alterColumnType (TableName tableName, Column column);
 }

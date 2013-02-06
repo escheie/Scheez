@@ -26,11 +26,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
 {
     private static final Log log = LogFactory.getLog(SchemaDaoAnsi.class);
-    
+
     private static final int DEFAULT_LENGTH = 255;
 
     private static final int DEFAULT_PRECISION = 18;
-    
+
     private static final int DEFAULT_SCALE = 0;
 
     public SchemaDaoAnsi(DataSource dataSource)
@@ -42,7 +42,7 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     {
         super(jdbcTemplate);
     }
-    
+
     protected String getCatalogName(TableName tableName)
     {
         return null;
@@ -57,36 +57,36 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     {
         return tableName.getTableName();
     }
-    
-    protected String getColumnName (String columnName)
+
+    protected String getColumnName(String columnName)
     {
         return columnName;
     }
-    
-    protected Integer getColumnLength (Column column)
+
+    protected Integer getColumnLength(Column column)
     {
         Integer length = column.getLength();
-        if(length == null)
+        if (length == null)
         {
             length = DEFAULT_LENGTH;
         }
         return length;
     }
-    
-    protected Integer getColumnPrecision (Column column)
+
+    protected Integer getColumnPrecision(Column column)
     {
         Integer precision = column.getPrecision();
-        if(precision == null)
+        if (precision == null)
         {
             precision = DEFAULT_PRECISION;
         }
         return precision;
     }
-    
-    protected Integer getColumnScale (Column column)
+
+    protected Integer getColumnScale(Column column)
     {
         Integer scale = column.getScale();
-        if(scale == null)
+        if (scale == null)
         {
             scale = DEFAULT_SCALE;
         }
@@ -259,7 +259,7 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     }
 
     @Override
-    public Column getColumn (final TableName tableName, final String columnName)
+    public Column getColumn(final TableName tableName, final String columnName)
     {
         return jdbcTemplate.execute(new ConnectionCallback<Column>()
         {
@@ -267,16 +267,26 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
             public Column doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 DatabaseMetaData metaData = con.getMetaData();
-                ResultSet columns = metaData.getColumns(getCatalogName(tableName),
-                        getSchemaName(tableName), getTableName(tableName), getColumnName(columnName));
+                ResultSet columns = metaData.getColumns(getCatalogName(tableName), getSchemaName(tableName),
+                        getTableName(tableName), getColumnName(columnName));
                 Column column = null;
-                if(columns.next())
+                if (columns.next())
                 {
                     column = getColumn(columns);
                 }
                 return column;
             }
         });
+    }
+
+    @Override
+    public void alterColumnType(TableName tableName, Column column)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" ALTER COLUMN ");
+        sb.append(getColumnString(column));
+        jdbcTemplate.execute(sb.toString());
     }
 
     protected List<String> getCatalogs()
@@ -344,9 +354,9 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
             }
             log.debug(sb.toString());
         }
-        Column column = new Column(resultSet.getString(ColumnMetaDataKey.COLUMN_NAME.name()), ColumnType.getType(resultSet
-                .getInt(ColumnMetaDataKey.DATA_TYPE.name())));
-        if(column.getType() == ColumnType.VARCHAR)
+        Column column = new Column(resultSet.getString(ColumnMetaDataKey.COLUMN_NAME.name()),
+                ColumnType.getType(resultSet.getInt(ColumnMetaDataKey.DATA_TYPE.name())));
+        if (column.getType().isLengthSupported())
         {
             column.setLength(resultSet.getInt(ColumnMetaDataKey.COLUMN_SIZE.name()));
         }
@@ -357,7 +367,7 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         }
         return column;
     }
-    
+
     protected String getColumnString(Column column)
     {
         StringBuilder sb = new StringBuilder(column.getName());
@@ -382,12 +392,23 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
                     typeStr = "VARCHAR";
                 }
                 break;
+            case CHAR:
+                length = getColumnLength(column);
+                if (length != null)
+                {
+                    typeStr = "CHAR(" + length + ")";
+                }
+                else
+                {
+                    typeStr = "CHAR";
+                }
+                break;
             case TIMESTAMP:
                 typeStr = "TIMESTAMP WITH TIME ZONE";
                 break;
             case DECIMAL:
-                Integer precision = getColumnPrecision (column);
-                Integer scale = getColumnScale (column);
+                Integer precision = getColumnPrecision(column);
+                Integer scale = getColumnScale(column);
                 typeStr = "DECIMAL (" + precision + ", " + scale + ")";
                 break;
             default:

@@ -8,12 +8,15 @@ public abstract class SchemaDifferenceColumn extends SchemaDifferenceTable
 {
     protected PersistentField field;
 
-    protected Column column;
+    protected Column existingColumn;
+    
+    protected Column expectedColumn;
 
-    public SchemaDifferenceColumn(Table table, Class<?> cls, Column column, PersistentField field)
+    public SchemaDifferenceColumn(Table table, Column existingColumn, Column expectedColumn, Class<?> cls, PersistentField field)
     {
         super(table, cls);
-        this.column = column;
+        this.existingColumn = existingColumn;
+        this.expectedColumn = expectedColumn;
         this.field = field;
     }
 
@@ -22,9 +25,14 @@ public abstract class SchemaDifferenceColumn extends SchemaDifferenceTable
         return field;
     }
 
-    public Column getColumn()
+    public Column getExistingColumn()
     {
-        return column;
+        return existingColumn;
+    }
+    
+    public Column getExpectedColumn()
+    {
+        return expectedColumn;
     }
 
 }

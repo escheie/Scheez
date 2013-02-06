@@ -6,9 +6,9 @@ import org.scheez.schema.parts.Table;
 
 public class UnknownColumn extends SchemaDifferenceColumn
 {
-    public UnknownColumn(Table table, Column column, Class<?> cls)
+    public UnknownColumn(Table table, Column existingColumn, Class<?> cls)
     {
-        super(table, cls, column, null);
+        super(table, existingColumn, null, cls, null);
     }
 
     @Override
@@ -20,12 +20,12 @@ public class UnknownColumn extends SchemaDifferenceColumn
     @Override
     public String getDescription()
     {
-        return "Unknown column \"" + column.getName() + "\" on table \"" + table.getTableName() + "\".  No matching field found.";
+        return "Unknown column \"" + existingColumn.getName() + "\" on table \"" + table.getTableName() + "\".  No matching field found.";
     }
 
     @Override
     public void resolveDifference(SchemaDao schemaDao)
     {
-        schemaDao.dropColumn(table.getTableName(), column.getName());
+        schemaDao.dropColumn(table.getTableName(), existingColumn.getName());
     }
 }
