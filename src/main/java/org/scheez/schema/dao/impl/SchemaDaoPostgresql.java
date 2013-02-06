@@ -21,10 +21,11 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
     
     protected Integer getColumnLength (Column column)
     {
-        Integer length = null;
+        Integer length = super.getColumnLength(column);;
         if(column.getType() != ColumnType.VARCHAR)
         {
-            length = super.getColumnLength(column);
+            /// Don't use default length as postgresql supports VARCHAR without requiring a specific length.
+            length = column.getLength();
         }
         return length;
     }
