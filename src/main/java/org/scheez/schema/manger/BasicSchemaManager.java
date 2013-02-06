@@ -1,24 +1,23 @@
 package org.scheez.schema.manger;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.scheez.reflect.PersistentField;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.diff.MissingColumn;
 import org.scheez.schema.diff.MissingTable;
 import org.scheez.schema.diff.SchemaDifference;
 import org.scheez.schema.diff.UnknownColumn;
 import org.scheez.schema.diff.UnknownTable;
-import org.scheez.schema.mapper.ClassMapper;
-import org.scheez.schema.mapper.DefaultClassMapper;
-import org.scheez.schema.mapper.DefaultFieldMapper;
-import org.scheez.schema.mapper.FieldMapper;
+import org.scheez.schema.mapper.DefaultSchemaMapper;
+import org.scheez.schema.mapper.SchemaMapper;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
+import org.scheez.util.DbC;
 
 public class BasicSchemaManager implements SchemaManager
 {
@@ -28,17 +27,14 @@ public class BasicSchemaManager implements SchemaManager
 
     private Iterable<Class<?>> classes;
 
-    private ClassMapper classMapper;
-
-    private FieldMapper fieldMapper;
+    private SchemaMapper schemaMapper;
 
     public BasicSchemaManager(String schemaName, SchemaDao schemaDao, Iterable<Class<?>> classes)
     {
         this.schemaName = schemaName;
         this.schemaDao = schemaDao;
         this.classes = classes;
-        this.classMapper = new DefaultClassMapper();
-        this.fieldMapper = new DefaultFieldMapper();
+        this.schemaMapper = new DefaultSchemaMapper();
     }
 
     @Override
@@ -65,11 +61,12 @@ public class BasicSchemaManager implements SchemaManager
 
         for (Class<?> cls : classes)
         {
-            String name = classMapper.mapClass(cls);
+            String name = schemaMapper.mapClassToTableName(cls);
             Table table = map.remove(name.toLowerCase());
             if (table == null)
             {
-                diff.add(new MissingTable(classMapper.mapClass(cls, new TableName(schemaName, name)), cls));
+                table = schemaMapper.mapClassToTable(new TableName(schemaName, name), cls);
+                diff.add(new MissingTable(table, cls));
             }
             else
             {
@@ -97,24 +94,20 @@ public class BasicSchemaManager implements SchemaManager
         {
             map.put(column.getName().toLowerCase(), column);
         }
-
-        Class<?> c = cls;
-        while (c != null)
+        
+        for (PersistentField field : schemaMapper.getPersistentFields(cls))
         {
-            for (Field field : c.getDeclaredFields())
+            Column expectedColumn = schemaMapper.mapFieldToColumn(field);
+            
+            Column existingColumn = map.remove(expectedColumn.getName().toLowerCase());
+            if (existingColumn == null)
             {
-                Column expectedColumn = fieldMapper.mapField(field);
-                Column column = map.remove(expectedColumn.getName().toLowerCase());
-                if (column == null)
-                {
-                    diff.add(new MissingColumn(table, expectedColumn, field));
-                }
-                else
-                {
-                    diffColumn(field, column, diff);
-                }
+                diff.add(new MissingColumn(table, expectedColumn, field));
             }
-            c = c.getSuperclass();
+            else
+            {
+                diffColumn(field, expectedColumn, existingColumn, diff);
+            }
         }
 
         for (Column column : map.values())
@@ -123,29 +116,20 @@ public class BasicSchemaManager implements SchemaManager
         }
     }
 
-    private void diffColumn(Field field, Column column, List<SchemaDifference> diff)
+    private void diffColumn(PersistentField field, Column expectedColumn, Column existingColumn, List<SchemaDifference> diff)
     {
 
     }
 
-    public ClassMapper getClassMapper()
+    public SchemaMapper getSchemaMapper()
     {
-        return classMapper;
+        return schemaMapper;
     }
 
-    public void setClassMapper(ClassMapper classMapper)
+    public void setSchemaMapper(SchemaMapper schemaMapper)
     {
-        this.classMapper = classMapper;
-    }
-
-    public FieldMapper getFieldMapper()
-    {
-        return fieldMapper;
-    }
-
-    public void setFieldMapper(FieldMapper fieldMapper)
-    {
-        this.fieldMapper = fieldMapper;
+        DbC.throwIfNullArg(schemaMapper);
+        this.schemaMapper = schemaMapper;
     }
 
 }

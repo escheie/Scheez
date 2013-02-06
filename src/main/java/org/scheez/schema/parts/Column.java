@@ -15,8 +15,6 @@ public class Column extends BaseObject
 
     private Integer scale;
 
-    private String definition;
-
     public Column(String name, ColumnType type)
     {
         this(name, type, null);
@@ -79,15 +77,4 @@ public class Column extends BaseObject
     {
         this.scale = scale;
     }
-
-    public String getDefinition()
-    {
-        return definition;
-    }
-
-    public void setDefinition(String definition)
-    {
-        this.definition = definition;
-    }
-
 }

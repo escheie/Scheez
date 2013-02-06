@@ -2,12 +2,16 @@ package org.scheez.schema.mapper;
 
 import java.util.StringTokenizer;
 
+import org.scheez.util.DbC;
+
 public class DefaultNameMapper implements NameMapper
 {
     
     @Override
     public String mapDatabaseNameToJavaName (String name)
     {
+        DbC.throwIfNullArg(name);
+        
         boolean first = true;
         StringTokenizer tokenizer = new StringTokenizer(
                 name.toLowerCase(), "_");
@@ -35,6 +39,8 @@ public class DefaultNameMapper implements NameMapper
     @Override
     public String mapJavaNameToDatabaseName (String name)
     {
+        DbC.throwIfNullArg(name);
+        
         StringBuilder sb = new StringBuilder();
         boolean lastCapital = true;
         for(int index = 0; index < name.length(); index++)

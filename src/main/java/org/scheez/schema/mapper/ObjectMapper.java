@@ -1,7 +1,5 @@
 package org.scheez.schema.mapper;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -12,12 +10,15 @@ import java.sql.SQLException;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.scheez.reflect.PersistentField;
 import org.scheez.schema.def.ColumnType;
+import org.scheez.util.DbC;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.util.ReflectionUtils;
 
 public class ObjectMapper<T> implements RowMapper<T>
 {
@@ -25,12 +26,21 @@ public class ObjectMapper<T> implements RowMapper<T>
 
     private Class<T> cls;
 
-    private FieldMapper fieldMapper;
+    private SchemaMapper schemaMapper;
+    
+    private Map<String, PersistentField> cache;
 
     public ObjectMapper(Class<T> cls)
     {
+        this(cls, new DefaultSchemaMapper());
+    }
+    
+    public ObjectMapper(Class<T> cls, SchemaMapper schemaMapper)
+    {
+        DbC.throwIfNullArg(cls, schemaMapper);
         this.cls = cls;
-        fieldMapper = new DefaultFieldMapper();
+        this.schemaMapper = schemaMapper;
+        this.cache = new HashMap<String, PersistentField> ();
     }
 
     public Class<T> getMappedClass()
@@ -41,6 +51,8 @@ public class ObjectMapper<T> implements RowMapper<T>
     @Override
     public T mapRow(ResultSet rs, int rowNum) throws SQLException
     {
+        DbC.throwIfNullArg(rs);
+        
         try
         {
             T t = cls.newInstance();
@@ -48,16 +60,11 @@ public class ObjectMapper<T> implements RowMapper<T>
             for (int index = 1; index <= rsmd.getColumnCount(); index++)
             {
                 String columnName = rsmd.getColumnLabel(index);
-                Field field = fieldMapper.mapField(cls, columnName);
+                PersistentField field = getField  (columnName);
                 if (field != null)
                 {
-                    if(!Modifier.isPublic(field.getModifiers()))
-                    {
-                        field.setAccessible(true);
-                    }
-                    ReflectionUtils.setField(field, t, 
-                            getValue(rs, index, columnName, ColumnType
-                                    .getType(rsmd.getColumnType(index)), field.getType()));
+                    field.set(t, getValue(rs, index, columnName, ColumnType
+                                    .getType(rsmd.getColumnType(index)), field.getField().getType()));
                 }
             }
             return t;
@@ -67,6 +74,17 @@ public class ObjectMapper<T> implements RowMapper<T>
             throw new SQLException("Unable to map result set to "
                     + cls.getName() + ".", e);
         }
+    }
+
+    protected PersistentField getField (String columnName)
+    {
+        PersistentField field = cache.get(columnName);
+        if((field == null) && (!cache.containsKey(columnName)))
+        {
+            field = schemaMapper.mapColumnToField(cls, columnName);
+            cache.put(columnName, field);
+        }
+        return field;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -157,20 +175,5 @@ public class ObjectMapper<T> implements RowMapper<T>
             log.debug(columnName + ", " + type + ", value=null");
         }
         return value;
-    }
-
-    public FieldMapper getFieldMapper()
-    {
-        return fieldMapper;
-    }
-
-    public void setFieldMapper(FieldMapper fieldMapper)
-    {
-        if (fieldMapper == null)
-        {
-            throw new IllegalArgumentException(
-                    "fieldMapper argument cannot be null.");
-        }
-        this.fieldMapper = fieldMapper;
     }
 }

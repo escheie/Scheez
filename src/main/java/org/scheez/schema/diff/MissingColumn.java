@@ -1,16 +1,15 @@
 package org.scheez.schema.diff;
 
-import java.lang.reflect.Field;
-
+import org.scheez.reflect.PersistentField;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Table;
 
 public class MissingColumn extends SchemaDifferenceColumn
 {
-    public MissingColumn(Table table, Column column, Field field)
+    public MissingColumn(Table table, Column column, PersistentField field)
     {
-        super(table, field.getDeclaringClass(), column, field);
+        super(table, field.getField().getDeclaringClass(), column, field);
     }
 
     @Override

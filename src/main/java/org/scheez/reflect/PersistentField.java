@@ -9,6 +9,7 @@ import javax.persistence.Column;
 import javax.persistence.Transient;
 
 import org.scheez.schema.def.ColumnType;
+import org.springframework.util.ReflectionUtils;
 
 public class PersistentField
 {
@@ -73,6 +74,15 @@ public class PersistentField
             length = config.length();
         }
         return length;
+    }
+    
+    public void set (Object target, Object value)
+    {
+        if(!Modifier.isPublic(field.getModifiers()))
+        {
+            field.setAccessible(true);
+        }
+        ReflectionUtils.setField(field, target, value);
     }
 
     public static List<PersistentField> getPersistentFields(Class<?> cls)
