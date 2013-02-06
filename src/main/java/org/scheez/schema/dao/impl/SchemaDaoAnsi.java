@@ -29,7 +29,9 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     
     private static final int DEFAULT_LENGTH = 255;
 
-    protected boolean supportsCascade = true;
+    private static final int DEFAULT_PRECISION = 18;
+    
+    private static final int DEFAULT_SCALE = 0;
 
     public SchemaDaoAnsi(DataSource dataSource)
     {
@@ -70,6 +72,26 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         }
         return length;
     }
+    
+    protected Integer getColumnPrecision (Column column)
+    {
+        Integer precision = column.getPrecision();
+        if(precision == null)
+        {
+            precision = DEFAULT_PRECISION;
+        }
+        return precision;
+    }
+    
+    protected Integer getColumnScale (Column column)
+    {
+        Integer scale = column.getScale();
+        if(scale == null)
+        {
+            scale = DEFAULT_SCALE;
+        }
+        return scale;
+    }
 
     @Override
     public void createSchema(String schemaName)
@@ -84,10 +106,7 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
     {
         StringBuilder sb = new StringBuilder("DROP SCHEMA ");
         sb.append(schemaName);
-        if (supportsCascade)
-        {
-            sb.append(" CASCADE");
-        }
+        sb.append(" CASCADE");
         jdbcTemplate.execute(sb.toString());
     }
 
@@ -302,8 +321,6 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         });
     }
 
-    
-
     protected Column getColumn(ResultSet resultSet) throws SQLException
     {
         if (log.isDebugEnabled())
@@ -327,10 +344,20 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
             }
             log.debug(sb.toString());
         }
-        return new Column(resultSet.getString(ColumnMetaDataKey.COLUMN_NAME.name()), ColumnType.getType(resultSet
+        Column column = new Column(resultSet.getString(ColumnMetaDataKey.COLUMN_NAME.name()), ColumnType.getType(resultSet
                 .getInt(ColumnMetaDataKey.DATA_TYPE.name())));
+        if(column.getType() == ColumnType.VARCHAR)
+        {
+            column.setLength(resultSet.getInt(ColumnMetaDataKey.COLUMN_SIZE.name()));
+        }
+        else if (column.getType() == ColumnType.DECIMAL)
+        {
+            column.setPrecision(resultSet.getInt(ColumnMetaDataKey.COLUMN_SIZE.name()));
+            column.setScale(resultSet.getInt(ColumnMetaDataKey.DECIMAL_DIGITS.name()));
+        }
+        return column;
     }
-
+    
     protected String getColumnString(Column column)
     {
         StringBuilder sb = new StringBuilder(column.getName());
@@ -357,6 +384,11 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
                 break;
             case TIMESTAMP:
                 typeStr = "TIMESTAMP WITH TIME ZONE";
+                break;
+            case DECIMAL:
+                Integer precision = getColumnPrecision (column);
+                Integer scale = getColumnScale (column);
+                typeStr = "DECIMAL (" + precision + ", " + scale + ")";
                 break;
             default:
                 typeStr = column.getType().name();

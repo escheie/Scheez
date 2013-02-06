@@ -22,6 +22,12 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
     {
         return column.getLength();
     }
+    
+    @Override
+    protected String getColumnName (String columnName)
+    {
+        return columnName.toLowerCase();
+    }
 
     @Override
     protected String getColumnTypeString(Column column)

@@ -14,13 +14,27 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     public SchemaDaoMysql(DataSource dataSource)
     {
         super(dataSource);
-        supportsCascade = false;
     }
 
     public SchemaDaoMysql(JdbcTemplate jdbcTemplate)
     {
         super(jdbcTemplate);
-        supportsCascade = false;
+    }
+    
+    @Override
+    public void createSchema(String schemaName)
+    {
+        StringBuilder sb = new StringBuilder("CREATE DATABASE ");
+        sb.append(schemaName);
+        jdbcTemplate.execute(sb.toString());
+    }
+    
+    @Override
+    public void dropSchema(String schemaName)
+    {
+        StringBuilder sb = new StringBuilder("DROP DATABASE ");
+        sb.append(schemaName);
+        jdbcTemplate.execute(sb.toString());
     }
 
     @Override

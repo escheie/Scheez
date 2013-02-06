@@ -150,6 +150,41 @@ public class SchemaDaoTest
         }
     }
     
+    @Test
+    public void testVarcharColumnLength ()
+    {
+        TableName tableName = new TableName (TEST_SCHEMA, "table1");
+        Table table = new Table(tableName);
+        Column column1 = new Column("string", ColumnType.VARCHAR, 1024);
+        table.addColumn(column1);
+        
+        schemaDao.createTable(table);
+        
+        Column column2 = schemaDao.getColumn(tableName, column1.getName());
+        
+        assertNotNull(column2);
+        assertEquals(column1.getLength(), column2.getLength());
+    }
+    
+    @Test
+    public void testBigDecimalPrecision ()
+    {
+        TableName tableName = new TableName (TEST_SCHEMA, "table1");
+        Table table = new Table(tableName);
+        Column column1 = new Column("PRECISION_TEST", ColumnType.DECIMAL);
+        column1.setPrecision(10);
+        column1.setScale(5);
+        table.addColumn(column1);
+        
+        schemaDao.createTable(table);
+        
+        Column column2 = schemaDao.getColumn(tableName, column1.getName());
+        
+        assertNotNull(column2);
+        assertEquals(column1.getPrecision(), column2.getPrecision());
+        assertEquals(column1.getScale(), column2.getScale());
+    }
+    
     @Parameters (name="{0}")
     public static Collection<Object[]> testDatabases ()
     {
