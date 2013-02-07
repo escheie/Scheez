@@ -11,8 +11,6 @@ public interface TestDatabase
 {
     String getName ();
     
-    String getUrl ();
-    
     DataSource getDataSource();
     
     ColumnType getExpectedColumnType(ColumnType columnType);

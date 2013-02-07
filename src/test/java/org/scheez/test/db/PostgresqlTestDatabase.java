@@ -6,9 +6,9 @@ import org.scheez.schema.def.ColumnType;
 
 public class PostgresqlTestDatabase extends AbstractTestDatabase
 {
-    public PostgresqlTestDatabase(String url, DataSource dataSource)
+    public PostgresqlTestDatabase(DataSource dataSource)
     {
-        super("postgresql", url, dataSource);
+        super("postgresql", dataSource);
     }
 
     @Override

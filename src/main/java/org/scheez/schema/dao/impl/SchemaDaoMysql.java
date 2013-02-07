@@ -4,9 +4,12 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.scheez.schema.dao.SchemaDao;
+import org.scheez.schema.dao.SchemaDaoFactory;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.TableName;
+import org.scheez.util.DbC;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoMysql extends SchemaDaoAnsi
@@ -20,7 +23,7 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     {
         super(jdbcTemplate);
     }
-    
+
     @Override
     public void createSchema(String schemaName)
     {
@@ -28,7 +31,7 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         sb.append(schemaName);
         jdbcTemplate.execute(sb.toString());
     }
-    
+
     @Override
     public void dropSchema(String schemaName)
     {
@@ -42,13 +45,13 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     {
         return catalogExists(schemaName);
     }
-    
+
     @Override
     public List<String> getSchemas()
     {
         return getCatalogs();
     }
-    
+
     @Override
     protected String getCatalogName(TableName tableName)
     {
@@ -60,7 +63,7 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     {
         return null;
     }
-    
+
     @Override
     public void alterColumnType(TableName tableName, Column column)
     {
@@ -84,5 +87,23 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
                 typeStr = super.getColumnTypeString(column);
         }
         return typeStr;
+    }
+
+    public static class Factory extends SchemaDaoFactory
+    {
+
+        @Override
+        public boolean isSupported(String databaseProduct, String databaseVersion)
+        {
+            DbC.throwIfNullArg(databaseProduct);
+            return databaseProduct.equalsIgnoreCase("MySQL");
+        }
+
+        @Override
+        public SchemaDao create (DataSource dataSource)
+        {
+            return new SchemaDaoMysql (dataSource);
+        }
+
     }
 }

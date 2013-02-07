@@ -7,7 +7,7 @@ import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
 
 public interface SchemaDao
-{
+{  
     void createSchema (String schemaName);
     
     void dropSchema (String schemaName);

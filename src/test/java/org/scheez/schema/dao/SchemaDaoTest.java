@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.scheez.schema.dao.impl.SchemaDaoFactoryUrl;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Table;
@@ -30,7 +29,7 @@ public class SchemaDaoTest
     public SchemaDaoTest (TestDatabase testDatabase)
     {
         this.testDatabase = testDatabase;
-        schemaDao = new SchemaDaoFactoryUrl(testDatabase.getUrl(), testDatabase.getDataSource()).getSchemaDao();
+        schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
     }
     
     @Before

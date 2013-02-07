@@ -26,12 +26,9 @@ public class TestDatabaseManager
     private TestDatabaseManager ()
     {
         testDatabases = new LinkedList<TestDatabase>();
-        DriverManagerDataSource dataSource = DataSourceUtil.getHsqldbDataSource();
-        testDatabases.add(new HsqldbTestDatabase(dataSource.getUrl(), dataSource));
-        dataSource = DataSourceUtil.getMysqlDataSource();
-        testDatabases.add(new MysqlTestDatabase(dataSource.getUrl(), dataSource));
-        dataSource = DataSourceUtil.getPostgresqlDataSource();
-        testDatabases.add(new PostgresqlTestDatabase(dataSource.getUrl(), dataSource));
+        testDatabases.add(new HsqldbTestDatabase(DataSourceUtil.getHsqldbDataSource()));
+        testDatabases.add(new MysqlTestDatabase(DataSourceUtil.getMysqlDataSource()));
+        testDatabases.add(new PostgresqlTestDatabase(DataSourceUtil.getPostgresqlDataSource()));
     }
     
     public Collection<Object[]> getDatabaseParameters()

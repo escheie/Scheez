@@ -6,9 +6,9 @@ import org.scheez.schema.def.ColumnType;
 
 public class HsqldbTestDatabase extends AbstractTestDatabase
 {
-    public HsqldbTestDatabase(String url, DataSource dataSource)
+    public HsqldbTestDatabase(DataSource dataSource)
     {
-        super("hsqldb", url, dataSource);
+        super("hsqldb", dataSource);
     }
     
     @Override

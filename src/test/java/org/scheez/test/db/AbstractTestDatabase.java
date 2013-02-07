@@ -14,12 +14,9 @@ public class AbstractTestDatabase implements TestDatabase
 
     protected String name;
 
-    protected String url;
-
-    public AbstractTestDatabase(String name, String url, DataSource dataSource)
+    public AbstractTestDatabase(String name, DataSource dataSource)
     {
         this.name = name;
-        this.url = url;
         this.dataSource = dataSource;
     }
 
@@ -27,12 +24,6 @@ public class AbstractTestDatabase implements TestDatabase
     public String getName()
     {
         return name;
-    }
-
-    @Override
-    public String getUrl()
-    {
-        return url;
     }
 
     @Override

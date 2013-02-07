@@ -5,8 +5,8 @@ import javax.sql.DataSource;
 public class MysqlTestDatabase extends AbstractTestDatabase
 {
 
-    public MysqlTestDatabase(String url, DataSource dataSource)
+    public MysqlTestDatabase(DataSource dataSource)
     {
-        super("mysql", url, dataSource);
+        super("mysql", dataSource);
     }
 }
