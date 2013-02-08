@@ -73,6 +73,16 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         sb.append(getColumnString(column));
         jdbcTemplate.execute(sb.toString());
     }
+    
+    @Override
+    public void dropIndex(TableName tableName, String indexName)
+    {
+        StringBuilder sb = new StringBuilder("DROP INDEX ");
+        sb.append(indexName);
+        sb.append(" ON ");
+        sb.append(tableName);
+        jdbcTemplate.execute(sb.toString());
+    }
 
     @Override
     protected String getColumnTypeString(Column column)
@@ -100,9 +110,10 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (DataSource dataSource)
+        public SchemaDao create (JdbcTemplate jdbcTemplate)
         {
-            return new SchemaDaoMysql (dataSource);
+            DbC.throwIfNullArg(jdbcTemplate);
+            return new SchemaDaoMysql (jdbcTemplate);
         }
 
     }

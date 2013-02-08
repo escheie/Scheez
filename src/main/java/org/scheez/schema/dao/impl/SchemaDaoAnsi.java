@@ -15,15 +15,17 @@ import org.apache.commons.logging.LogFactory;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.def.ColumnMetaDataKey;
 import org.scheez.schema.def.ColumnType;
+import org.scheez.schema.def.IndexMetaDataKey;
 import org.scheez.schema.def.TableMetaDataKey;
 import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
+public class SchemaDaoAnsi implements SchemaDao
 {
     private static final Log log = LogFactory.getLog(SchemaDaoAnsi.class);
 
@@ -33,14 +35,21 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
 
     private static final int DEFAULT_SCALE = 0;
 
+    protected JdbcTemplate jdbcTemplate;
+
     public SchemaDaoAnsi(DataSource dataSource)
     {
-        super(dataSource);
+        this(new JdbcTemplate(dataSource));
     }
 
     public SchemaDaoAnsi(JdbcTemplate jdbcTemplate)
     {
-        super(jdbcTemplate);
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public DataSource getDataSource()
+    {
+        return jdbcTemplate.getDataSource();
     }
 
     protected String getCatalogName(TableName tableName)
@@ -195,12 +204,7 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
                 }
                 if (table != null)
                 {
-                    ResultSet columns = metaData.getColumns(getCatalogName(table.getTableName()),
-                            getSchemaName(table.getTableName()), getTableName(table.getTableName()), null);
-                    while (columns.next())
-                    {
-                        table.addColumn(getColumn(columns));
-                    }
+                    getTableDetails(table, metaData);
                 }
                 return table;
             }
@@ -224,17 +228,34 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
                 {
                     Table table = new Table(new TableName(schemaName, rs.getString(TableMetaDataKey.TABLE_NAME
                             .toString())));
-                    ResultSet columns = metaData.getColumns(getCatalogName(table.getTableName()),
-                            getSchemaName(table.getTableName()), getTableName(table.getTableName()), null);
-                    while (columns.next())
-                    {
-                        table.addColumn(getColumn(columns));
-                    }
+                    getTableDetails (table, metaData);
                     tables.add(table);
                 }
                 return tables;
             }
         });
+    }
+
+    protected void getTableDetails(Table table, DatabaseMetaData metaData) throws SQLException
+    {
+        ResultSet columns = metaData.getColumns(getCatalogName(table.getTableName()),
+                getSchemaName(table.getTableName()), getTableName(table.getTableName()), null);
+        while (columns.next())
+        {
+            table.addColumn(getColumn(columns));
+        }
+        ResultSet indexes = metaData.getIndexInfo(getCatalogName(table.getTableName()),
+                getSchemaName(table.getTableName()), getTableName(table.getTableName()), false, false);
+        Index lastIndex = null;
+        while (indexes.next())
+        {
+            Index index = getIndex(indexes, lastIndex);
+            if ((lastIndex == null) || (!index.getName().equals(lastIndex.getName())))
+            {
+                table.addIndex(index);
+                lastIndex = index;
+            }
+        }
     }
 
     @Override
@@ -287,6 +308,70 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
         sb.append(" ALTER COLUMN ");
         sb.append(getColumnString(column));
         jdbcTemplate.execute(sb.toString());
+    }
+
+    @Override
+    public void addIndex(TableName tableName, Index index)
+    {
+        StringBuilder sb = new StringBuilder("CREATE INDEX ");
+        if (index.isUnique())
+        {
+            sb.append("UNIQUE ");
+        }
+        sb.append(index.getName());
+        sb.append(" ON ");
+        sb.append(tableName);
+        sb.append(" (");
+        boolean first = true;
+        for (String columnName : index.getColumnNames())
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                sb.append(", ");
+            }
+            sb.append(columnName);
+        }
+        sb.append(")");
+        jdbcTemplate.execute(sb.toString());
+    }
+
+    @Override
+    public void dropIndex(TableName tableName, String indexName)
+    {
+        StringBuilder sb = new StringBuilder("DROP INDEX ");
+        sb.append(tableName.getSchemaName());
+        sb.append(".");
+        sb.append(indexName);
+        jdbcTemplate.execute(sb.toString());
+    }
+
+    @Override
+    public Index getIndex(final TableName tableName, final String indexName)
+    {
+        return jdbcTemplate.execute(new ConnectionCallback<Index>()
+        {
+            @Override
+            public Index doInConnection(Connection con) throws SQLException, DataAccessException
+            {
+                DatabaseMetaData metaData = con.getMetaData();
+                ResultSet indexes = metaData.getIndexInfo(getCatalogName(tableName),
+                        getSchemaName(tableName), getTableName(tableName), false, false);
+                Index index = null, lastIndex = null;
+                if (indexes.next())
+                {
+                    lastIndex = getIndex(indexes, lastIndex);
+                    if(lastIndex.getName().equals(indexName))
+                    {
+                        index = lastIndex;
+                    }
+                }
+                return index;
+            }
+        });
     }
 
     protected List<String> getCatalogs()
@@ -366,6 +451,44 @@ public class SchemaDaoAnsi extends AbstractDao implements SchemaDao
             column.setScale(resultSet.getInt(ColumnMetaDataKey.DECIMAL_DIGITS.name()));
         }
         return column;
+    }
+
+    protected Index getIndex(ResultSet resultSet, Index lastIndex) throws SQLException
+    {
+        if (log.isDebugEnabled())
+        {
+            ResultSetMetaData rsmd = resultSet.getMetaData();
+            StringBuilder sb = new StringBuilder("Index: ");
+            boolean first = true;
+            for (int index = 1; index <= rsmd.getColumnCount(); index++)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    sb.append(",");
+                }
+                sb.append(rsmd.getColumnLabel(index));
+                sb.append("=");
+                sb.append(resultSet.getObject(index));
+            }
+            log.debug(sb.toString());
+        }
+        String indexName = resultSet.getString(IndexMetaDataKey.INDEX_NAME.name());
+        Index index = null;
+        if ((lastIndex != null) && (lastIndex.getName().equals(indexName)))
+        {
+            index = lastIndex;
+        }
+        else
+        {
+            index = new Index(indexName);
+            index.setUnique(!resultSet.getBoolean(IndexMetaDataKey.NON_UNIQUE.name()));
+        }
+        index.addColumnName(resultSet.getString(IndexMetaDataKey.COLUMN_NAME.name()));
+        return index;
     }
 
     protected String getColumnString(Column column)

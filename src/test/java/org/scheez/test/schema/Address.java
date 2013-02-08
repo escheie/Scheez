@@ -2,11 +2,13 @@ package org.scheez.test.schema;
 
 import javax.persistence.Table;
 
+import org.scheez.persistence.Index;
 import org.scheez.test.def.State;
 
 /**
  * @author Eric
  */
+@Index (name="address_idx", fieldNames={"address1", "address2"})
 @Table(name = "address_book")
 public class Address
 {
@@ -16,6 +18,7 @@ public class Address
 
     private String address2;
 
+    @Index
     private State state;
 
     private String city;

@@ -10,23 +10,23 @@ import java.util.Calendar;
 
 public enum ColumnType
 { 
-    TINYINT (new Class<?>[] {Byte.class}, Types.TINYINT),
+    TINYINT (new Class<?>[] {Byte.class, byte.class}, Types.TINYINT),
     
-    SMALLINT (new Class<?>[] {Short.class}, Types.SMALLINT), 
+    SMALLINT (new Class<?>[] {Short.class, short.class}, Types.SMALLINT), 
     
-    INTEGER (new Class<?>[] {Integer.class}, Types.INTEGER),  
+    INTEGER (new Class<?>[] {Integer.class, int.class}, Types.INTEGER),  
     
-    BIGINT (new Class<?>[] {Long.class, BigInteger.class}, Types.BIGINT),
+    BIGINT (new Class<?>[] {Long.class, long.class, BigInteger.class}, Types.BIGINT),
     
-    FLOAT (new Class<?>[] {Float.class}, Types.FLOAT, Types.REAL),
+    FLOAT (new Class<?>[] {Float.class, float.class}, Types.FLOAT, Types.REAL),
     
-    DOUBLE (new Class<?>[] {Double.class}, Types.DOUBLE),
+    DOUBLE (new Class<?>[] {Double.class, double.class}, Types.DOUBLE),
     
     DECIMAL (new Class<?>[] {BigDecimal.class}, Types.DECIMAL, Types.NUMERIC),
     
-    BOOLEAN (new Class<?>[] {Boolean.class}, Types.BOOLEAN, Types.BIT),
+    BOOLEAN (new Class<?>[] {Boolean.class, boolean.class}, Types.BOOLEAN, Types.BIT),
     
-    VARCHAR (new Class<?>[] {String.class, char[].class, Character[].class, Character.class}, Types.VARCHAR, Types.CLOB),
+    VARCHAR (new Class<?>[] {String.class, char[].class, char.class, Character[].class, Character.class}, Types.VARCHAR, Types.CLOB),
     
     CHAR (VARCHAR.getTypeClasses(), Types.CHAR),
     

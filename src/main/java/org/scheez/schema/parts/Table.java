@@ -1,6 +1,7 @@
 package org.scheez.schema.parts;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,13 +10,16 @@ import org.scheez.util.BaseObject;
 public class Table extends BaseObject
 {
     private TableName name;
-    private List<Column> columns;
-    private Object extraInfo;
 
-    public Table (TableName name)
+    private List<Column> columns;
+
+    private List<Index> indexes;
+
+    public Table(TableName name)
     {
         this.name = name;
         this.columns = new ArrayList<Column>();
+        this.indexes = new ArrayList<Index>();
     }
 
     public String getSchemaName()
@@ -27,8 +31,8 @@ public class Table extends BaseObject
     {
         return name.getTableName();
     }
-    
-    public TableName getTableName ()
+
+    public TableName getTableName()
     {
         return name;
     }
@@ -37,24 +41,32 @@ public class Table extends BaseObject
     {
         return Collections.unmodifiableList(columns);
     }
-    
-    public void addColumn (Column column)
+
+    public void addColumn(Column column)
     {
         columns.add(column);
     }
 
-    public void addColumns(List<Column> columns)
+    public void setColumns(Collection<Column> columns)
     {
+        this.columns.clear();
         this.columns.addAll(columns);
     }
 
-    public Object getExtraInfo()
+    public List<Index> getIndexes()
     {
-        return extraInfo;
+        return Collections.unmodifiableList(indexes);
+    }
+    
+    public void addIndex (Index index)
+    {
+        this.indexes.add(index);
     }
 
-    public void setExtraInfo(Object extraInfo)
+    public void setIndexes (Collection<Index> indexes)
     {
-        this.extraInfo = extraInfo;
+        this.indexes.clear();
+        this.indexes.addAll(indexes);
     }
+
 }

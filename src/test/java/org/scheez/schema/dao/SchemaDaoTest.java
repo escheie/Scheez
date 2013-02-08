@@ -12,6 +12,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
 import org.scheez.test.db.TestDatabase;
@@ -96,7 +97,7 @@ public class SchemaDaoTest
         
         Table table2 = schemaDao.getTable(tableName);
         assertNotNull(table2);
-        assertEquals(table2.getColumns().size(), types.length);
+        assertEquals(types.length, table2.getColumns().size());
         for (Column column : table2.getColumns())
         {
             assertNotNull(column.getName());
@@ -133,7 +134,7 @@ public class SchemaDaoTest
         
         Table table2 = schemaDao.getTable(tableName);
         assertNotNull(table2);
-        assertEquals(table2.getColumns().size(), types.length + 1);
+        assertEquals( types.length + 1, table2.getColumns().size());
         for (Column column : table2.getColumns())
         {
             if(column.getName().equalsIgnoreCase("id"))
@@ -146,7 +147,63 @@ public class SchemaDaoTest
             assertEquals(testDatabase.getExpectedColumnType(types[index]), column.getType());
             
             assertNotNull(schemaDao.getColumn(tableName, column.getName()));
+            
+            schemaDao.dropColumn(tableName, column.getName());
+            
+            assertNull(schemaDao.getColumn(tableName, column.getName()));
         }
+    }
+    
+    @Test
+    public void testIndexMethods ()
+    {
+        TableName tableName = new TableName (TEST_SCHEMA, "table1");
+        Table table = new Table(tableName);
+        table.addColumn(new Column("id", ColumnType.INTEGER));
+        
+        assertEquals (0, schemaDao.getTables(tableName.getSchemaName()).size());
+        assertNull (schemaDao.getTable(tableName));
+        
+        schemaDao.createTable(table);
+        
+        ColumnType[] types = ColumnType.values();
+        for(int index = 0; index < types.length; index++)
+        {
+            String colName = "col" + index;
+            schemaDao.addColumn(tableName, new Column(colName, types[index]));
+            schemaDao.addIndex(tableName, new Index("index" + index, colName));
+        } 
+        
+        Table table2 = schemaDao.getTable(tableName);
+        assertNotNull(table2);
+        assertEquals(types.length, table2.getIndexes().size());
+        for (Index index : table2.getIndexes())
+        { 
+            assertNotNull(index.getName());
+            int i = Integer.parseInt(index.getName().substring(5));
+            assertEquals(1, index.getColumnNames().size());
+            assertTrue(index.getColumnNames().get(0).equalsIgnoreCase("col" + i));
+            
+            assertNotNull(schemaDao.getIndex(tableName, index.getName()));
+            
+            schemaDao.dropIndex(tableName, index.getName());
+            
+            assertNull(schemaDao.getColumn(tableName, index.getName()));
+        }
+        
+        /*Index index1 = new Index ("my_test_index1", "col1", "col2", "col3");
+        Index index2 = new Index ("my_test_index2", "col4");
+        index2.setUnique(true);
+        
+        schemaDao.addIndex(tableName, index1);
+        schemaDao.addIndex(tableName, index2);
+        
+        table2 = schemaDao.getTable(tableName);
+        assertNotNull(table2);
+        assertEquals(2, table2.getIndexes().size());
+        
+        assertEquals(index1, schemaDao.getIndex(tableName, index1.getName()));
+        assertEquals(index1, schemaDao.getIndex(tableName, index2.getName()));*/
     }
     
     @Test

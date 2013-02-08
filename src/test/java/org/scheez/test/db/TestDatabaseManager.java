@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-
 
 public class TestDatabaseManager
 {

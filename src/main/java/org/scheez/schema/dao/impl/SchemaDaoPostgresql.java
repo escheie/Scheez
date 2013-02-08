@@ -84,9 +84,10 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (DataSource dataSource)
+        public SchemaDao create (JdbcTemplate jdbcTemplate)
         {
-            return new SchemaDaoPostgresql (dataSource);
+            DbC.throwIfNullArg(jdbcTemplate);
+            return new SchemaDaoPostgresql (jdbcTemplate);
         }
 
     }

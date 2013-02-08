@@ -2,8 +2,7 @@ package org.scheez.schema.dao;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 
 import javax.sql.DataSource;
 
@@ -12,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.scheez.schema.dao.impl.SchemaDaoHsqldb;
 import org.scheez.schema.dao.impl.SchemaDaoMysql;
 import org.scheez.schema.dao.impl.SchemaDaoPostgresql;
+import org.scheez.util.DbC;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,7 +20,7 @@ public abstract class SchemaDaoFactory
 {
     private static final Log log = LogFactory.getLog(SchemaDaoFactory.class);
     
-    private static List<SchemaDaoFactory> schemaDaoFactories = new ArrayList<SchemaDaoFactory>();
+    private static LinkedList<SchemaDaoFactory> schemaDaoFactories = new LinkedList<SchemaDaoFactory>();
     
     static {
         register(new SchemaDaoMysql.Factory());
@@ -30,7 +30,7 @@ public abstract class SchemaDaoFactory
 
     public static void register(SchemaDaoFactory factory)
     {
-        schemaDaoFactories.add(factory);
+        schemaDaoFactories.addFirst(factory);
     }
 
     public static void unregister(SchemaDaoFactory factory)
@@ -40,8 +40,9 @@ public abstract class SchemaDaoFactory
 
     public static SchemaDao getSchemaDao (final DataSource dataSource)
     {
-        JdbcTemplate template = new JdbcTemplate(dataSource);
-        return template.execute(new ConnectionCallback<SchemaDao>()
+        DbC.throwIfNullArg(dataSource);
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        return jdbcTemplate.execute(new ConnectionCallback<SchemaDao>()
         {
             @Override
             public SchemaDao doInConnection(Connection con) throws SQLException, DataAccessException
@@ -56,7 +57,7 @@ public abstract class SchemaDaoFactory
                 {
                     if(factory.isSupported(productName, productVersion))
                     {
-                        schemaDao = factory.create (dataSource);
+                        schemaDao = factory.create (jdbcTemplate);
                         break;
                     }
                 }
@@ -73,5 +74,5 @@ public abstract class SchemaDaoFactory
     
     public abstract boolean isSupported (String databaseProduct, String databaseVersion);
     
-    public abstract SchemaDao create (DataSource dataSource);
+    public abstract SchemaDao create (JdbcTemplate jdbcTemplate);
 }

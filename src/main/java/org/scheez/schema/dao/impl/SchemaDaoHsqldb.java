@@ -49,9 +49,11 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (DataSource dataSource)
+        public SchemaDao create (JdbcTemplate jdbcTemplate)
         {
-            return new SchemaDaoHsqldb (dataSource);
+            DbC.throwIfNullArg(jdbcTemplate);
+            DbC.throwIfNullArg(jdbcTemplate.getDataSource());
+            return new SchemaDaoHsqldb (jdbcTemplate);
         }
 
     }
