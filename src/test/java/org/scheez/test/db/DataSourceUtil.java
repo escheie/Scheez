@@ -18,4 +18,18 @@ public class DataSourceUtil
     {
         return new DriverManagerDataSource("jdbc:hsqldb:mem:testdb", "SA", "");
     }
+    
+    public static DriverManagerDataSource getTeradataDataSource ()
+    {
+        try
+        {
+            Class.forName("com.teradata.jdbc.TeraDriver");
+        }
+        catch (ClassNotFoundException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return new DriverManagerDataSource("jdbc:teradata://sdll3563.labs.teradata.com", "DBC", "DBC");
+    }
 }

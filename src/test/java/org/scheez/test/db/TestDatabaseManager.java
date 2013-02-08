@@ -24,9 +24,10 @@ public class TestDatabaseManager
     private TestDatabaseManager ()
     {
         testDatabases = new LinkedList<TestDatabase>();
-        testDatabases.add(new HsqldbTestDatabase(DataSourceUtil.getHsqldbDataSource()));
-        testDatabases.add(new MysqlTestDatabase(DataSourceUtil.getMysqlDataSource()));
-        testDatabases.add(new PostgresqlTestDatabase(DataSourceUtil.getPostgresqlDataSource()));
+        //testDatabases.add(new HsqldbTestDatabase(DataSourceUtil.getHsqldbDataSource()));
+        //testDatabases.add(new MysqlTestDatabase(DataSourceUtil.getMysqlDataSource()));
+        //testDatabases.add(new PostgresqlTestDatabase(DataSourceUtil.getPostgresqlDataSource()));
+        testDatabases.add(new TeradataTestDatabase(DataSourceUtil.getTeradataDataSource()));
     }
     
     public Collection<Object[]> getDatabaseParameters()
