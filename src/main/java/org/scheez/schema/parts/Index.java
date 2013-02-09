@@ -13,8 +13,6 @@ public class Index extends BaseObject
     private String name;
 
     private List<String> columnNames;
-
-    private boolean unique;
     
     public Index (String name, String... columnNames)
     {
@@ -42,21 +40,26 @@ public class Index extends BaseObject
     {
         columnNames.add(columnName);
     }
-    
 
     public void setColumnNames(Collection<String> columnNames)
     {
         this.columnNames.clear();
         this.columnNames.addAll(columnNames);
     }
-
-    public boolean isUnique()
+    
+    public Index toLowerCase ()
     {
-        return unique;
+        Index index = new Index(name.toLowerCase());
+        for(String columnName : columnNames)
+        {
+            index.addColumnName(columnName.toLowerCase());
+        }
+        return index;
     }
 
-    public void setUnique(boolean unique)
+    @Override
+    public int hashCode()
     {
-        this.unique = unique;
+        return toLowerCase().hashCode();
     }
 }

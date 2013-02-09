@@ -250,7 +250,7 @@ public class SchemaDaoAnsi implements SchemaDao
         while (indexes.next())
         {
             Index index = getIndex(indexes, lastIndex);
-            if ((lastIndex == null) || (!index.getName().equals(lastIndex.getName())))
+            if ((lastIndex == null) || (!index.getName().equalsIgnoreCase(lastIndex.getName())))
             {
                 table.addIndex(index);
                 lastIndex = index;
@@ -314,10 +314,6 @@ public class SchemaDaoAnsi implements SchemaDao
     public void addIndex(TableName tableName, Index index)
     {
         StringBuilder sb = new StringBuilder("CREATE INDEX ");
-        if (index.isUnique())
-        {
-            sb.append("UNIQUE ");
-        }
         sb.append(index.getName());
         sb.append(" ON ");
         sb.append(tableName);
@@ -361,10 +357,10 @@ public class SchemaDaoAnsi implements SchemaDao
                 ResultSet indexes = metaData.getIndexInfo(getCatalogName(tableName),
                         getSchemaName(tableName), getTableName(tableName), false, false);
                 Index index = null, lastIndex = null;
-                if (indexes.next())
+                while (indexes.next())
                 {
                     lastIndex = getIndex(indexes, lastIndex);
-                    if(lastIndex.getName().equals(indexName))
+                    if(lastIndex.getName().equalsIgnoreCase(indexName))
                     {
                         index = lastIndex;
                     }
@@ -478,14 +474,13 @@ public class SchemaDaoAnsi implements SchemaDao
         }
         String indexName = resultSet.getString(IndexMetaDataKey.INDEX_NAME.name());
         Index index = null;
-        if ((lastIndex != null) && (lastIndex.getName().equals(indexName)))
+        if ((lastIndex != null) && (lastIndex.getName().equalsIgnoreCase(indexName)))
         {
             index = lastIndex;
         }
         else
         {
             index = new Index(indexName);
-            index.setUnique(!resultSet.getBoolean(IndexMetaDataKey.NON_UNIQUE.name()));
         }
         index.addColumnName(resultSet.getString(IndexMetaDataKey.COLUMN_NAME.name()));
         return index;

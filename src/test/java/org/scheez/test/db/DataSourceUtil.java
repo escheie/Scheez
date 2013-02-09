@@ -2,6 +2,7 @@ package org.scheez.test.db;
 
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+
 public class DataSourceUtil
 {  
     public static DriverManagerDataSource getMysqlDataSource ()

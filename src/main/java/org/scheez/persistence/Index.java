@@ -12,8 +12,6 @@ public @interface Index
     String name () default "";
     
     String[] fieldNames() default {};
-    
-    boolean unique () default false;
 }
 
 

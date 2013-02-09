@@ -191,9 +191,8 @@ public class SchemaDaoTest
             assertNull(schemaDao.getColumn(tableName, index.getName()));
         }
         
-        /*Index index1 = new Index ("my_test_index1", "col1", "col2", "col3");
+        Index index1 = new Index ("my_test_index1", "col1", "col2", "col3");
         Index index2 = new Index ("my_test_index2", "col4");
-        index2.setUnique(true);
         
         schemaDao.addIndex(tableName, index1);
         schemaDao.addIndex(tableName, index2);
@@ -201,9 +200,24 @@ public class SchemaDaoTest
         table2 = schemaDao.getTable(tableName);
         assertNotNull(table2);
         assertEquals(2, table2.getIndexes().size());
+        for (Index index : table2.getIndexes())
+        {
+            if(index.getColumnNames().size() == 3)
+            {
+                assertEquals(index1.toLowerCase(), index.toLowerCase());
+            }
+            else if(index.getColumnNames().size() == 1)
+            {
+                assertEquals(index2.toLowerCase(), index.toLowerCase());
+            }
+            else
+            {
+                fail ("Index of unexpected number of columns");
+            }
+        }
         
-        assertEquals(index1, schemaDao.getIndex(tableName, index1.getName()));
-        assertEquals(index1, schemaDao.getIndex(tableName, index2.getName()));*/
+        assertEquals(index1.toLowerCase(), schemaDao.getIndex(tableName, index1.getName()).toLowerCase());
+        assertEquals(index2.toLowerCase(), schemaDao.getIndex(tableName, index2.getName()).toLowerCase());
     }
     
     @Test
