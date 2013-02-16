@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.scheez.util.BaseObject;
+import org.scheez.util.DbC;
 
 public class Index extends BaseObject
 {
@@ -16,6 +17,7 @@ public class Index extends BaseObject
     
     public Index (String name, String... columnNames)
     {
+        DbC.throwIfNullArg("name", name);
         this.name = name;
         this.columnNames = new LinkedList<String>();
         setColumnNames(Arrays.asList(columnNames));

@@ -2,7 +2,9 @@ package org.scheez.schema.dao;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Before;
@@ -166,12 +168,15 @@ public class SchemaDaoTest
         
         schemaDao.createTable(table);
         
-        ColumnType[] types = ColumnType.values();
+        List<ColumnType> typeList = new LinkedList<ColumnType>(Arrays.asList(ColumnType.values()));
+        typeList.remove(ColumnType.BINARY);
+        ColumnType[] types = typeList.toArray(new ColumnType[0]);
+      
         for(int index = 0; index < types.length; index++)
         {
             String colName = "col" + index;
             schemaDao.addColumn(tableName, new Column(colName, types[index]));
-            schemaDao.addIndex(tableName, new Index("index" + index, colName));
+            schemaDao.addIndex(tableName, new Index("index" + index, colName));   
         } 
         
         Table table2 = schemaDao.getTable(tableName);

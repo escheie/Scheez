@@ -7,6 +7,8 @@ package org.scheez.test.db;
 
 import javax.sql.DataSource;
 
+import org.scheez.schema.def.ColumnType;
+
 /**
  * @author es151000
  * @version $Id: $
@@ -17,6 +19,22 @@ public class TeradataTestDatabase extends AbstractTestDatabase
     {
         super("teradata", dataSource);
     }
+    
+    @Override
+    public ColumnType getExpectedColumnType(ColumnType columnType)
+    {
+        if(columnType == ColumnType.DOUBLE)
+        {
+            columnType = ColumnType.FLOAT;
+        }
+        else if(columnType == ColumnType.BOOLEAN)
+        {
+            columnType = ColumnType.TINYINT;
+        }
+        return columnType;
+    }
+    
+    
 
    
 

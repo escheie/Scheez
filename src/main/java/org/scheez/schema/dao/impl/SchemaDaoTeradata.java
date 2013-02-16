@@ -1,17 +1,24 @@
 package org.scheez.schema.dao.impl;
 
-import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
+import org.scheez.schema.parts.Column;
+import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.TableName;
 import org.scheez.util.DbC;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class SchemaDaoTeradata extends SchemaDaoAnsi 
+public class SchemaDaoTeradata extends SchemaDaoAnsi
 {
+    /**
+     * DEFAULT perm space for new databases is 1 GB.
+     */
+    private static long DEFAULT_PERM_SPACE = 1000000000;
+    
+    private long defaultPermSpace = DEFAULT_PERM_SPACE;
+
     public SchemaDaoTeradata(DataSource dataSource)
     {
         super(dataSource);
@@ -21,47 +28,135 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
     {
         super(jdbcTemplate);
     }
-    
+
     @Override
     public void createSchema(String schemaName)
     {
         StringBuilder sb = new StringBuilder("CREATE DATABASE ");
         sb.append(schemaName);
+        sb.append(" AS PERMANENT = ");
+        sb.append(defaultPermSpace);
+        sb.append(" BYTES");
         jdbcTemplate.execute(sb.toString());
     }
 
     @Override
     public void dropSchema(String schemaName)
     {
-        StringBuilder sb = new StringBuilder("DROP DATABASE ");
+        StringBuilder sb = new StringBuilder("DELETE DATABASE ");
+        sb.append(schemaName);
+        jdbcTemplate.execute(sb.toString());
+        sb = new StringBuilder("DROP DATABASE ");
         sb.append(schemaName);
         jdbcTemplate.execute(sb.toString());
     }
+    
 
+    /** 
+     * @inheritDoc
+     */
     @Override
-    public boolean schemaExists(final String schemaName)
+    public boolean schemaExists(String schemaName)
     {
-        return catalogExists(schemaName);
-    }
-
-    @Override
-    public List<String> getSchemas()
-    {
-        return getCatalogs();
-    }
-
-    @Override
-    protected String getCatalogName(TableName tableName)
-    {
-        return tableName.getSchemaName();
-    }
-
-    @Override
-    protected String getSchemaName(TableName tableName)
-    {
-        return null;
+        boolean exists = false;
+        for (String schema : getSchemas())
+        {
+            if(schema.equalsIgnoreCase(schemaName))
+            {
+                exists = true;
+                break;
+            }
+        }
+        return exists;
     }
     
+    @Override
+    public void alterColumnType(TableName tableName, Column column)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" ADD ");
+        sb.append(getColumnString(column));
+        jdbcTemplate.execute(sb.toString());
+    }
+    
+    @Override
+    public void addIndex(TableName tableName, Index index)
+    {
+        StringBuilder sb = new StringBuilder("CREATE INDEX ");
+        sb.append(index.getName());
+        sb.append(" (");
+        boolean first = true;
+        for (String columnName : index.getColumnNames())
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                sb.append(", ");
+            }
+            sb.append(columnName);
+        }
+        sb.append(") ON ");
+        sb.append(tableName);
+        jdbcTemplate.execute(sb.toString());
+    }
+    
+    @Override
+    public void dropIndex(TableName tableName, String indexName)
+    {
+        StringBuilder sb = new StringBuilder("DROP INDEX ");
+        sb.append(indexName);
+        sb.append(" ON ");
+        sb.append(tableName);
+        jdbcTemplate.execute(sb.toString());
+    }
+
+    
+    @Override
+    protected String getColumnTypeString(Column column)
+    {
+        String typeStr = null;
+        switch (column.getType())
+        {
+            case TINYINT:
+                typeStr = "BYTEINT";
+                break;
+            case DOUBLE:
+                typeStr = "DOUBLE PRECISION";
+                break;
+            case BOOLEAN:
+                typeStr = "BYTEINT";
+                break;
+            case BINARY:
+                typeStr = "BLOB";
+                break;
+            default:
+                typeStr = super.getColumnTypeString(column);
+                
+        }
+        return typeStr;
+    }
+
+    /**
+     * @return the defaultPermSpace
+     */
+    public long getDefaultPermSpace()
+    {
+        return defaultPermSpace;
+    }
+
+    /**
+     * @param defaultPermSpace
+     *            the defaultPermSpace to set
+     */
+    public void setDefaultPermSpace(long defaultPermSpace)
+    {
+        this.defaultPermSpace = defaultPermSpace;
+    }
+
     public static class Factory extends SchemaDaoFactory
     {
 
@@ -73,10 +168,10 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (JdbcTemplate jdbcTemplate)
+        public SchemaDao create(JdbcTemplate jdbcTemplate)
         {
             DbC.throwIfNullArg(jdbcTemplate);
-            return new SchemaDaoTeradata (jdbcTemplate);
+            return new SchemaDaoTeradata(jdbcTemplate);
         }
 
     }

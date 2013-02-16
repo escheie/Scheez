@@ -144,7 +144,7 @@ public class SchemaDaoAnsi implements SchemaDao
             public List<String> doInConnection(Connection con) throws SQLException, DataAccessException
             {
                 DatabaseMetaData metaData = con.getMetaData();
-                ResultSet resultSet = metaData.getSchemas(null, null);
+                ResultSet resultSet = metaData.getSchemas();
                 LinkedList<String> schemaNames = new LinkedList<String>();
                 while (resultSet.next())
                 {
@@ -158,7 +158,7 @@ public class SchemaDaoAnsi implements SchemaDao
     @Override
     public void dropTable(TableName tableName)
     {
-        StringBuilder sb = new StringBuilder("DROP TABLE IF EXISTS ");
+        StringBuilder sb = new StringBuilder("DROP TABLE ");
         sb.append(tableName);
         jdbcTemplate.execute(sb.toString());
     }
@@ -250,10 +250,13 @@ public class SchemaDaoAnsi implements SchemaDao
         while (indexes.next())
         {
             Index index = getIndex(indexes, lastIndex);
-            if ((lastIndex == null) || (!index.getName().equalsIgnoreCase(lastIndex.getName())))
+            if(index != null)
             {
-                table.addIndex(index);
-                lastIndex = index;
+                if ((lastIndex == null) || (!index.getName().equalsIgnoreCase(lastIndex.getName())))
+                {
+                    table.addIndex(index);
+                    lastIndex = index;
+                }
             }
         }
     }
@@ -263,7 +266,7 @@ public class SchemaDaoAnsi implements SchemaDao
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
-        sb.append(" ADD COLUMN ");
+        sb.append(" ADD ");
         sb.append(getColumnString(column));
         jdbcTemplate.execute(sb.toString());
 
@@ -274,7 +277,7 @@ public class SchemaDaoAnsi implements SchemaDao
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
-        sb.append(" DROP COLUMN ");
+        sb.append(" DROP ");
         sb.append(columnName);
         jdbcTemplate.execute(sb.toString());
     }
@@ -305,7 +308,7 @@ public class SchemaDaoAnsi implements SchemaDao
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
-        sb.append(" ALTER COLUMN ");
+        sb.append(" ALTER ");
         sb.append(getColumnString(column));
         jdbcTemplate.execute(sb.toString());
     }
@@ -332,6 +335,7 @@ public class SchemaDaoAnsi implements SchemaDao
             sb.append(columnName);
         }
         sb.append(")");
+        System.out.println(sb.toString());
         jdbcTemplate.execute(sb.toString());
     }
 
@@ -360,7 +364,7 @@ public class SchemaDaoAnsi implements SchemaDao
                 while (indexes.next())
                 {
                     lastIndex = getIndex(indexes, lastIndex);
-                    if(lastIndex.getName().equalsIgnoreCase(indexName))
+                    if((lastIndex != null) && (lastIndex.getName().equalsIgnoreCase(indexName)))
                     {
                         index = lastIndex;
                     }
@@ -478,11 +482,14 @@ public class SchemaDaoAnsi implements SchemaDao
         {
             index = lastIndex;
         }
-        else
+        else if (indexName != null)
         {
             index = new Index(indexName);
         }
-        index.addColumnName(resultSet.getString(IndexMetaDataKey.COLUMN_NAME.name()));
+        if(index != null)
+        {
+            index.addColumnName(resultSet.getString(IndexMetaDataKey.COLUMN_NAME.name()));
+        }
         return index;
     }
 
