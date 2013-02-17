@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
+import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.TableName;
 import org.scheez.util.DbC;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,6 +19,16 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
     public SchemaDaoHsqldb(JdbcTemplate jdbcTemplate)
     {
         super(jdbcTemplate);
+    }
+    
+    @Override
+    public ColumnType getExpectedColumnType(ColumnType columnType)
+    {
+        if (columnType == ColumnType.FLOAT)
+        {
+            columnType = ColumnType.DOUBLE;
+        }
+        return columnType;
     }
 
     @Override

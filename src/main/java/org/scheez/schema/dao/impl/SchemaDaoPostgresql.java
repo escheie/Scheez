@@ -50,6 +50,20 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         sb.append( getColumnTypeString(column));
         jdbcTemplate.execute(sb.toString());
     }
+    
+    @Override
+    public ColumnType getExpectedColumnType(ColumnType columnType)
+    {
+        if(columnType == ColumnType.TINYINT)
+        {
+            columnType = ColumnType.SMALLINT;
+        }
+        else if (columnType == ColumnType.FLOAT)
+        {
+            columnType = ColumnType.DOUBLE;
+        }
+        return columnType;
+    }
 
     @Override
     protected String getColumnTypeString(Column column)

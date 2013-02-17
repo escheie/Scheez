@@ -3,35 +3,27 @@ package org.scheez.schema.dao;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.db.TestDatabase;
-import org.scheez.test.db.TestDatabaseManager;
+import org.scheez.test.database.DatabaseTest;
+import org.scheez.test.database.TestDatabase;
 
-@RunWith(Parameterized.class)
-public class SchemaDaoTest
+public class SchemaDaoTest extends DatabaseTest
 {
     private static final String TEST_SCHEMA = "scheez_test";
-    
-    private TestDatabase testDatabase;
     
     private SchemaDao schemaDao;
     
     public SchemaDaoTest (TestDatabase testDatabase)
     {
-        this.testDatabase = testDatabase;
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
     }
     
@@ -104,7 +96,7 @@ public class SchemaDaoTest
         {
             assertNotNull(column.getName());
             int index = Integer.parseInt(column.getName().substring(3));
-            assertEquals(testDatabase.getExpectedColumnType(types[index]), column.getType());
+            assertEquals(schemaDao.getExpectedColumnType(types[index]), column.getType());
         }
         
         assertEquals (1, schemaDao.getTables(tableName.getSchemaName()).size());
@@ -146,7 +138,7 @@ public class SchemaDaoTest
             
             assertNotNull(column.getName());
             int index = Integer.parseInt(column.getName().substring(3));
-            assertEquals(testDatabase.getExpectedColumnType(types[index]), column.getType());
+            assertEquals(schemaDao.getExpectedColumnType(types[index]), column.getType());
             
             assertNotNull(schemaDao.getColumn(tableName, column.getName()));
             
@@ -283,11 +275,5 @@ public class SchemaDaoTest
         
         assertNotNull(column2);
         assertEquals(ColumnType.BIGINT, column2.getType());
-    }
-    
-    @Parameters (name="{0}")
-    public static Collection<Object[]> testDatabases ()
-    {
-        return TestDatabaseManager.getInstance().getDatabaseParameters();
     }
 }

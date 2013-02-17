@@ -2,6 +2,7 @@ package org.scheez.schema.dao;
 
 import java.util.List;
 
+import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.Table;
@@ -32,6 +33,8 @@ public interface SchemaDao
     Column getColumn (TableName tableName, String columnName);
     
     void alterColumnType (TableName tableName, Column column);
+    
+    ColumnType getExpectedColumnType (ColumnType columnType);
     
     void addIndex (TableName tableName, Index index);
     

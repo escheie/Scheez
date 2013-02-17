@@ -3,13 +3,9 @@ package org.scheez.classgen;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.classgen.ClassGenerator;
 import org.scheez.schema.classgen.DefaultClassTemplate;
 import org.scheez.schema.classgen.GeneratedClass;
@@ -17,13 +13,12 @@ import org.scheez.schema.mapper.DefaultNameMapper;
 import org.scheez.schema.mapper.NameMapper;
 import org.scheez.schema.mapper.ObjectMapper;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.db.TestDatabase;
-import org.scheez.test.db.TestDatabaseManager;
+import org.scheez.test.database.DatabaseTest;
+import org.scheez.test.database.TestDatabase;
 import org.scheez.util.BaseObject;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@RunWith(Parameterized.class)
-public class ClassGeneratorTest
+public class ClassGeneratorTest extends DatabaseTest
 {
     private TestDatabase testDatabase;
 
@@ -64,11 +59,5 @@ public class ClassGeneratorTest
                 assertTrue(obj.hasValues());
             }
         }
-    }
-
-    @Parameters(name = "{0}")
-    public static Collection<Object[]> testDatabases()
-    {
-        return TestDatabaseManager.getInstance().getDatabaseParameters();
-    }
+    } 
 }

@@ -312,6 +312,12 @@ public class SchemaDaoAnsi implements SchemaDao
         sb.append(getColumnString(column));
         jdbcTemplate.execute(sb.toString());
     }
+    
+    @Override
+    public ColumnType getExpectedColumnType(ColumnType columnType)
+    {
+        return columnType;
+    }
 
     @Override
     public void addIndex(TableName tableName, Index index)
@@ -335,7 +341,6 @@ public class SchemaDaoAnsi implements SchemaDao
             sb.append(columnName);
         }
         sb.append(")");
-        System.out.println(sb.toString());
         jdbcTemplate.execute(sb.toString());
     }
 

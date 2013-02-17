@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
+import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.TableName;
@@ -78,6 +79,20 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         sb.append(" ADD ");
         sb.append(getColumnString(column));
         jdbcTemplate.execute(sb.toString());
+    }
+    
+    @Override
+    public ColumnType getExpectedColumnType(ColumnType columnType)
+    {
+        if(columnType == ColumnType.DOUBLE)
+        {
+            columnType = ColumnType.FLOAT;
+        }
+        else if(columnType == ColumnType.BOOLEAN)
+        {
+            columnType = ColumnType.TINYINT;
+        }
+        return columnType;
     }
     
     @Override

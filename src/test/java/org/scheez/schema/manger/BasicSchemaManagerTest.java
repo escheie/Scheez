@@ -2,16 +2,12 @@ package org.scheez.schema.manger;
 
 import static org.junit.Assert.*;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
 import org.scheez.schema.def.ColumnType;
@@ -26,12 +22,11 @@ import org.scheez.schema.diff.UnknownColumn;
 import org.scheez.schema.diff.UnknownTable;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.db.TestDatabase;
-import org.scheez.test.db.TestDatabaseManager;
+import org.scheez.test.database.DatabaseTest;
+import org.scheez.test.database.TestDatabase;
 import org.scheez.test.schema.Person;
 
-@RunWith(Parameterized.class)
-public class BasicSchemaManagerTest
+public class BasicSchemaManagerTest extends DatabaseTest
 {
     private static final Log log = LogFactory.getLog(BasicSchemaManagerTest.class);
     
@@ -325,10 +320,4 @@ public class BasicSchemaManagerTest
         assertNotNull(differences);
         assertEquals(0, differences.size());
     }
-    
-    @Parameters (name="{0}")
-    public static Collection<Object[]> testDatabases ()
-    {
-        return TestDatabaseManager.getInstance().getDatabaseParameters();
-    } 
 }
