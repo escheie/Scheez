@@ -13,12 +13,12 @@ import org.scheez.schema.mapper.DefaultNameMapper;
 import org.scheez.schema.mapper.NameMapper;
 import org.scheez.schema.mapper.ObjectMapper;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.database.DatabaseTest;
-import org.scheez.test.database.TestDatabase;
+import org.scheez.test.DatabaseIntegrationTest;
+import org.scheez.test.TestDatabase;
 import org.scheez.util.BaseObject;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class ClassGeneratorTest extends DatabaseTest
+public class ClassGeneratorTest extends DatabaseIntegrationTest
 {
     private TestDatabase testDatabase;
 

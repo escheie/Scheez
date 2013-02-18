@@ -1,4 +1,4 @@
-package org.scheez.test.database;
+package org.scheez.test;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -13,10 +13,10 @@ import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.database.DatabaseTest;
-import org.scheez.test.database.TestDatabase;
+import org.scheez.test.DatabaseIntegrationTest;
+import org.scheez.test.TestDatabase;
 
-public class SchemaDaoTest extends DatabaseTest
+public class SchemaDaoTest extends DatabaseIntegrationTest
 {
     private static final String TEST_SCHEMA = "scheez_test";
     

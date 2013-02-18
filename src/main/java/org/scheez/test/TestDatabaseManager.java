@@ -1,8 +1,8 @@
-package org.scheez.test.database;
+package org.scheez.test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.io.InputStream;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -37,12 +37,34 @@ public class TestDatabaseManager
     {
         testDatabases = new LinkedList<TestDatabase>();
     }
+    
+    public List<TestDatabase> getTestDatabases ()
+    {
+        return Collections.unmodifiableList(testDatabases);
+    }
 
     public void load(String resourceName) throws IOException, ClassNotFoundException
     {
         testDatabases.clear();
         Properties databaseProperties = new Properties(System.getProperties());
-        databaseProperties.load(getClass().getClassLoader().getResourceAsStream(resourceName));
+        
+        InputStream inputStream = null;
+        try
+        {
+            inputStream = getClass().getClassLoader().getResourceAsStream(resourceName);
+            if(inputStream == null)
+            {
+                throw new RuntimeException ("Resource not found: " + resourceName);
+            }
+            databaseProperties.load(inputStream);
+        }
+        finally
+        {
+            if(inputStream != null)
+            {
+                inputStream.close();
+            }
+        }  
         
         StringTokenizer tokenizer = new StringTokenizer(getProperty(databaseProperties, "databases", null, true, true), ", \t\n", false);
         if(!tokenizer.hasMoreTokens())
@@ -85,15 +107,5 @@ public class TestDatabaseManager
             }
         }
         return v;
-    }
-
-    public Collection<Object[]> getDatabaseParameters()
-    {
-        List<Object[]> databases = new ArrayList<Object[]>();
-        for (TestDatabase database : testDatabases)
-        {
-            databases.add(new Object[] { database });
-        }
-        return databases;
     }
 }

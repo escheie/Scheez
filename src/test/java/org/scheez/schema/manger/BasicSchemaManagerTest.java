@@ -22,11 +22,11 @@ import org.scheez.schema.diff.UnknownColumn;
 import org.scheez.schema.diff.UnknownTable;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.database.DatabaseTest;
-import org.scheez.test.database.TestDatabase;
+import org.scheez.test.DatabaseIntegrationTest;
+import org.scheez.test.TestDatabase;
 import org.scheez.test.schema.Person;
 
-public class BasicSchemaManagerTest extends DatabaseTest
+public class BasicSchemaManagerTest extends DatabaseIntegrationTest
 {
     private static final Log log = LogFactory.getLog(BasicSchemaManagerTest.class);
     
