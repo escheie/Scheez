@@ -14,7 +14,7 @@ import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
 import org.scheez.test.DatabaseIntegrationTest;
-import org.scheez.test.TestDatabase;
+import org.scheez.test.SimpleTestDatabase;
 
 public class SchemaDaoTest extends DatabaseIntegrationTest
 {
@@ -22,7 +22,7 @@ public class SchemaDaoTest extends DatabaseIntegrationTest
     
     private SchemaDao schemaDao;
     
-    public SchemaDaoTest (TestDatabase testDatabase)
+    public SchemaDaoTest (SimpleTestDatabase testDatabase)
     {
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
     }

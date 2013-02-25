@@ -15,7 +15,7 @@ public abstract class DatabaseIntegrationTest
     public static Collection<Object[]> testDatabases()
     {
         List<Object[]> databases = new ArrayList<Object[]>();
-        for (TestDatabase database : TestDatabaseManager.getInstance().getTestDatabases())
+        for (TestDatabase database : TestConfiguration.getInstance().getTestDatabases())
         {
             databases.add(new Object[] { database });
         }

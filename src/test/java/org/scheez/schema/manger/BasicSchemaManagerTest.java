@@ -23,7 +23,7 @@ import org.scheez.schema.diff.UnknownTable;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.TableName;
 import org.scheez.test.DatabaseIntegrationTest;
-import org.scheez.test.TestDatabase;
+import org.scheez.test.SimpleTestDatabase;
 import org.scheez.test.schema.Person;
 
 public class BasicSchemaManagerTest extends DatabaseIntegrationTest
@@ -34,7 +34,7 @@ public class BasicSchemaManagerTest extends DatabaseIntegrationTest
 
     private SchemaDao schemaDao;
 
-    public BasicSchemaManagerTest(TestDatabase testDatabase)
+    public BasicSchemaManagerTest(SimpleTestDatabase testDatabase)
     {
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
     }

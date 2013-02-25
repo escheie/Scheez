@@ -1,12 +1,15 @@
 package org.scheez.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.io.DefaultResourceLoader;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
@@ -20,6 +23,8 @@ import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.DeleteKeyPairRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
+import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.IpPermission;
@@ -28,47 +33,75 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
-import com.jcraft.jsch.JSch;
 
 public class Ec2Helper
 {
     private static final Log log = LogFactory.getLog(Ec2Helper.class);
-
-    private AmazonEC2Async client;
-
-    private String namespace;
     
-    private KeyPair keyPair;
-
-    public static Ec2Helper getInstance()
+    public static final String DEFAULT_CREDENTIALS_FILE = "awscredentials.properties";
+    
+    public static final String DEFAULT_REGION = "ec2.us-east-1.amazonaws.com";
+    
+    private AmazonEC2Async client;
+    
+    public Ec2Helper () 
     {
-        try
-        {
-            Ec2Helper ec2Helper = new Ec2Helper(getCredentials("awscredentials.properties"),
-                    "ec2.us-east-1.amazonaws.com", "Scheez");
-            ec2Helper.init();
-            return ec2Helper;
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException("Unable to load Amazone EC2 credentials.", e);
-        }
+        this (getCredentials(DEFAULT_CREDENTIALS_FILE), DEFAULT_REGION);
     }
-
-    public Ec2Helper(AWSCredentials credentials, String region, String securityGroup)
+    
+    public Ec2Helper(AWSCredentials credentials, String region)
     {
         client = new AmazonEC2AsyncClient(credentials);
         client.setEndpoint(region);
-        this.namespace = securityGroup;
     }
-
-    private void init()
+    
+    public KeyPair createKeyPair (String keyName, boolean overwrite)
+    {
+        if(overwrite)
+        {
+            client.deleteKeyPair(new DeleteKeyPairRequest(keyName));
+        }
+        CreateKeyPairResult result = client.createKeyPair(new CreateKeyPairRequest().withKeyName(keyName));
+        return result.getKeyPair();
+    }
+    
+    public KeyPair initializeKeyPair (String keyName, File keyDir) throws IOException
+    {
+        KeyPair keyPair = null;
+        
+        /// Load key on file system.
+        File keyFile = new File(keyDir, keyName + ".key");
+        File digestFile = new File(keyDir, keyName + ".digest");
+        
+        if((keyFile.exists()) && (digestFile.exists()))
+        {
+            String digest = FileUtils.readFileToString(digestFile);
+            String material = FileUtils.readFileToString(keyFile);
+            
+            DescribeKeyPairsResult result = client.describeKeyPairs(new DescribeKeyPairsRequest().withKeyNames(keyName));
+            if((!result.getKeyPairs().isEmpty()) && (result.getKeyPairs().get(0).getKeyFingerprint().equals(digest)))
+            {
+                keyPair = new KeyPair().withKeyFingerprint(digest).withKeyMaterial(material).withKeyName(keyName);
+            }
+        }  
+        
+        if(keyPair == null)
+        {
+            keyPair = createKeyPair(keyName, true);
+            
+            FileUtils.writeStringToFile(keyFile, keyPair.getKeyMaterial());
+            FileUtils.writeStringToFile(digestFile, keyPair.getKeyFingerprint());
+        }
+        
+        return keyPair;
+    }
+    
+    public void createSecurityGroup (String name, String description)
     {
         CreateSecurityGroupRequest securityGroupRequest = new CreateSecurityGroupRequest();
         securityGroupRequest
-                .withGroupName(namespace)
-                .withDescription(
-                        "A security group used for integration testing the Scheez library against different database vendor instances.");
+                .withGroupName(name)
+                .withDescription(description);
 
         try
         {
@@ -81,21 +114,12 @@ public class Ec2Helper
                 throw e;
             }
         }
-        
-        addIPPermission(new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0").withFromPort(1024).withToPort(10000));
-        addIPPermission(new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0").withFromPort(22).withToPort(22));
-        addIPPermission(new IpPermission().withIpProtocol("icmp").withIpRanges("0.0.0.0/0").withFromPort(-1).withToPort(-1));
-        
-        client.deleteKeyPair(new DeleteKeyPairRequest(namespace));
-        CreateKeyPairResult result = client.createKeyPair(new CreateKeyPairRequest().withKeyName(namespace));
-        keyPair = result.getKeyPair();
-        log.info(keyPair.getKeyMaterial());
     }
 
-    private void addIPPermission(IpPermission ipPermission)
+    public void addIPPermission(String securityGroup, IpPermission ipPermission)
     {
         AuthorizeSecurityGroupIngressRequest authorizeSecurityGroupIngressRequest = new AuthorizeSecurityGroupIngressRequest();
-        authorizeSecurityGroupIngressRequest.withGroupName(namespace).withIpPermissions(ipPermission);
+        authorizeSecurityGroupIngressRequest.withGroupName(securityGroup).withIpPermissions(ipPermission);
         
         try
         {
@@ -118,7 +142,24 @@ public class Ec2Helper
         {
             for (Instance instance : reservations.getInstances())
             {
-                if ((inSecurityGroup(instance)) && (!instance.getState().getName().equals("terminated")))
+                if (!instance.getState().getName().equals("terminated"))
+                {
+                    instances.add(instance);
+                }
+            }
+        }
+        return instances;
+    }
+    
+    public List<Instance> getInstances(String securityGroup)
+    {
+        LinkedList<Instance> instances = new LinkedList<Instance>();
+        DescribeInstancesResult result = client.describeInstances();
+        for (Reservation reservations : result.getReservations())
+        {
+            for (Instance instance : reservations.getInstances())
+            {
+                if ((inSecurityGroup(securityGroup, instance)) && (!instance.getState().getName().equals("terminated")))
                 {
                     instances.add(instance);
                 }
@@ -136,7 +177,7 @@ public class Ec2Helper
         {
             for (Instance instance : reservations.getInstances())
             {
-                if ((inSecurityGroup(instance)) && (!instance.getState().getName().equals("terminated")))
+                if (!instance.getState().getName().equals("terminated"))
                 {
                     retval = instance;
                 }
@@ -144,19 +185,13 @@ public class Ec2Helper
         }
         return retval;
     }
-    
-    public void connect (Instance instance) throws Exception
-    {
-        JSch jsch = new JSch();
-        jsch.getSession("root", instance.getPublicIpAddress());
-    }  
 
-    private boolean inSecurityGroup(Instance instance)
+    private boolean inSecurityGroup (String securityGroup, Instance instance)
     {
         boolean inGroup = false;
         for (GroupIdentifier id : instance.getSecurityGroups())
         {
-            if (id.getGroupName().equals(namespace))
+            if (id.getGroupName().equals(securityGroup))
             {
                 inGroup = true;
                 break;
@@ -165,10 +200,10 @@ public class Ec2Helper
         return inGroup;
     }
 
-    public void terminateAll()
+    public void terminateAll (String securityGroup)
     {
         TerminateInstancesRequest request = new TerminateInstancesRequest();
-        for (Instance instance : getInstances())
+        for (Instance instance : getInstances(securityGroup))
         {
             request.withInstanceIds(instance.getInstanceId());
         }
@@ -180,12 +215,12 @@ public class Ec2Helper
         client.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceId));
     }
 
-    public Instance startInstance(String imageName, boolean waitForRunning)
+    public Instance startInstance (String instanceType, String imageName, String securityGroup, String keyName, boolean waitForRunning)
     {
         RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 
-        runInstancesRequest.withImageId(imageName).withInstanceType("m1.small").withMinCount(1).withMaxCount(1)
-                .withSecurityGroups(namespace).withKeyName(namespace);
+        runInstancesRequest.withImageId(imageName).withInstanceType(instanceType).withMinCount(1).withMaxCount(1)
+                .withSecurityGroups(securityGroup).withKeyName(keyName);
 
         RunInstancesResult runInstancesResult = client.runInstances(runInstancesRequest);
 
@@ -219,46 +254,47 @@ public class Ec2Helper
 
         return instance;
     }
-    
-    public KeyPair getKeyPair ()
-    {
-        return keyPair;
-    }
   
-    private static AWSCredentials getCredentials(String resourceName) throws IOException
+    private static AWSCredentials getCredentials (String resource) 
     {
         AWSCredentials credentials = null;
-        InputStream inputStream = null;
         try
         {
-            inputStream = Ec2Helper.class.getClassLoader().getResourceAsStream(resourceName);
-            if (inputStream == null)
+            InputStream inputStream = null;
+            try
             {
-                throw new RuntimeException("Resource not found: " + resourceName);
+                inputStream =  new DefaultResourceLoader().getResource(resource).getInputStream();
+                if(inputStream == null)
+                {
+                    throw new RuntimeException ("Resource not found: " + resource);
+                }
+                credentials = new PropertiesCredentials(inputStream);
             }
-            credentials = new PropertiesCredentials(inputStream);
+            finally
+            {
+                if(inputStream != null)
+                {
+                    inputStream.close();
+                }
+            }
         }
-        finally
+        catch (IOException e)
         {
-            if (inputStream != null)
-            {
-                inputStream.close();
-            }
+            throw new RuntimeException ("Unable to load credentials from resource: " + resource, e);
         }
         return credentials;
     }
 
     public static void main(String[] args)
     {
-        Ec2Helper ec2Helper = Ec2Helper.getInstance();
-
-        List<Instance> instances = ec2Helper.getInstances();
-        System.out.println("Listing existing images...");
-        for (Instance instance : instances)
-        {
-            System.out.println(instance);
-        }
-
+//        Ec2Helper ec2Helper = Ec2Helper.getInstance();
+//
+//        List<Instance> instances = ec2Helper.getInstances();
+//        System.out.println("Listing existing images...");
+//        for (Instance instance : instances)
+//        {
+//            System.out.println(instance);
+//        }
 //        if (instances.size() == 0)
 //        {
 //            System.out.println("Running new image...");
