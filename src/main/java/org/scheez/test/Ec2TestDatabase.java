@@ -5,95 +5,211 @@ import java.io.IOException;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.IpPermission;
 
 public class Ec2TestDatabase extends SimpleTestDatabase
 { 
+    private static final Log log = LogFactory.getLog(Ec2TestDatabase.class);
+    
+    public static final String PROPERTY_IMAGE_ID = "imageId";
+    
+    public static final String PROPERTY_SECURITY_GROUP = "securityGroup";
+    
+    public static final String PROPERTY_KEY_NAME = "keyName";
+    
+    public static final String PROPERTY_INSTANCE_TYPE = "instanceType";
+    
+    public static final String PROPERTY_INSTANCE_ID = "instanceId";
+    
+    public static final String PROPERTY_KEY_DIR = "keyDir";
+    
+    public static final String PROPERTY_INSTANCE_FILE = "instanceFile";
+    
+    public static final String PROPERTY_SSH_USER = "sshUser";
+    
     public static final String TMP_DIR = "build/ec2";
     
-    public static final String DEFAULT_KEY_DIR = TMP_DIR + "/keys";
+    public static final String DEFAULT_SECURITY_GROUP = "scheez";
     
-    public static final String DEFAULT_NAMESPACE = "Scheez";
+    public static final String DEFAULT_KEY_NAME = "scheez";
     
     public static final String DEFAULT_INSTANCE_TYPE = "m1.small";
     
     private String imageId;
     
-    private String namespace;
+    private String securityGroup;
+    
+    private String keyName;
     
     private String instanceType;
     
     private String instanceId;
     
+    private String keyDir;
+    
+    private String instanceFile;
+    
+    private String sshUser;
+    
+    private File keyFile;
+    
+    private Instance instance;
+    
     private static Ec2Helper ec2Helper;
     
-    protected Ec2TestDatabase (String name, TestDatabaseProperties properties)
+    public void initialize (String name, TestDatabaseProperties properties) 
     {
-        super(name, properties);
+        super.initialize (name, properties);
+        loadProperties();
+        
         ec2Helper = new Ec2Helper();
-        namespace = DEFAULT_NAMESPACE;
+        
+        initSecurityGroup();
+        keyFile = initKeyPair();
     }
     
-    public static TestDatabase getInstance (String name, TestDatabaseProperties properties)
+    /**
+     * @param session
+     */
+    private void scheduleShutdown(SshSession session)
     {
-        SimpleTestDatabase testDatabase = new SimpleTestDatabase(name,  properties);
-        testDatabase.init();
-        return testDatabase;
+        Result result = session.runCommand("sudo shutdown -h +55 2>&1");
+        if(!result.isSuccess() && (!result.getText().contains("Another shutdown is already running")))
+        {
+            log.error("Scheduled shutdown failed for " + instance + ".  " + result);
+        }
     }
-    
-    protected void init () 
+
+    /**
+     * @return
+     */
+    private Instance startNewInstance()
     {
-        super.init ();
+        log.info("Starting " + name + " [imageId=\"" + imageId + "\", instanceType=\"" + instanceType + "\"]...");
+        Instance instance = ec2Helper.startInstance(instanceType, imageId, securityGroup, keyName, true);
         
-        imageId = properties.getProperty("imageId", true, true);
-        instanceType = properties.getProperty("instanceType", DEFAULT_INSTANCE_TYPE);
+        instanceId = instance.getInstanceId();
+        properties.setProperty(PROPERTY_INSTANCE_ID, instanceId);
+        properties.save (new File(instanceFile));
         
-        initializeNameSpace(namespace, ec2Helper);
+        return instance;
     }
-    
-    public static synchronized void initializeNameSpace (String namespace, Ec2Helper ec2Helper)
+
+    /**
+     * 
+     */
+    private File initKeyPair()
     {
-        ec2Helper.createSecurityGroup(namespace, "A security group used for integration testing with different database vendor instances."); 
-        
-        ec2Helper.addIPPermission(namespace, new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0").withFromPort(1024).withToPort(10000));
-        ec2Helper.addIPPermission(namespace, new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0").withFromPort(22).withToPort(22));
-        ec2Helper.addIPPermission(namespace, new IpPermission().withIpProtocol("icmp").withIpRanges("0.0.0.0/0").withFromPort(-1).withToPort(-1));
-        
         try
         {
-            ec2Helper.initializeKeyPair(namespace, new File(DEFAULT_KEY_DIR));
+            
+            return ec2Helper.initializeKeyPair(keyName, new File(keyDir));
         }
         catch (IOException e)
         {
             throw new RuntimeException ("Unable to initialize key pair.");
         }     
     }
-    
-    
 
+    /**
+     * 
+     */
+    private void initSecurityGroup()
+    {
+        ec2Helper.createSecurityGroup(securityGroup, "A security group used for integration testing with different database vendor instances."); 
+        
+        ec2Helper.addIPPermission(securityGroup, new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0").withFromPort(1024).withToPort(10000));
+        ec2Helper.addIPPermission(securityGroup, new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0").withFromPort(22).withToPort(22));
+        ec2Helper.addIPPermission(securityGroup, new IpPermission().withIpProtocol("icmp").withIpRanges("0.0.0.0/0").withFromPort(-1).withToPort(-1));
+    }
+
+    /**
+     * 
+     */
+    private void loadProperties()
+    {
+        instanceFile = properties.getProperty(PROPERTY_INSTANCE_FILE, new File(TMP_DIR, name + ".properties").getAbsolutePath());
+        File f = new File(instanceFile);
+        
+        if(f.exists())
+        {
+            properties = TestDatabaseProperties.load("file:" + instanceFile, properties);
+        }
+        else
+        {
+            properties = new TestDatabaseProperties(properties);
+        }
+        
+        imageId = properties.getProperty(PROPERTY_IMAGE_ID, true, true);
+        instanceType = properties.getProperty(PROPERTY_INSTANCE_TYPE, DEFAULT_INSTANCE_TYPE);
+        instanceId = properties.getProperty(PROPERTY_INSTANCE_ID, false, true);
+        securityGroup = properties.getProperty(PROPERTY_SECURITY_GROUP, DEFAULT_SECURITY_GROUP);
+        keyName = properties.getProperty(PROPERTY_KEY_NAME, DEFAULT_KEY_NAME);
+        keyDir = properties.getProperty(PROPERTY_KEY_DIR, new File(TMP_DIR).getAbsolutePath());
+        sshUser = properties.getProperty(PROPERTY_SSH_USER, true, true);
+    }
 
     @Override
     public DataSource getDataSource()
     {
-        // TODO Auto-generated method stub
+        checkDatabase ();     
         return super.getDataSource();
     }
 
-    @Override
-    public void start (boolean wait)
+    /**
+     * 
+     */
+    private synchronized void checkDatabase ()
     {
+        boolean setupRequired = (instance == null);
+        if(instanceId != null)
+        {
+            Instance i = ec2Helper.getInstance(instanceId);
+            if((i != null) && (i.getState().getName().equals(Ec2Helper.STATE_RUNNING)))
+            {
+                instance = i;
+                log.info("Using existing " + name + " instance: " + instance);
+            }
+            else
+            {
+                instance = null;
+            }
+        }
        
+        if(instance == null)
+        {
+            instance = startNewInstance ();
+            setupRequired = true;
+        }
+        
+        if(setupRequired)
+        {
+            SshSession session = new SshSession(instance.getPublicDnsName(), sshUser, keyFile);
+            scheduleShutdown (session);
+            
+            url = url.replaceAll("//.*/", "//" + instance.getPublicDnsName() + "/");
+            log.info("Updating DataSource URL: " + url);
+        }
     }
 
-    @Override
-    public void terminate()
+    public static void main(String[] args)
     {
+        TestDatabaseProperties properties = new TestDatabaseProperties ();
+        properties.setProperty(PROPERTY_URL, "jdbc:postgresql://localhost/scheez");
+        properties.setProperty(PROPERTY_USERNAME, "postgres");
+        properties.setProperty(PROPERTY_PASSWORD, "bitnami");
+        properties.setProperty(PROPERTY_IMAGE_ID, "ami-31319958");
+        properties.setProperty(PROPERTY_SSH_USER, "bitnami");
+        
+        Ec2TestDatabase database = new Ec2TestDatabase ();
+        database.initialize("postgresql", properties);
        
-    }
-
-    @Override
-    public boolean isOnline()
-    {
-        return false;
+        JdbcTemplate jdbcTemplate = new JdbcTemplate (database.getDataSource());
+        System.out.println(jdbcTemplate.queryForObject("SELECT not()", String.class));
     }
 }

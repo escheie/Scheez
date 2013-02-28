@@ -36,6 +36,16 @@ import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 
 public class Ec2Helper
 {
+    public static final String STATE_PENDING = "pending";
+    
+    public static final String STATE_RUNNING = "running";
+    
+    public static final String STATE_SHUTTING_DOWN = "shutting-down";
+    
+    public static final String STATE_TERMINATED = "terminated";
+    
+    public static final String BEHAVIOR_TERMINATE = "terminate";
+    
     private static final Log log = LogFactory.getLog(Ec2Helper.class);
     
     public static final String DEFAULT_CREDENTIALS_FILE = "awscredentials.properties";
@@ -65,7 +75,7 @@ public class Ec2Helper
         return result.getKeyPair();
     }
     
-    public KeyPair initializeKeyPair (String keyName, File keyDir) throws IOException
+    public File initializeKeyPair (String keyName, File keyDir) throws IOException
     {
         KeyPair keyPair = null;
         
@@ -93,7 +103,7 @@ public class Ec2Helper
             FileUtils.writeStringToFile(digestFile, keyPair.getKeyFingerprint());
         }
         
-        return keyPair;
+        return keyFile;
     }
     
     public void createSecurityGroup (String name, String description)
@@ -142,7 +152,7 @@ public class Ec2Helper
         {
             for (Instance instance : reservations.getInstances())
             {
-                if (!instance.getState().getName().equals("terminated"))
+                if (!instance.getState().getName().equals(STATE_TERMINATED))
                 {
                     instances.add(instance);
                 }
@@ -159,7 +169,7 @@ public class Ec2Helper
         {
             for (Instance instance : reservations.getInstances())
             {
-                if ((inSecurityGroup(securityGroup, instance)) && (!instance.getState().getName().equals("terminated")))
+                if ((inSecurityGroup(securityGroup, instance)) && (!instance.getState().getName().equals(STATE_TERMINATED)))
                 {
                     instances.add(instance);
                 }
@@ -177,7 +187,7 @@ public class Ec2Helper
         {
             for (Instance instance : reservations.getInstances())
             {
-                if (!instance.getState().getName().equals("terminated"))
+                if (!instance.getState().getName().equals(STATE_TERMINATED))
                 {
                     retval = instance;
                 }
@@ -220,7 +230,7 @@ public class Ec2Helper
         RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 
         runInstancesRequest.withImageId(imageName).withInstanceType(instanceType).withMinCount(1).withMaxCount(1)
-                .withSecurityGroups(securityGroup).withKeyName(keyName);
+                .withSecurityGroups(securityGroup).withKeyName(keyName).withInstanceInitiatedShutdownBehavior(BEHAVIOR_TERMINATE);
 
         RunInstancesResult runInstancesResult = client.runInstances(runInstancesRequest);
 
@@ -240,7 +250,7 @@ public class Ec2Helper
             }
             instance = getInstance(instance.getInstanceId());
 
-            if (instance.getState().getName().equals("running"))
+            if (instance.getState().getName().equals(STATE_RUNNING))
             {
                 log.info("Instance instance.getInstanceId() started after " + (System.currentTimeMillis() - start) / 1000 + " seconds.  "
                         + instance);
@@ -283,24 +293,5 @@ public class Ec2Helper
             throw new RuntimeException ("Unable to load credentials from resource: " + resource, e);
         }
         return credentials;
-    }
-
-    public static void main(String[] args)
-    {
-//        Ec2Helper ec2Helper = Ec2Helper.getInstance();
-//
-//        List<Instance> instances = ec2Helper.getInstances();
-//        System.out.println("Listing existing images...");
-//        for (Instance instance : instances)
-//        {
-//            System.out.println(instance);
-//        }
-//        if (instances.size() == 0)
-//        {
-//            System.out.println("Running new image...");
-//            System.out.println(ec2Helper.startInstance("ami-a7c12fce", true));
-//        }
-//   
-//        ec2Helper.terminateAll();
     }
 }

@@ -1,7 +1,11 @@
 package org.scheez.test;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Writer;
 import java.util.Properties;
 
 import org.scheez.util.DbC;
@@ -12,6 +16,17 @@ public class TestDatabaseProperties
     private Properties properties;
     
     private String keyPrefix;
+    
+    public TestDatabaseProperties ()
+    {
+        properties = new Properties();
+    }
+    
+    public TestDatabaseProperties (TestDatabaseProperties defaults)
+    {
+        keyPrefix = defaults.keyPrefix;
+        properties = new Properties(defaults.properties);
+    }
         
     private TestDatabaseProperties (String keyPrefix, Properties properties)
     {
@@ -68,6 +83,40 @@ public class TestDatabaseProperties
         return v;
     }
     
+    public void setProperty (String key, String value)
+    {
+        String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
+        properties.setProperty(k, value);
+    }
+    
+    public void save (File file)
+    {
+        Writer out = null;
+        try
+        {
+            properties.store(out = new BufferedWriter(new FileWriter(file)), null);
+        }
+        catch (IOException e)
+        {
+            
+        }
+        finally
+        {
+            if(out != null)
+            {
+                try
+                {
+                    out.close();
+                }
+                catch (IOException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    
     public static TestDatabaseProperties load  (String resource) 
     {  
         return new TestDatabaseProperties(resource, null);
@@ -107,5 +156,6 @@ public class TestDatabaseProperties
         
         return new TestDatabaseProperties((defaults == null) ? null : defaults.getKeyPrefix(), properties);
     }
+ 
 
 }

@@ -8,9 +8,6 @@ public interface TestDatabase
     
     DataSource getDataSource();
     
-    void start (boolean wait);
+    void initialize (String name, TestDatabaseProperties properties);
     
-    void terminate ();
-    
-    boolean isOnline ();
 }

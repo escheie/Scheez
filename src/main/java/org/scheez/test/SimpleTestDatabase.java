@@ -10,6 +10,14 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 public class SimpleTestDatabase implements TestDatabase
 {
+    public static String PROPERTY_URL = "url";
+    
+    public static String PROPERTY_DRIVER_CLASS = "driverClass";
+    
+    public static String PROPERTY_USERNAME = "username";
+    
+    public static String PROPERTY_PASSWORD = "password";
+    
     protected String name;
     
     protected String url;
@@ -21,26 +29,16 @@ public class SimpleTestDatabase implements TestDatabase
     protected String password;
     
     protected TestDatabaseProperties properties;
-
-    protected SimpleTestDatabase(String name, TestDatabaseProperties properties)
+    
+    public void initialize  (String name, TestDatabaseProperties properties) 
     {
         this.name = name;
         this.properties = properties;
-    }
-    
-    public static TestDatabase getInstance (String name, TestDatabaseProperties properties)
-    {
-        SimpleTestDatabase testDatabase = new SimpleTestDatabase(name,  properties);
-        testDatabase.init();
-        return testDatabase;
-    }
-    
-    protected void init  () 
-    {
-        url = properties.getProperty("url", true, true);
-        driverClass = properties.getProperty("driverClass", false, true);
-        username = properties.getProperty("username", false, true);
-        password = properties.getProperty("password", false, false);
+        
+        url = properties.getProperty(PROPERTY_URL, true, true);
+        driverClass = properties.getProperty(PROPERTY_DRIVER_CLASS, false, true);
+        username = properties.getProperty(PROPERTY_USERNAME, false, true);
+        password = properties.getProperty(PROPERTY_PASSWORD, false, false);
         
         if (driverClass != null)
         {
@@ -95,24 +93,6 @@ public class SimpleTestDatabase implements TestDatabase
         List<TableName> tableNames = new LinkedList<TableName>();
         tableNames.add(new TableName("INFORMATION_SCHEMA", "TABLES"));
         return tableNames;
-    }
-    
-    @Override
-    public void start(boolean wait)
-    {
-       // Do nothing.
-    }
-
-    @Override
-    public void terminate()
-    {   
-        // Do nothing.
-    }
-
-    @Override
-    public boolean isOnline()
-    {
-        return true;
     }
 
     public String toString ()
