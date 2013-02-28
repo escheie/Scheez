@@ -83,6 +83,18 @@ public class TestDatabaseProperties
         return v;
     }
     
+    public Integer getInteger(String key, Integer defaultValue)
+    {
+        String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
+        String v = properties.getProperty(k);
+        Integer retval = defaultValue;
+        if (v != null)
+        {
+           retval = Integer.parseInt(v);
+        }
+        return retval;
+    }
+    
     public void setProperty (String key, String value)
     {
         String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
@@ -119,7 +131,7 @@ public class TestDatabaseProperties
     
     public static TestDatabaseProperties load  (String resource) 
     {  
-        return new TestDatabaseProperties(resource, null);
+        return load (resource, null);
     }
     
     public static TestDatabaseProperties load (String resource, TestDatabaseProperties defaults)
@@ -128,6 +140,10 @@ public class TestDatabaseProperties
         if(defaults != null)
         {
             properties = new Properties(defaults.properties);
+        }
+        else
+        {
+            properties = new Properties();
         }
         try
         {
@@ -156,6 +172,8 @@ public class TestDatabaseProperties
         
         return new TestDatabaseProperties((defaults == null) ? null : defaults.getKeyPrefix(), properties);
     }
+
+    
  
 
 }

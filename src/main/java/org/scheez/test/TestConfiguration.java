@@ -8,6 +8,8 @@ import java.util.StringTokenizer;
 
 public class TestConfiguration
 {
+    public static final String PROPERTY_DATABASES = "databases";
+    
     private static TestConfiguration config;
     
     private List<TestDatabase> testDatabases;
@@ -43,7 +45,7 @@ public class TestConfiguration
     {
         testDatabases.clear();
         TestDatabaseProperties properties = TestDatabaseProperties.load(resourceName);   
-        String databases = properties.getProperty("databases", true, true);
+        String databases = properties.getProperty(PROPERTY_DATABASES, true, true);
         
         StringTokenizer tokenizer = new StringTokenizer(databases, ", \t\n", false);
         if(!tokenizer.hasMoreTokens())
@@ -62,10 +64,12 @@ public class TestConfiguration
                 type = SimpleTestDatabase.class.getName();
             }
             
-            Class<?> cls = Class.forName(type);
-            Method getInstance = cls.getMethod("getInstance", String.class, TestDatabaseProperties.class);
+            @SuppressWarnings("unchecked")
+            Class<TestDatabase> cls = (Class<TestDatabase>)Class.forName(type);
+            TestDatabase testDatabase = cls.newInstance();
+            testDatabase.initialize(database, p);
             
-            testDatabases.add((TestDatabase)getInstance.invoke(cls, database, p));        
+            testDatabases.add(testDatabase);        
         }
     }
     
