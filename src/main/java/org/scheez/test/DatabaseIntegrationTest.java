@@ -5,10 +5,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
+@RunWith(Parallelized.class)
 public abstract class DatabaseIntegrationTest
 {
     @Parameters(name = "{0}")

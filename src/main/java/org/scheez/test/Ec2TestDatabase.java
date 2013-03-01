@@ -2,6 +2,7 @@ package org.scheez.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.IpPermission;
 
-public class Ec2TestDatabase extends SimpleTestDatabase
+public final class Ec2TestDatabase extends SimpleTestDatabase
 {
     private static final Log log = LogFactory.getLog(Ec2TestDatabase.class);
 
@@ -33,6 +34,12 @@ public class Ec2TestDatabase extends SimpleTestDatabase
     public static final String PROPERTY_INSTANCE_FILE = "instanceFile";
 
     public static final String PROPERTY_SSH_USER = "sshUser";
+    
+    public static final String PROPERTY_SSH_PORT = "sshPort";
+    
+    public static final String PROPERTY_LOCAL_PORT = "localPort";
+    
+    public static final String PROPERTY_DATABASE_PORT = "databasePort";
 
     public static final String PROPERTY_SCHEDULE_SHUTDOWN = "scheduleShutdown";
 
@@ -52,127 +59,74 @@ public class Ec2TestDatabase extends SimpleTestDatabase
 
     public static final String DEFAULT_INSTANCE_TYPE = "m1.small";
 
-    private static final String DEFAULT_SCHEDULE_SHUTDOWN_COMMAND = "sudo shutdown -h +55 < /dev/null &> /dev/null &";
+    public static final String DEFAULT_SCHEDULE_SHUTDOWN_COMMAND = "echo \"sudo shutdown -h now\" | at now + 55 minutes";
+    
+    public static final int DEFAULT_SSH_PORT = 22;
 
-    protected String imageId;
+    private static final int MAX_RETRY = 10;
+    
+    private static final int RETRY_WAIT = 10000;
 
-    protected String securityGroup;
+    private static final int MIN_PORT_RANGE = 5000;
 
-    protected String keyName;
+    private static final int MAX_PORT_RANGE = 20000;
 
-    protected String instanceType;
+    private static final String LOOPBACK_ADDRESS = "127.0.0.1";
 
-    protected String instanceId;
+    private String imageId;
 
-    protected String keyDir;
+    private String securityGroup;
 
-    protected String instanceFile;
+    private String keyName;
 
-    protected String sshUser;
+    private String instanceType;
 
-    protected List<String> commands;
+    private String instanceId;
 
-    protected boolean scheduleShutdown;
+    private String keyDir;
 
-    protected String scheduleShutdownCommand;
+    private String instanceFile;
+    
+    private Integer localPort;
+    
+    private Integer databasePort;
 
-    protected boolean staged;
+    private String sshUser;
+    
+    private Integer sshPort;
 
-    protected String testSql;
+    private List<String> commands;
 
-    protected File keyFile;
+    private boolean scheduleShutdown;
 
-    protected Instance instance;
+    private String scheduleShutdownCommand;
 
-    protected SshSession sshSession;
+    private boolean staged;
 
-    protected Ec2Helper ec2Helper;
+    private String testSql;
+
+    private File keyFile;
+
+    private SshSession sshSession;
+
+    private Ec2Helper ec2Helper;
+    
+    private boolean initialized;
 
     public void initialize(String name, TestDatabaseProperties properties)
     {
         super.initialize(name, properties);
         loadProperties();
-
         ec2Helper = new Ec2Helper();
-
+        
         initSecurityGroup();
         keyFile = initKeyPair();
     }
-
-    /**
-     * @param session
-     */
-    protected void scheduleShutdown(SshSession session)
-    {
-        if (scheduleShutdown)
-        {
-            log.info(name + " - Scheduling shutdown: " + scheduleShutdownCommand);
-            Result result = session.runCommand(scheduleShutdownCommand, true);
-            if (!result.isSuccess())
-            {
-                log.error(name + " - Scheduling shutdown failed. Command: " + scheduleShutdownCommand + "\nResult: "
-                        + result);
-            }
-        }
-        else
-        {
-            log.info(name + " - Skipping scheduled shutdown.");
-        }
-    }
-
-    /**
-     * @return
-     */
-    protected Instance startNewInstance()
-    {
-        staged = false;
-
-        log.info(name + " - Starting new EC2 instance (imageId=\"" + imageId + "\", instanceType=\"" + instanceType
-                + "\")...");
-        Instance instance = ec2Helper.startInstance(instanceType, imageId, securityGroup, keyName, true);
-
-        instanceId = instance.getInstanceId();
-        properties.setProperty(PROPERTY_INSTANCE_ID, instanceId);
-        properties.setProperty(PROPERTY_STAGED, Boolean.toString(false));
-        properties.save(new File(instanceFile));
-
-        return instance;
-    }
-
+    
     /**
      * 
      */
-    protected File initKeyPair()
-    {
-        try
-        {
-            return ec2Helper.initializeKeyPair(keyName, new File(keyDir));
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException("Unable to initialize key pair for " + name + ". KeyName: " + keyName
-                    + "  KeyDir: " + keyDir, e);
-        }
-    }
-
-    /**
-     * 
-     */
-    protected void initSecurityGroup()
-    {
-        ec2Helper.createSecurityGroup(securityGroup,
-                "A security group used for integration testing with different database vendor instances.");
-
-        ec2Helper.addIPPermission(securityGroup, new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0")
-                .withFromPort(0).withToPort((int) Math.pow(2, 16) - 1));
-        ec2Helper.addIPPermission(securityGroup, new IpPermission().withIpProtocol("icmp").withIpRanges("0.0.0.0/0")
-                .withFromPort(-1).withToPort(-1));
-    }
-
-    /**
-     * 
-     */
-    protected void loadProperties()
+    private void loadProperties()
     {
         instanceFile = properties.getProperty(PROPERTY_INSTANCE_FILE,
                 new File(TMP_DIR, name + ".properties").getAbsolutePath());
@@ -185,6 +139,7 @@ public class Ec2TestDatabase extends SimpleTestDatabase
         }
         else
         {
+            log.info(name + " - No instance file found:" + instanceFile);
             properties = new TestDatabaseProperties(properties);
         }
 
@@ -194,7 +149,12 @@ public class Ec2TestDatabase extends SimpleTestDatabase
         securityGroup = properties.getProperty(PROPERTY_SECURITY_GROUP, DEFAULT_SECURITY_GROUP);
         keyName = properties.getProperty(PROPERTY_KEY_NAME, DEFAULT_KEY_NAME);
         keyDir = properties.getProperty(PROPERTY_KEY_DIR, new File(TMP_DIR).getAbsolutePath());
+        
         sshUser = properties.getProperty(PROPERTY_SSH_USER, true, true);
+        sshPort = properties.getInteger(PROPERTY_SSH_PORT, DEFAULT_SSH_PORT);
+        
+        localPort = properties.getInteger(PROPERTY_LOCAL_PORT, false);
+        databasePort = properties.getInteger(PROPERTY_DATABASE_PORT, true);
 
         scheduleShutdown = properties.getBoolean(PROPERTY_SCHEDULE_SHUTDOWN, true);
         scheduleShutdownCommand = properties.getProperty(PROPERTY_SCHEDULE_SHUTDOWN_COMMAND,
@@ -221,122 +181,245 @@ public class Ec2TestDatabase extends SimpleTestDatabase
             }
         }
     }
+    
 
     /**
      * 
      */
-    public DataSource getDataSource()
+    private void initSecurityGroup()
     {
+        ec2Helper.createSecurityGroup(securityGroup,
+                "A security group used for integration testing with different database vendor instances.");
+
+        ec2Helper.addIPPermission(securityGroup, new IpPermission().withIpProtocol("tcp").withIpRanges("0.0.0.0/0")
+                .withFromPort(sshPort).withToPort(sshPort));
+        ec2Helper.addIPPermission(securityGroup, new IpPermission().withIpProtocol("icmp").withIpRanges("0.0.0.0/0")
+                .withFromPort(-1).withToPort(-1));
+    }
+    
+    /**
+     * 
+     */
+    private File initKeyPair()
+    {
+        try
+        {
+            return ec2Helper.initializeKeyPair(keyName, new File(keyDir));
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException("Unable to initialize key pair for " + name + ". KeyName: " + keyName
+                    + "  KeyDir: " + keyDir, e);
+        }
+    }
+    
+    /**
+     * @return
+     */
+    private Instance startNewInstance()
+    {
+        log.info(name + " - Starting new EC2 instance (imageId=\"" + imageId + "\", instanceType=\"" + instanceType
+                + "\")...");
+        Instance instance = ec2Helper.startInstance(instanceType, imageId, securityGroup, keyName);
+
+        instanceId = instance.getInstanceId();
+        staged = false;
+        if(sshSession != null)
+        {
+            sshSession.close();
+            sshSession = null;
+        }
+        
+        properties.setProperty(PROPERTY_INSTANCE_ID, instanceId);
+        properties.setProperty(PROPERTY_STAGED, Boolean.toString(false));
+        properties.save(new File(instanceFile));
+        
+        return waitForRunningInstance (instance);
+    }
+
+    /**
+     * 
+     */
+    private Instance waitForRunningInstance (Instance instance)
+    {
+        long start = System.currentTimeMillis();
+        while (instance.getState().getName().equals(Ec2Helper.STATE_PENDING))
+        {
+            log.info(name + " - Waiting for instance to transition to running state: " + instance);
+            try
+            {
+                Thread.sleep(RETRY_WAIT);
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            instance = ec2Helper.getInstance(instance.getInstanceId());
+        }
+        log.info(name + " - Instance transitioned from pending state in " + (System.currentTimeMillis() - start) / 1000 + " seconds.");
+        return instance;        
+    }
+    
+    /**
+     * @return
+     */
+    private Instance findExistingInstance()
+    {
+        Instance instance = null;
         if (instanceId == null)
         {
-            log.info(name + " - No previous Ec2 instanceId found.");
+            log.info(name + " - No previous EC2 instanceId found.");
         }
         else
         {
-            log.info(name + " - Checking previous Ec2 instanceId: " + instanceId);
+            log.info(name + " - Checking previous EC2 instanceId: " + instanceId);
             Instance i = ec2Helper.getInstance(instanceId);
             if (i == null)
             {
                 log.info(name + " - No instance found with instanceId: " + instanceId);
             }
+            else if (i.getState().getName().equals(Ec2Helper.STATE_PENDING))
+            {
+                log.info(name + " - Using existing instance: " + i);
+                instance = waitForRunningInstance(i);
+            }
             else if (i.getState().getName().equals(Ec2Helper.STATE_RUNNING))
             {
+                log.info(name + " - Using existing instance: " + i);
                 instance = i;
-                log.info(name + " - Using existing instance: " + instance);
             }
             else
             {
                 log.info(name + " - Instance is not running with instanceId: " + i);
             }
         }
+        return instance;
+    }
 
-        if (instance == null)
+    /**
+     * @param session
+     */
+    private void scheduleShutdown (SshSession session)
+    {
+        if (scheduleShutdown)
         {
-            if(sshSession != null)
+            log.info(name + " - Scheduling shutdown: " + scheduleShutdownCommand);
+            Result result = session.runCommand(scheduleShutdownCommand, true);
+            if (!result.isSuccess())
             {
-                sshSession.close();
-                sshSession = null;
+                log.error(name + " - Scheduling shutdown failed. Command: " + scheduleShutdownCommand + "\nResult: "
+                        + result);
             }
-            instance = startNewInstance();
         }
+        else
+        {
+            log.info(name + " - Skipping scheduled shutdown.");
+        }
+    }
+
+    /**
+     * 
+     */
+    public DataSource getDataSource()
+    {
+        initialize (false);
         
-        boolean newSession = false;
-        if(sshSession == null)
+        int retryCount = 0;
+        RuntimeException ex = null;
+        while (retryCount++ <= MAX_RETRY)
         {
-            newSession = true;
-            sshSession = getSshSession(120000, 10000);
-        }
-
-        if (!staged)
-        {
-            scheduleShutdown(sshSession);
-
-            for (String command : commands)
+            if(ex != null)
             {
-                log.info(name + " - Running Command: " + command);
-                Result result = sshSession.runCommand(command);
-                if (!result.isSuccess())
+                log.warn(name + " - Unable to connect to database: " + ex.getMessage());
+                log.info(name + " - Checking EC2 instance status after short delay.");
+                try
                 {
-                    log.error(name + " - Command failed: " + command + "\nResult: " + result);
+                    Thread.sleep(RETRY_WAIT);
                 }
-            }
-
-            staged = true;
-            properties.setProperty(PROPERTY_STAGED, Boolean.toString(true));
-            properties.save(new File(instanceFile));
-        }
-
-        if(newSession)
-        {
-            url = url.replaceAll("//.*/", "//" + instance.getPublicDnsName() + "/");
-            log.info(name + " - Updating DataSource URL: " + url);
-        }
-
-        DataSource dataSource = super.getDataSource();
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDataSource());
-        try
-        {
-            String value = jdbcTemplate.queryForObject(testSql, String.class);
-            if(newSession)
-            {
-                throw new RuntimeException ("Testing ssh tunnel.");
-            }
-            else
-            {
-                log.info (name + " - Verified database connection.  Test Sql: " + testSql + ",  Result: " + value);
+                catch (InterruptedException e)
+                {
+                    log.warn(e);
+                }
+                initialize(true);
             }
             
-        }
-        catch (RuntimeException e)
-        {
-            if(newSession)
+            try
             {
-                log.warn(name + " - Unable to connect to database: " + e.getMessage());  
-                log.info(name + " - Creating SSH tunnel to see if its a firewall issue.");
+                DataSource dataSource = super.getDataSource();
+                JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDataSource());
+                long time = System.currentTimeMillis();
+                String value = jdbcTemplate.queryForObject(testSql, String.class);
+                log.info (name + " - Verified database connection.  Test Sql: " + testSql + ",  Result: " + value + ",  Duration: " + (System.currentTimeMillis() - time)/1000f + "s");
+                return dataSource;
+            }
+            catch (RuntimeException e)
+            {
+                ex = e;
+            }
+        }
+        throw ex;
+    }
     
-                Result result = sshSession.createTunnel(5433, 5432);
+    private synchronized void initialize (boolean force)
+    {
+        if((!initialized) || (force))
+        {
+            Instance instance = findExistingInstance();
+         
+            if (instance == null)
+            {
+                instance = startNewInstance();
+            }
+            
+            if(sshSession == null)
+            {
+                sshSession = getSshSession(instance);
+                
+                if(localPort == null)
+                {
+                    localPort = getUnusedPort();
+                }
+                
+                log.info(name + " - Creating SSH tunnel from localhost:" + localPort + " to " + instance.getPublicDnsName() + ":" + databasePort);
+                Result result = sshSession.createTunnel(localPort, LOOPBACK_ADDRESS, databasePort);
                 
                 if(!result.isSuccess())
                 {
                     log.error(name + " - Unable to create ssh tunnel.  Result: " + result);
-                    throw new RuntimeException ("Unable to create data source.", e);
+                    
+                    sshSession.close();
+                    sshSession = null;
+                    
+                    throw new RuntimeException ("Unable to create SSH tunnel from localhost:" + localPort + 
+                            " to " + instance.getPublicDnsName() + ":" + databasePort + ".  Result: " + result);
                 }
-    
-                url = url.replaceAll("//.*/", "//127.0.0.1:5433/");
+                
+                url = url.replaceAll("//.*/?", "//" + LOOPBACK_ADDRESS + ":" + localPort + "/");
                 log.info(name + " - Updating DataSource URL: " + url);
-               
-                dataSource = super.getDataSource();
-                jdbcTemplate = new JdbcTemplate(super.getDataSource());
-                String value = jdbcTemplate.queryForObject(testSql, String.class);
-                log.info(name + " - Verified database connection.  Test Sql: " + testSql + ",  Result: " + value);
             }
-            else
+            
+            if (!staged)
             {
-                throw e;
-            }
-        }
+                scheduleShutdown(sshSession);
 
-        return dataSource;
+                for (String command : commands)
+                {
+                    log.info(name + " - Running Command: " + command);
+                    Result result = sshSession.runCommand(command);
+                    if (!result.isSuccess())
+                    {
+                        log.error(name + " - Command failed: " + command + "\nResult: " + result);
+                        throw new RuntimeException ("Command failed: " + command + "\nResult: " + result);
+                    }
+                }
+
+                staged = true;
+                properties.setProperty(PROPERTY_STAGED, Boolean.toString(true));
+                properties.save(new File(instanceFile));
+            }
+            
+            initialized = true;
+        }
     }
 
     @Override
@@ -349,11 +432,11 @@ public class Ec2TestDatabase extends SimpleTestDatabase
         }
     }
 
-    private SshSession getSshSession(int timeout, int increments)
+    private SshSession getSshSession(Instance instance)
     {
         SshSession session = new SshSession(instance.getPublicDnsName(), sshUser, keyFile);
 
-        int time = 0;
+        int retryCount = 0;
         while (!session.init().isSuccess())
         {
             session.close();
@@ -362,14 +445,13 @@ public class Ec2TestDatabase extends SimpleTestDatabase
             log.info(name + " - Waiting for SSH connection to succeed: " + instance);
             try
             {
-                Thread.sleep(increments);
+                Thread.sleep(RETRY_WAIT);
             }
             catch (InterruptedException e)
             {
                 log.warn(e);
             }
-            time += increments;
-            if (time >= timeout)
+            if (++retryCount >= MAX_RETRY)
             {
                 log.error(name + " - Timed out waiting for SSH connection to succeed: " + instance);
                 break;
@@ -383,30 +465,83 @@ public class Ec2TestDatabase extends SimpleTestDatabase
 
         return session;
     }
-
-    public static void main(String[] args)
+    
+    /**
+     * @return
+     */
+    private Integer getUnusedPort()
     {
-        startPostgresqlEc2();
+        log.info(name + " - Searching for unused local port...");
+        Integer retval = null;
+        for (int port = MIN_PORT_RANGE; port <= MAX_PORT_RANGE; port++)
+        {
+            Socket s = null;
+            try
+            {
+                s = new Socket (LOOPBACK_ADDRESS, port);
+            }
+            catch (IOException e)
+            {
+                log.info(name + " - Found unused local port: " + port);
+                retval = port;
+                break;
+            }
+            finally
+            {
+                if(s != null)
+                {
+                    try
+                    {
+                        s.close();
+                    }
+                    catch (IOException e)
+                    {
+                       log.warn(e);
+                    }
+                }
+            }
+        }
+        return retval;
     }
 
-    private static void startPostgresqlEc2()
-    {
-        TestDatabaseProperties properties = new TestDatabaseProperties().withPrefix("postgresql-ec2");
-        properties.setProperty(PROPERTY_URL, "jdbc:postgresql://localhost/scheez");
-        properties.setProperty(PROPERTY_USERNAME, "postgres");
-        properties.setProperty(PROPERTY_PASSWORD, "bitnami");
-        properties.setProperty(PROPERTY_IMAGE_ID, "ami-31319958");
-        properties.setProperty(PROPERTY_SSH_USER, "bitnami");
-        properties.setProperty(PROPERTY_COMMAND + ".1", "sudo -u postgres sed -i 's/127.0.0.1/*/g' /opt/bitnami/postgresql/data/postgresql.conf 2>&1");
-        properties.setProperty(PROPERTY_COMMAND + ".2", "echo -e \"local all all trust\\nhost all all 127.0.0.1/32 trust\\nhost all all ::1/128 trust\\nhost all all 0.0.0.0/0 md5\\nhost all all ::0/0 md5\" | sudo -u postgres tee /opt/bitnami/postgresql/data/pg_hba.conf 2>&1");
-        properties.setProperty(PROPERTY_COMMAND + ".3", "sudo -u postgres /opt/bitnami/postgresql/bin/pg_ctl -w restart 2>&1");
-        properties.setProperty(PROPERTY_COMMAND + ".4", "sudo -u postgres createdb scheez < /dev/null 2>&1");
-
-        Ec2TestDatabase database = new Ec2TestDatabase();
-        database.initialize("postgresql-ec2", properties);
-
-        database.getDataSource();
-        
-        database.close();
-    }
+//    public static void main(String[] args)
+//    {
+//        startMySQLEc2();
+//    }
+//    
+//    private static void startMySQLEc2()
+//    {
+//        TestDatabaseProperties properties = new TestDatabaseProperties().withPrefix("mysql.ec2");
+//        properties.setProperty(PROPERTY_URL, "jdbc:mysql://localhost");
+//        properties.setProperty(PROPERTY_DATABASE_PORT, "3306");
+//        properties.setProperty(PROPERTY_USERNAME, "root");
+//        properties.setProperty(PROPERTY_PASSWORD, "bitnami");
+//        properties.setProperty(PROPERTY_IMAGE_ID, "ami-944bd9fd");
+//        properties.setProperty(PROPERTY_SSH_USER, "bitnami");
+//
+//        Ec2TestDatabase database = new Ec2TestDatabase();
+//        database.initialize(properties.getKeyPrefix(), properties);
+//
+//        database.getDataSource();
+//        
+//        database.close();
+//    }
+//
+//    private static void startPostgresqlEc2()
+//    {
+//        TestDatabaseProperties properties = new TestDatabaseProperties().withPrefix("postgresql.ec2");
+//        properties.setProperty(PROPERTY_URL, "jdbc:postgresql://localhost");
+//        properties.setProperty(PROPERTY_DATABASE_PORT, "5432");
+//        properties.setProperty(PROPERTY_USERNAME, "postgres");
+//        properties.setProperty(PROPERTY_PASSWORD, "bitnami");
+//        properties.setProperty(PROPERTY_IMAGE_ID, "ami-31319958");
+//        properties.setProperty(PROPERTY_SSH_USER, "bitnami");
+//
+//        Ec2TestDatabase database = new Ec2TestDatabase();
+//        database.initialize(properties.getKeyPrefix(), properties);
+//
+//        database.getDataSource();
+//        
+//        database.close();
+//    }
 }

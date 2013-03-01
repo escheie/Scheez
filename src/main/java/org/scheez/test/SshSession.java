@@ -239,7 +239,7 @@ public class SshSession implements Closeable
         return result;
     }
     
-    public Result createTunnel (int localPort, int remotePort)
+    public Result createTunnel (int localPort, String host, int remotePort)
     {
         Result result = new Result(Result.Code.SUCCESS);
         try

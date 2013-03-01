@@ -7,8 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.core.io.DefaultResourceLoader;
 
 import com.amazonaws.AmazonServiceException;
@@ -25,7 +23,6 @@ import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
-import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.IpPermission;
 import com.amazonaws.services.ec2.model.KeyPair;
@@ -45,8 +42,6 @@ public class Ec2Helper
     public static final String STATE_TERMINATED = "terminated";
     
     public static final String BEHAVIOR_TERMINATE = "terminate";
-    
-    private static final Log log = LogFactory.getLog(Ec2Helper.class);
     
     public static final String DEFAULT_CREDENTIALS_FILE = "awscredentials.properties";
     
@@ -160,23 +155,6 @@ public class Ec2Helper
         }
         return instances;
     }
-    
-    public List<Instance> getInstances(String securityGroup)
-    {
-        LinkedList<Instance> instances = new LinkedList<Instance>();
-        DescribeInstancesResult result = client.describeInstances();
-        for (Reservation reservations : result.getReservations())
-        {
-            for (Instance instance : reservations.getInstances())
-            {
-                if ((inSecurityGroup(securityGroup, instance)) && (!instance.getState().getName().equals(STATE_TERMINATED)))
-                {
-                    instances.add(instance);
-                }
-            }
-        }
-        return instances;
-    }
 
     public Instance getInstance(String instanceId)
     {
@@ -195,37 +173,13 @@ public class Ec2Helper
         }
         return retval;
     }
-
-    private boolean inSecurityGroup (String securityGroup, Instance instance)
-    {
-        boolean inGroup = false;
-        for (GroupIdentifier id : instance.getSecurityGroups())
-        {
-            if (id.getGroupName().equals(securityGroup))
-            {
-                inGroup = true;
-                break;
-            }
-        }
-        return inGroup;
-    }
-
-    public void terminateAll (String securityGroup)
-    {
-        TerminateInstancesRequest request = new TerminateInstancesRequest();
-        for (Instance instance : getInstances(securityGroup))
-        {
-            request.withInstanceIds(instance.getInstanceId());
-        }
-        client.terminateInstances(request);
-    }
     
     public void terminateInstance (String instanceId)
     {
         client.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceId));
     }
 
-    public Instance startInstance (String instanceType, String imageName, String securityGroup, String keyName, boolean waitForRunning)
+    public Instance startInstance (String instanceType, String imageName, String securityGroup, String keyName)
     {
         RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 
@@ -233,36 +187,8 @@ public class Ec2Helper
                 .withSecurityGroups(securityGroup).withKeyName(keyName).withInstanceInitiatedShutdownBehavior(BEHAVIOR_TERMINATE);
 
         RunInstancesResult runInstancesResult = client.runInstances(runInstancesRequest);
-
-        Instance instance = runInstancesResult.getReservation().getInstances().get(0);
-
-        long start = System.currentTimeMillis();
-        while (waitForRunning)
-        {
-            try
-            {
-                Thread.sleep(10000);
-            }
-            catch (InterruptedException e)
-            {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            instance = getInstance(instance.getInstanceId());
-
-            if (instance.getState().getName().equals(STATE_RUNNING))
-            {
-                log.info("Instance instance.getInstanceId() started after " + (System.currentTimeMillis() - start) / 1000 + " seconds.  "
-                        + instance);
-                break;
-            }
-            else
-            {
-                log.info("Waiting for instance " + instance.getInstanceId() + " to be started: " + instance);
-            }
-        }
-
-        return instance;
+        
+        return runInstancesResult.getReservation().getInstances().get(0);
     }
   
     private static AWSCredentials getCredentials (String resource) 

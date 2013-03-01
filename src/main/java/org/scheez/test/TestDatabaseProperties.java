@@ -66,43 +66,42 @@ public class TestDatabaseProperties
     
     public String getProperty (String key, String defaultValue)
     {
-        String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
-        String v = properties.getProperty(k);
-        if (v == null)
+        String value = getProperty(key, false, false);
+        if ((value == null) || (value.isEmpty()))
         {
-            v = defaultValue;
+            value = defaultValue;
         }
-        else 
-        {
-            v = v.trim();
-            if (v.isEmpty())
-            {
-                v = defaultValue;
-            }
-        }
-        return v;
+        return value;
     }
     
-    public Integer getInteger(String key, Integer defaultValue)
+    public Integer getInteger(String key, boolean propertyRequired)
     {
-        String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
-        String v = properties.getProperty(k);
-        Integer retval = defaultValue;
-        if (v != null)
+        String value = getProperty(key, propertyRequired, propertyRequired);
+        Integer retval = null;
+        if (value != null)
         {
-           retval = Integer.parseInt(v);
+           retval = Integer.parseInt(value);
         }
         return retval;
     }
     
+    public Integer getInteger(String key, Integer defaultValue)
+    {
+        Integer value = getInteger(key, false);
+        if (value == null)
+        {
+           value = defaultValue;
+        }
+        return value;
+    }
+    
     public Boolean getBoolean(String key, Boolean defaultValue)
     {
-        String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
-        String v = properties.getProperty(k);
+        String value = getProperty(key, false, false);
         Boolean retval = defaultValue;
-        if (v != null)
+        if (value != null)
         {
-           retval = Boolean.parseBoolean(v);
+           retval = Boolean.parseBoolean(value);
         }
         return retval;
     }
@@ -184,10 +183,4 @@ public class TestDatabaseProperties
         
         return new TestDatabaseProperties((defaults == null) ? null : defaults.getKeyPrefix(), properties);
     }
-
-   
-
-    
- 
-
 }
