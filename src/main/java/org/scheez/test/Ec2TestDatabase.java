@@ -34,7 +34,9 @@ public class Ec2TestDatabase extends SimpleTestDatabase
     
     public static final String PROPERTY_SSH_USER = "sshUser";
     
-    public static final String PROPERTY_COMMAND_COUNT = "commandCount";
+    public static final String PROPERTY_SCHEDULE_SHUTDOWN = "scheduleShutdown";
+    
+    public static final String PROPERTY_SCHEDULE_SHUTDOWN_COMMAND = "scheduleShutdownCommand";
     
     public static final String PROPERTY_COMMAND = "command";
     
@@ -45,6 +47,8 @@ public class Ec2TestDatabase extends SimpleTestDatabase
     public static final String DEFAULT_KEY_NAME = "scheez";
     
     public static final String DEFAULT_INSTANCE_TYPE = "m1.small";
+
+    private static final String DEFAULT_SCHEDULE_SHUTDOWN_COMMAND = "sudo shutdown -h +55 < /dev/null &> /dev/null &";
     
     protected String imageId;
     
@@ -63,6 +67,10 @@ public class Ec2TestDatabase extends SimpleTestDatabase
     protected String sshUser;
     
     protected List<String> commands;
+    
+    protected boolean scheduleShutdown;
+    
+    protected String scheduleShutdownCommand;
     
     protected File keyFile;
     
@@ -86,10 +94,18 @@ public class Ec2TestDatabase extends SimpleTestDatabase
      */
     protected void scheduleShutdown(SshSession session)
     {
-        Result result = session.runCommand("sudo shutdown -h +55 2>&1 &");
-        if(!result.isSuccess() && (!result.getText().contains("Another shutdown is already running")))
+        if (scheduleShutdown)
         {
-            log.error("Scheduled shutdown failed for " + instance + ".  " + result);
+            log.info(name + " - Scheduling shutdown: "  + scheduleShutdownCommand);
+            Result result = session.runCommand(scheduleShutdownCommand);
+            if(!result.isSuccess() && (!result.getText().contains("Another shutdown is already running")))
+            {
+                log.error(name + " - Scheduling shutdown failed. Command: " + scheduleShutdownCommand + "\nResult: " + result);
+            }
+        }
+        else
+        {
+            log.info(name + " - Skipping scheduled shutdown.");
         }
     }
 
@@ -98,7 +114,7 @@ public class Ec2TestDatabase extends SimpleTestDatabase
      */
     protected Instance startNewInstance()
     {
-        log.info("Starting " + name + " [imageId=\"" + imageId + "\", instanceType=\"" + instanceType + "\"]...");
+        log.info(name + " - Starting ec2 instance (imageId=\"" + imageId + "\", instanceType=\"" + instanceType + "\")...");
         Instance instance = ec2Helper.startInstance(instanceType, imageId, securityGroup, keyName, true);
         
         instanceId = instance.getInstanceId();
@@ -115,12 +131,11 @@ public class Ec2TestDatabase extends SimpleTestDatabase
     {
         try
         {
-            
             return ec2Helper.initializeKeyPair(keyName, new File(keyDir));
         }
         catch (IOException e)
         {
-            throw new RuntimeException ("Unable to initialize key pair.");
+            throw new RuntimeException ("Unable to initialize key pair for " + name + ". KeyName: " + keyName + "  KeyDir: " + keyDir, e);
         }     
     }
 
@@ -146,6 +161,7 @@ public class Ec2TestDatabase extends SimpleTestDatabase
         
         if(f.exists())
         {
+            log.info(name + " - Loading instance properties from " + instanceFile + ".");
             properties = TestDatabaseProperties.load("file:" + instanceFile, properties);
         }
         else
@@ -161,11 +177,25 @@ public class Ec2TestDatabase extends SimpleTestDatabase
         keyDir = properties.getProperty(PROPERTY_KEY_DIR, new File(TMP_DIR).getAbsolutePath());
         sshUser = properties.getProperty(PROPERTY_SSH_USER, true, true);
         
-        int commandCount = properties.getInteger(PROPERTY_COMMAND_COUNT, 0);
-        commands = new ArrayList<String> (commandCount);
-        for (int index = 1; index <= commandCount; index++)
+        scheduleShutdown = properties.getBoolean(PROPERTY_SCHEDULE_SHUTDOWN, true);
+        scheduleShutdownCommand = properties.getProperty(PROPERTY_SCHEDULE_SHUTDOWN_COMMAND, DEFAULT_SCHEDULE_SHUTDOWN_COMMAND);
+        
+        commands = new ArrayList<String> ();
+        TestDatabaseProperties commandProperties = properties.withPrefix(PROPERTY_COMMAND);
+        int missingCommandCount = 0;
+        int commandIndex = 0;
+        while (missingCommandCount < 5)
         {
-            commands.add(index - 1, properties.getProperty(PROPERTY_COMMAND + "." + index, true, true));
+            String command = commandProperties.getProperty(Integer.toString(commandIndex++), false, true);
+            if(command == null)
+            {
+                missingCommandCount++;
+            }
+            else
+            {
+                missingCommandCount = 0;
+                commands.add(command);
+            }
         }
     }
 
@@ -184,24 +214,24 @@ public class Ec2TestDatabase extends SimpleTestDatabase
         boolean setupRequired = (instance == null);
         if (instanceId == null)
         {
-            log.info("No previous instance for " + name + " found.");
+            log.info(name + " - No previous Ec2 instanceId found.");
         }
         else 
         {
-            log.info("Found previous instanceId for " + name + ":  " + instanceId);
+            log.info(name + " - Checking previous Ec2 instanceId: " + instanceId);
             Instance i = ec2Helper.getInstance(instanceId);
             if (i == null)
             {
-                log.info("No instance with instanceId=\"" + instanceId + "\" found.");
+                log.info(name + " - No instance found with instanceId: " + instanceId);
             }
             else if (i.getState().getName().equals(Ec2Helper.STATE_RUNNING))
             {
                 instance = i;
-                log.info("Using existing " + name + " instance: " + instance);
+                log.info(name + " - Using existing instance: " + instance);
             }
             else
             {
-                log.info("Found instance with instanceId=\"" + instanceId + "\", but this instance is not running: " + i);
+                log.info(name + " - Instance is not running with instanceId: " + i);
             }
         }
        
@@ -211,27 +241,32 @@ public class Ec2TestDatabase extends SimpleTestDatabase
             setupRequired = true;
         }
         
-        SshSession session = getSshSession (120000, 10000);
-        
-        if(setupRequired)
+        SshSession session = null;
+        try
         {
-            scheduleShutdown (session);
+            session = getSshSession (120000, 10000);
             
-            for (String command : commands)
+            if(setupRequired)
             {
-                Result result = session.runCommand(command);
-                if(!result.isSuccess())
+                scheduleShutdown (session);
+                
+                for (String command : commands)
                 {
-                    log.error("Command failed: " + command + "\nInstance: " + instance + "\nResult: " + result);
+                    log.info(name + " - Running Command: " + command);
+                    Result result = session.runCommand(command);
+                    if(!result.isSuccess())
+                    {
+                        log.error(name + " - Command failed: " + command +  "\nResult: " + result);
+                    }
                 }
-                else
-                {
-                    log.info("Command successful: " + command + "\nInstance: " + instance);
-                }
+                
+                url = url.replaceAll("//.*/", "//" + instance.getPublicDnsName() + "/");
+                log.info(name + " - Updating DataSource URL: " + url);
             }
-            
-            url = url.replaceAll("//.*/", "//" + instance.getPublicDnsName() + "/");
-            log.info("Updating DataSource URL: " + url);
+        }
+        finally
+        {
+            session.close();
         }
     }
 
@@ -245,7 +280,7 @@ public class Ec2TestDatabase extends SimpleTestDatabase
             session.close();
             session = null;
             
-            log.info("Waiting for SSH connection to succeed.");
+            log.info(name + " - Waiting for SSH connection to succeed: " + instance);
             try
             {
                 Thread.sleep(increments);
@@ -257,7 +292,7 @@ public class Ec2TestDatabase extends SimpleTestDatabase
             time += increments;
             if(time >= timeout)
             {
-                log.error("Timed out waiting for SSH connection to succeed to: " + instance);
+                log.error(name + " - Timed out waiting for SSH connection to succeed: " + instance);
                 break;
             }
             else
@@ -265,12 +300,17 @@ public class Ec2TestDatabase extends SimpleTestDatabase
                 session = new SshSession(instance.getPublicDnsName(), sshUser, keyFile);
             }
         }
-        log.info("Created SSH connection to instance: " + instance);
+        log.info(name + " - Created SSH connection to hostname: " + instance.getPublicDnsName());
         
         return session;
     }
 
     public static void main(String[] args)
+    {
+        startPostgresqlEc2();
+    }
+    
+    private static void startPostgresqlEc2 ()
     {
         TestDatabaseProperties properties = new TestDatabaseProperties ().withPrefix("postgresql-ec2");
         properties.setProperty(PROPERTY_URL, "jdbc:postgresql://localhost/scheez");
@@ -278,10 +318,10 @@ public class Ec2TestDatabase extends SimpleTestDatabase
         properties.setProperty(PROPERTY_PASSWORD, "bitnami");
         properties.setProperty(PROPERTY_IMAGE_ID, "ami-31319958");
         properties.setProperty(PROPERTY_SSH_USER, "bitnami");
-        properties.setProperty(PROPERTY_COMMAND_COUNT, Integer.toString(3));
-        properties.setProperty(PROPERTY_COMMAND + ".1", "sudo /opt/bitnami/postgresql/scripts/ctl.sh stop 2>&1");
-        properties.setProperty(PROPERTY_COMMAND + ".2", "sudo /opt/bitnami/postgresql/scripts/ctl.sh start 2>&1");
-        properties.setProperty(PROPERTY_COMMAND + ".3", "sudo -u postgres createdb scheez");
+        properties.setProperty(PROPERTY_COMMAND + ".2", "sudo -u postgres sed -i 's/127.0.0.1/*/g' /opt/bitnami/postgresql/data/postgresql.conf 2>&1");
+        properties.setProperty(PROPERTY_COMMAND + ".3", "echo -e \"local all all trust\\nhost all all 127.0.0.1/32 trust\\nhost all all ::1/128 trust\\nhost all all 0.0.0.0/0 md5\\nhost all all ::0/0 md5\" | sudo -u postgres tee /opt/bitnami/postgresql/data/pg_hba.conf 2>&1"); 
+        properties.setProperty(PROPERTY_COMMAND + ".4", "sudo /opt/bitnami/postgresql/bin/pg_ctl -w restart 2>&1");
+        properties.setProperty(PROPERTY_COMMAND + ".5", "sleep 5; sudo -u postgres createdb scheez < /dev/null 2>&1");
         
         Ec2TestDatabase database = new Ec2TestDatabase ();
         database.initialize("postgresql-ec2", properties);

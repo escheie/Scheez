@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -159,7 +160,7 @@ public class SshSession implements Closeable
                 ((ChannelExec) channel).setCommand(cmd);
                 channel.connect(TIMEOUT);
                 StringBuilder cmdOut = new StringBuilder();
-                reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+                reader = getBufferedReader(channel);
                 String line = null;
                 while ((line = reader.readLine()) != null)
                 {
@@ -229,6 +230,29 @@ public class SshSession implements Closeable
         }
 
         return result;
+    }
+
+    /**
+     * @param channel
+     * @return
+     */
+    private BufferedReader getBufferedReader(Channel channel) throws IOException
+    {
+        InputStream inputStream = channel.getInputStream();
+        while(inputStream == null)
+        {
+            try
+            {
+                Thread.sleep(5);
+            }
+            catch (InterruptedException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            inputStream = channel.getInputStream();
+        }
+        return new BufferedReader(new InputStreamReader(inputStream));
     }
 
     public synchronized void close()

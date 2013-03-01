@@ -42,7 +42,7 @@ public class TestDatabaseProperties
     public TestDatabaseProperties withPrefix (String prefix)
     {
         DbC.throwIfNullArg(prefix);
-        return new TestDatabaseProperties(((keyPrefix == null) ? "" : keyPrefix) + prefix, properties);
+        return new TestDatabaseProperties(((keyPrefix == null) ? "" : keyPrefix + ".") + prefix, properties);
     }   
 
     public String getProperty (String key, boolean propertyRequired, boolean valueRequired)
@@ -91,6 +91,18 @@ public class TestDatabaseProperties
         if (v != null)
         {
            retval = Integer.parseInt(v);
+        }
+        return retval;
+    }
+    
+    public Boolean getBoolean(String key, Boolean defaultValue)
+    {
+        String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
+        String v = properties.getProperty(k);
+        Boolean retval = defaultValue;
+        if (v != null)
+        {
+           Boolean.parseBoolean(v);
         }
         return retval;
     }
@@ -172,6 +184,8 @@ public class TestDatabaseProperties
         
         return new TestDatabaseProperties((defaults == null) ? null : defaults.getKeyPrefix(), properties);
     }
+
+   
 
     
  
