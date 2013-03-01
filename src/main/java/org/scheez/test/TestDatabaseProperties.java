@@ -102,7 +102,7 @@ public class TestDatabaseProperties
         Boolean retval = defaultValue;
         if (v != null)
         {
-           Boolean.parseBoolean(v);
+           retval = Boolean.parseBoolean(v);
         }
         return retval;
     }

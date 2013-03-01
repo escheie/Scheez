@@ -4,11 +4,9 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Properties;
 
 import org.scheez.test.Result.Param;
 
@@ -130,10 +128,8 @@ public class SshSession implements Closeable
                 session = jsch.getSession(username, host, port);
                 jsch.addIdentity(identityFile.getAbsolutePath());
 
-                Properties properties = new Properties();
-                properties.setProperty("StrictHostKeyChecking", "no");
-                JSch.setConfig(properties);
-
+                JSch.setConfig("StrictHostKeyChecking", "no");
+                
                 session.connect(TIMEOUT);
             }
             catch (JSchException e)
@@ -143,11 +139,19 @@ public class SshSession implements Closeable
         }
         return result;
     }
-
+    
     /**
      * Runs the specified command using SSH.
      */
     public Result runCommand(String cmd)
+    {
+        return runCommand(cmd, false);
+    }
+
+    /**
+     * Runs the specified command using SSH.
+     */
+    public Result runCommand(String cmd, boolean skipOutput)
     {
         BufferedReader reader = null;
         Result result = init();
@@ -160,11 +164,14 @@ public class SshSession implements Closeable
                 ((ChannelExec) channel).setCommand(cmd);
                 channel.connect(TIMEOUT);
                 StringBuilder cmdOut = new StringBuilder();
-                reader = getBufferedReader(channel);
-                String line = null;
-                while ((line = reader.readLine()) != null)
+                if(!skipOutput)
                 {
-                    cmdOut.append(line).append('\n');
+                    reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+                    String line = null;
+                    while ((line = reader.readLine()) != null)
+                    {
+                        cmdOut.append(line).append('\n');
+                    }
                 }
                 int totalSleepTime = 0;
                 int sleepTime = 100;
@@ -231,29 +238,21 @@ public class SshSession implements Closeable
 
         return result;
     }
-
-    /**
-     * @param channel
-     * @return
-     */
-    private BufferedReader getBufferedReader(Channel channel) throws IOException
+    
+    public Result createTunnel (int localPort, int remotePort)
     {
-        InputStream inputStream = channel.getInputStream();
-        while(inputStream == null)
+        Result result = new Result(Result.Code.SUCCESS);
+        try
         {
-            try
-            {
-                Thread.sleep(5);
-            }
-            catch (InterruptedException e)
-            {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            inputStream = channel.getInputStream();
+            session.setPortForwardingL(localPort, host, remotePort);
         }
-        return new BufferedReader(new InputStreamReader(inputStream));
+        catch (JSchException e)
+        {
+            result = mapToResult(e);
+        }
+        return result;
     }
+   
 
     public synchronized void close()
     {

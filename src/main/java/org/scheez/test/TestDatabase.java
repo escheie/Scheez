@@ -2,7 +2,7 @@ package org.scheez.test;
 
 import javax.sql.DataSource;
 
-public interface TestDatabase
+public interface TestDatabase 
 {
     String getName ();
     
@@ -10,4 +10,6 @@ public interface TestDatabase
     
     void initialize (String name, TestDatabaseProperties properties);
     
+    void close ();
+       
 }

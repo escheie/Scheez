@@ -1,5 +1,6 @@
 package org.scheez.test;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,35 +12,35 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 public class SimpleTestDatabase implements TestDatabase
 {
     public static String PROPERTY_URL = "url";
-    
+
     public static String PROPERTY_DRIVER_CLASS = "driverClass";
-    
+
     public static String PROPERTY_USERNAME = "username";
-    
+
     public static String PROPERTY_PASSWORD = "password";
-    
+
     protected String name;
-    
+
     protected String url;
-    
+
     protected String driverClass;
-    
+
     protected String username;
-    
+
     protected String password;
-    
+
     protected TestDatabaseProperties properties;
-    
-    public void initialize  (String name, TestDatabaseProperties properties) 
+
+    public void initialize(String name, TestDatabaseProperties properties)
     {
         this.name = name;
         this.properties = properties;
-        
+
         url = properties.getProperty(PROPERTY_URL, true, true);
         driverClass = properties.getProperty(PROPERTY_DRIVER_CLASS, false, true);
         username = properties.getProperty(PROPERTY_USERNAME, false, true);
         password = properties.getProperty(PROPERTY_PASSWORD, false, false);
-        
+
         if (driverClass != null)
         {
             try
@@ -57,7 +58,7 @@ public class SimpleTestDatabase implements TestDatabase
     {
         return name;
     }
-    
+
     public String getUrl()
     {
         return url;
@@ -87,7 +88,14 @@ public class SimpleTestDatabase implements TestDatabase
     {
         return new DriverManagerDataSource(url, username, password);
     }
-    
+
+    @Override
+    public void close() 
+    {
+        // TODO Auto-generated method stub
+
+    }
+
     public List<TableName> getSystemTableNames()
     {
         List<TableName> tableNames = new LinkedList<TableName>();
@@ -95,7 +103,7 @@ public class SimpleTestDatabase implements TestDatabase
         return tableNames;
     }
 
-    public String toString ()
+    public String toString()
     {
         return name;
     }
