@@ -49,6 +49,7 @@ dependencies {
     testCompile 'postgresql:postgresql:9.1-901-1.jdbc4' 
     testCompile 'mysql:mysql-connector-java:5.1.22'
     testCompile files('lib/tdgssconfig.jar', 'lib/terajdbc4.jar')
+    testCompile files('lib/ojdbc6.jar')
     
     
     clover 'com.cenqua.clover:clover:3.1.10'

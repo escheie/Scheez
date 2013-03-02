@@ -139,7 +139,7 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
         }
         else
         {
-            log.info(name + " - No instance file found:" + instanceFile);
+            log.info(name + " - No instance file found: " + instanceFile);
             properties = new TestDatabaseProperties(properties);
         }
 
@@ -394,7 +394,7 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
                             " to " + instance.getPublicDnsName() + ":" + databasePort + ".  Result: " + result);
                 }
                 
-                url = url.replaceAll("//.*/?", "//" + LOOPBACK_ADDRESS + ":" + localPort + "/");
+                url = url.replaceAll("(.*//)([^/]*)/?(.*)", "$1" + LOOPBACK_ADDRESS + ":" + localPort + "/$3");
                 log.info(name + " - Updating DataSource URL: " + url);
             }
             
@@ -504,10 +504,21 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
         return retval;
     }
 
-//    public static void main(String[] args)
-//    {
-//        startMySQLEc2();
-//    }
+    public static void main(String[] args)
+    {
+         TestConfiguration testConfiguration = TestConfiguration.getInstance();
+         for (TestDatabase testDatabase : testConfiguration.getTestDatabases())
+         {
+             try
+             {
+                 testDatabase.getDataSource();
+             }
+             finally
+             {
+                 testDatabase.close();
+             }
+         }
+    }
 //    
 //    private static void startMySQLEc2()
 //    {
