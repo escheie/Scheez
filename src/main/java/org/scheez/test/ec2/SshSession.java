@@ -1,4 +1,4 @@
-package org.scheez.test;
+package org.scheez.test.ec2;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import org.scheez.test.Result.Param;
+import org.scheez.test.ec2.Result.Param;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;

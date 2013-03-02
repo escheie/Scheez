@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.scheez.schema.classgen.ClassGenerator;
 import org.scheez.schema.classgen.DefaultClassTemplate;
 import org.scheez.schema.classgen.GeneratedClass;
@@ -13,18 +14,20 @@ import org.scheez.schema.mapper.DefaultNameMapper;
 import org.scheez.schema.mapper.NameMapper;
 import org.scheez.schema.mapper.ObjectMapper;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.DatabaseIntegrationTest;
 import org.scheez.test.SimpleTestDatabase;
+import org.scheez.test.TestDatabase;
+import org.scheez.test.junit.Scheez;
 import org.scheez.util.BaseObject;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class ClassGeneratorTest extends DatabaseIntegrationTest
+@RunWith(Scheez.class)
+public class ClassGeneratorTest
 {
     private SimpleTestDatabase testDatabase;
 
-    public ClassGeneratorTest(SimpleTestDatabase testDatabase)
+    public ClassGeneratorTest (TestDatabase testDatabase)
     {
-        this.testDatabase = testDatabase;
+        this.testDatabase = (SimpleTestDatabase)testDatabase;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

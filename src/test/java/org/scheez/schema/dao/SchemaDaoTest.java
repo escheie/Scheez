@@ -8,21 +8,23 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.Index;
 import org.scheez.schema.parts.Table;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.DatabaseIntegrationTest;
-import org.scheez.test.SimpleTestDatabase;
+import org.scheez.test.TestDatabase;
+import org.scheez.test.junit.Scheez;
 
-public class SchemaDaoTest extends DatabaseIntegrationTest
+@RunWith(Scheez.class)
+public class SchemaDaoTest 
 {
     private static final String TEST_SCHEMA = "scheez_test";
     
     private SchemaDao schemaDao;
     
-    public SchemaDaoTest (SimpleTestDatabase testDatabase)
+    public SchemaDaoTest (TestDatabase testDatabase)
     {
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
     }

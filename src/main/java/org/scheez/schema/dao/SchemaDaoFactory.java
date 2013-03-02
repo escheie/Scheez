@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.scheez.schema.dao.impl.SchemaDaoHsqldb;
 import org.scheez.schema.dao.impl.SchemaDaoMysql;
+import org.scheez.schema.dao.impl.SchemaDaoOracle;
 import org.scheez.schema.dao.impl.SchemaDaoPostgresql;
 import org.scheez.schema.dao.impl.SchemaDaoTeradata;
 import org.scheez.util.DbC;
@@ -28,6 +29,7 @@ public abstract class SchemaDaoFactory
         register(new SchemaDaoHsqldb.Factory());
         register(new SchemaDaoPostgresql.Factory());
         register(new SchemaDaoTeradata.Factory());
+        register(new SchemaDaoOracle.Factory());
     }
 
     public static void register(SchemaDaoFactory factory)

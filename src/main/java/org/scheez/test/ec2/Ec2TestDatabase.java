@@ -1,4 +1,4 @@
-package org.scheez.test;
+package org.scheez.test.ec2;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +10,10 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.scheez.test.SimpleTestDatabase;
+import org.scheez.test.TestConfiguration;
+import org.scheez.test.TestDatabase;
+import org.scheez.test.TestDatabaseProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.amazonaws.services.ec2.model.Instance;
@@ -519,40 +523,4 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
              }
          }
     }
-//    
-//    private static void startMySQLEc2()
-//    {
-//        TestDatabaseProperties properties = new TestDatabaseProperties().withPrefix("mysql.ec2");
-//        properties.setProperty(PROPERTY_URL, "jdbc:mysql://localhost");
-//        properties.setProperty(PROPERTY_DATABASE_PORT, "3306");
-//        properties.setProperty(PROPERTY_USERNAME, "root");
-//        properties.setProperty(PROPERTY_PASSWORD, "bitnami");
-//        properties.setProperty(PROPERTY_IMAGE_ID, "ami-944bd9fd");
-//        properties.setProperty(PROPERTY_SSH_USER, "bitnami");
-//
-//        Ec2TestDatabase database = new Ec2TestDatabase();
-//        database.initialize(properties.getKeyPrefix(), properties);
-//
-//        database.getDataSource();
-//        
-//        database.close();
-//    }
-//
-//    private static void startPostgresqlEc2()
-//    {
-//        TestDatabaseProperties properties = new TestDatabaseProperties().withPrefix("postgresql.ec2");
-//        properties.setProperty(PROPERTY_URL, "jdbc:postgresql://localhost");
-//        properties.setProperty(PROPERTY_DATABASE_PORT, "5432");
-//        properties.setProperty(PROPERTY_USERNAME, "postgres");
-//        properties.setProperty(PROPERTY_PASSWORD, "bitnami");
-//        properties.setProperty(PROPERTY_IMAGE_ID, "ami-31319958");
-//        properties.setProperty(PROPERTY_SSH_USER, "bitnami");
-//
-//        Ec2TestDatabase database = new Ec2TestDatabase();
-//        database.initialize(properties.getKeyPrefix(), properties);
-//
-//        database.getDataSource();
-//        
-//        database.close();
-//    }
 }

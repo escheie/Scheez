@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
 import org.scheez.schema.def.ColumnType;
@@ -22,11 +23,12 @@ import org.scheez.schema.diff.UnknownColumn;
 import org.scheez.schema.diff.UnknownTable;
 import org.scheez.schema.parts.Column;
 import org.scheez.schema.parts.TableName;
-import org.scheez.test.DatabaseIntegrationTest;
-import org.scheez.test.SimpleTestDatabase;
+import org.scheez.test.TestDatabase;
+import org.scheez.test.junit.Scheez;
 import org.scheez.test.schema.Person;
 
-public class BasicSchemaManagerTest extends DatabaseIntegrationTest
+@RunWith (Scheez.class)
+public class BasicSchemaManagerTest 
 {
     private static final Log log = LogFactory.getLog(BasicSchemaManagerTest.class);
     
@@ -34,7 +36,7 @@ public class BasicSchemaManagerTest extends DatabaseIntegrationTest
 
     private SchemaDao schemaDao;
 
-    public BasicSchemaManagerTest(SimpleTestDatabase testDatabase)
+    public BasicSchemaManagerTest(TestDatabase testDatabase)
     {
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
     }

@@ -1,4 +1,4 @@
-package org.scheez.test;
+package org.scheez.test.ec2;
 
 import java.io.File;
 import java.io.IOException;

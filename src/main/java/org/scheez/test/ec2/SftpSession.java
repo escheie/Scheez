@@ -1,4 +1,4 @@
-package org.scheez.test;
+package org.scheez.test.ec2;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.scheez.test.Result.Code;
+import org.scheez.test.ec2.Result.Code;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
