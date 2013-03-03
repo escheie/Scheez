@@ -2,8 +2,8 @@ package org.scheez.schema.diff;
 
 import org.scheez.reflect.PersistentField;
 import org.scheez.schema.dao.SchemaDao;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.Table;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Table;
 
 public class MismatchedColumnType extends SchemaDifferenceColumn
 {

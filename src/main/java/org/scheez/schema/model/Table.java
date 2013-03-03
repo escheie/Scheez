@@ -1,4 +1,4 @@
-package org.scheez.schema.parts;
+package org.scheez.schema.model;
 
 import java.util.ArrayList;
 import java.util.Collection;

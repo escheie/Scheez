@@ -1,4 +1,4 @@
-package org.scheez.schema.dao.impl;
+package org.scheez.schema.dao;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -12,15 +12,14 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.def.ColumnMetaDataKey;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.def.IndexMetaDataKey;
 import org.scheez.schema.def.TableMetaDataKey;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.Index;
-import org.scheez.schema.parts.Table;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Index;
+import org.scheez.schema.model.Table;
+import org.scheez.schema.model.TableName;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,6 +69,11 @@ public class SchemaDaoAnsi implements SchemaDao
     protected String getColumnName(String columnName)
     {
         return columnName;
+    }
+    
+    protected String getIndexName (TableName tableName, Index index)
+    {
+        return index.getName();
     }
 
     protected Integer getColumnLength(Column column)
@@ -323,7 +327,7 @@ public class SchemaDaoAnsi implements SchemaDao
     public void addIndex(TableName tableName, Index index)
     {
         StringBuilder sb = new StringBuilder("CREATE INDEX ");
-        sb.append(index.getName());
+        sb.append(getIndexName(tableName, index));
         sb.append(" ON ");
         sb.append(tableName);
         sb.append(" (");
@@ -364,7 +368,7 @@ public class SchemaDaoAnsi implements SchemaDao
             {
                 DatabaseMetaData metaData = con.getMetaData();
                 ResultSet indexes = metaData.getIndexInfo(getCatalogName(tableName),
-                        getSchemaName(tableName), getTableName(tableName), false, false);
+                        getSchemaName(tableName), getTableName(tableName), false, true);
                 Index index = null, lastIndex = null;
                 while (indexes.next())
                 {

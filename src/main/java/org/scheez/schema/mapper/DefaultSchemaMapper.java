@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.atteo.evo.inflector.English;
 import org.scheez.reflect.PersistentField;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.Table;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Table;
+import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
 import org.springframework.dao.DuplicateKeyException;
 

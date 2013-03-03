@@ -17,9 +17,9 @@ import org.scheez.schema.diff.UnknownColumn;
 import org.scheez.schema.diff.UnknownTable;
 import org.scheez.schema.mapper.DefaultSchemaMapper;
 import org.scheez.schema.mapper.SchemaMapper;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.Table;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Table;
+import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
 
 public class BasicSchemaManager implements SchemaManager

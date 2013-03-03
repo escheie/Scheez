@@ -100,7 +100,8 @@ public class Scheez extends Suite
         @Override
         protected String testName(FrameworkMethod method)
         {
-            return String.format("[%s] %s", testDatabase.getName(), method.getName());
+            //return String.format("[%s] %s", testDatabase.getName(), method.getName());
+            return String.format("%s [%s]", method.getName(), testDatabase.getName());
         }
 
         @Override
@@ -108,54 +109,42 @@ public class Scheez extends Suite
         {
             return childrenInvoker(notifier);
         }
-
-        public void filter(Filter filter) throws NoTestsRemainException
-        {
-            super.filter(new ScheezFilter(filter));
-        }
     }
 
     private static class ScheezFilter extends Filter
     {
-        private boolean methodFilter;
-
         private Filter original;
 
         public ScheezFilter(Filter original)
         {
             super();
             this.original = original;
-            methodFilter = original.describe().startsWith("Method");
         }
 
         @Override
         public boolean shouldRun(Description description)
         {
-            boolean retval = false;
-            if (methodFilter)
+            return original.shouldRun(copy(description));
+        }
+
+        private Description copy (Description description)
+        {
+            Description d = null;
+            if(description.isTest())
             {
-                if (description.isTest())
-                {
-                    retval = description.getDisplayName().endsWith(original.describe().substring(6));
-                }
-                else
-                {
-                    // explicitly check if any children want to run
-                    for (Description each : description.getChildren())
-                    {
-                        if (shouldRun(each))
-                        {
-                            retval = true;
-                            break;
-                        }
-                    }
-                }
+                d = Description.createTestDescription(description.getClassName(), description.getMethodName().replaceAll(" \\[.*\\]", ""));
             }
             else
             {
-                retval = original.shouldRun(description);
+                d = description.childlessCopy();
             }
-            return retval;
+            
+            for (Description child : description.getChildren())
+            {
+                d.addChild(copy(child));
+            }
+            
+            return d;
         }
 
         @Override
@@ -180,7 +169,7 @@ public class Scheez extends Suite
             executor.shutdown();
             try
             {
-                executor.awaitTermination(10, TimeUnit.MINUTES);
+                executor.awaitTermination(365, TimeUnit.DAYS);
             }
             catch (InterruptedException exc)
             {

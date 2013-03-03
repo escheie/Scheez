@@ -1,6 +1,6 @@
 package org.scheez.schema.diff;
 
-import org.scheez.schema.parts.Table;
+import org.scheez.schema.model.Table;
 import org.scheez.util.BaseObject;
 
 public abstract class SchemaDifferenceTable extends BaseObject implements SchemaDifference

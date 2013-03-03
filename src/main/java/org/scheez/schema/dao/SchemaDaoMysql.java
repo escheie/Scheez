@@ -1,14 +1,12 @@
-package org.scheez.schema.dao.impl;
+package org.scheez.schema.dao;
 
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.scheez.schema.dao.SchemaDao;
-import org.scheez.schema.dao.SchemaDaoFactory;
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
 import org.springframework.jdbc.core.JdbcTemplate;
 

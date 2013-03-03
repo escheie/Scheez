@@ -8,11 +8,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.scheez.schema.dao.impl.SchemaDaoHsqldb;
-import org.scheez.schema.dao.impl.SchemaDaoMysql;
-import org.scheez.schema.dao.impl.SchemaDaoOracle;
-import org.scheez.schema.dao.impl.SchemaDaoPostgresql;
-import org.scheez.schema.dao.impl.SchemaDaoTeradata;
 import org.scheez.util.DbC;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;

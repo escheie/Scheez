@@ -30,7 +30,7 @@ public enum ColumnType
     
     CHAR (VARCHAR.getTypeClasses(), Types.CHAR),
     
-    TIMESTAMP (new Class<?>[] {Timestamp.class, Date.class, Time.class, java.util.Date.class, Calendar.class}, Types.TIMESTAMP, Types.TIME, Types.DATE), 
+    TIMESTAMP (new Class<?>[] {Timestamp.class, Date.class, Time.class, java.util.Date.class, Calendar.class}, Types.TIMESTAMP, Types.TIME, Types.DATE, -101), 
     
     BINARY (new Class<?>[] { byte[].class, Byte[].class }, Types.BINARY, Types.BLOB, Types.OTHER, Types.ARRAY);
     

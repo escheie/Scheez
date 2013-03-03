@@ -5,24 +5,21 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.scheez.test.SimpleTestDatabase;
+import org.scheez.test.DefaultTestDatabase;
 import org.scheez.test.TestConfiguration;
 import org.scheez.test.TestDatabase;
 import org.scheez.test.TestDatabaseProperties;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.SpotInstanceRequest;
 
-public final class Ec2TestDatabase extends SimpleTestDatabase
+public final class Ec2TestDatabase extends DefaultTestDatabase
 {
-    private static final Log log = LogFactory.getLog(Ec2TestDatabase.class);
-
     public static final String PROPERTY_IMAGE_ID = "imageId";
 
     public static final String PROPERTY_SECURITY_GROUP = "securityGroup";
@@ -32,6 +29,8 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
     public static final String PROPERTY_INSTANCE_TYPE = "instanceType";
 
     public static final String PROPERTY_INSTANCE_ID = "instanceId";
+    
+    public static final String PROPERTY_SPOT_INSTANCE_REQUEST_ID = "spotInstanceRequestId";
 
     public static final String PROPERTY_KEY_DIR = "keyDir";
 
@@ -53,8 +52,6 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
 
     public static final String PROPERTY_STAGED = "staged";
 
-    public static final String PROPERTY_TEST_SQL = "testSql";
-
     public static final String TMP_DIR = "build/ec2";
 
     public static final String DEFAULT_SECURITY_GROUP = "scheez";
@@ -62,18 +59,20 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
     public static final String DEFAULT_KEY_NAME = "scheez";
 
     public static final String DEFAULT_INSTANCE_TYPE = "m1.small";
+    
+    public static final String DEFAULT_PRICE = "0.06";
 
     public static final String DEFAULT_SCHEDULE_SHUTDOWN_COMMAND = "echo \"sudo shutdown -h now\" | at now + 55 minutes";
     
     public static final int DEFAULT_SSH_PORT = 22;
 
-    private static final int MAX_RETRY = 10;
-    
-    private static final int RETRY_WAIT = 10000;
-
     private static final int MIN_PORT_RANGE = 5000;
 
     private static final int MAX_PORT_RANGE = 20000;
+    
+    public static final int MAX_RETRY= 12;
+    
+    public static final int RETRY_WAIT = 10000;
 
     private static final String LOOPBACK_ADDRESS = "127.0.0.1";
 
@@ -86,6 +85,8 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
     private String instanceType;
 
     private String instanceId;
+    
+    private String spotInstanceRequestId;
 
     private String keyDir;
 
@@ -106,8 +107,6 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
     private String scheduleShutdownCommand;
 
     private boolean staged;
-
-    private String testSql;
 
     private File keyFile;
 
@@ -150,6 +149,7 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
         imageId = properties.getProperty(PROPERTY_IMAGE_ID, true, true);
         instanceType = properties.getProperty(PROPERTY_INSTANCE_TYPE, DEFAULT_INSTANCE_TYPE);
         instanceId = properties.getProperty(PROPERTY_INSTANCE_ID, false, true);
+        spotInstanceRequestId = properties.getProperty(PROPERTY_SPOT_INSTANCE_REQUEST_ID, false, true);
         securityGroup = properties.getProperty(PROPERTY_SECURITY_GROUP, DEFAULT_SECURITY_GROUP);
         keyName = properties.getProperty(PROPERTY_KEY_NAME, DEFAULT_KEY_NAME);
         keyDir = properties.getProperty(PROPERTY_KEY_DIR, new File(TMP_DIR).getAbsolutePath());
@@ -165,7 +165,7 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
                 DEFAULT_SCHEDULE_SHUTDOWN_COMMAND);
 
         staged = properties.getBoolean(PROPERTY_STAGED, false);
-        testSql = properties.getProperty(PROPERTY_TEST_SQL, "SELECT CURRENT_TIMESTAMP");
+       
 
         commands = new ArrayList<String>();
         TestDatabaseProperties commandProperties = properties.withPrefix(PROPERTY_COMMAND);
@@ -222,32 +222,78 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
      */
     private Instance startNewInstance()
     {
-        log.info(name + " - Starting new EC2 instance (imageId=\"" + imageId + "\", instanceType=\"" + instanceType
-                + "\")...");
-        Instance instance = ec2Helper.startInstance(instanceType, imageId, securityGroup, keyName);
-
-        instanceId = instance.getInstanceId();
-        staged = false;
+        if(spotInstanceRequestId != null)
+        {
+            ec2Helper.cancelSpotInstanceRequest(spotInstanceRequestId);
+        }
+        
         if(sshSession != null)
         {
             sshSession.close();
             sshSession = null;
         }
         
-        properties.setProperty(PROPERTY_INSTANCE_ID, instanceId);
+        log.info(name + " - Starting new EC2 instance (imageId=\"" + imageId + "\", instanceType=\"" + instanceType
+                + "\")...");
+        SpotInstanceRequest request = ec2Helper.startSpotInstance(DEFAULT_PRICE, instanceType, imageId, securityGroup, keyName);
+        
+        staged = false;
+        instanceId = null;
+        spotInstanceRequestId = request.getSpotInstanceRequestId();
+        
+        properties.setProperty(PROPERTY_SPOT_INSTANCE_REQUEST_ID, spotInstanceRequestId);
+        properties.remove(PROPERTY_INSTANCE_ID);
         properties.setProperty(PROPERTY_STAGED, Boolean.toString(false));
         properties.save(new File(instanceFile));
+       
+        instanceId = waitForSpotRequest(request.getSpotInstanceRequestId());
+        properties.setProperty(PROPERTY_INSTANCE_ID, instanceId);
+        properties.save(new File(instanceFile));
         
-        return waitForRunningInstance (instance);
+        return waitForRunningInstance (instanceId);
+    }
+    
+    /**
+     * 
+     */
+    private String waitForSpotRequest (String requestId)
+    {
+        long start = System.currentTimeMillis();
+        String instanceId = null;
+        SpotInstanceRequest spotInstanceRequest = ec2Helper.getSpotInstanceRequest(requestId);
+        while (spotInstanceRequest.getState().equals(Ec2Helper.REQUEST_STATE_OPEN))
+        {
+            log.info(name + " - Waiting for spot request to be fulfilled: " + spotInstanceRequest);
+            try
+            {
+                Thread.sleep(RETRY_WAIT);
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            spotInstanceRequest = ec2Helper.getSpotInstanceRequest(requestId);
+        }
+        if(spotInstanceRequest.getState().equals(Ec2Helper.REQUEST_STATE_ACTIVE))
+        {
+            log.info(name + " - Spot Request fullfilled in " + (System.currentTimeMillis() - start) / 1000 + " seconds. " + spotInstanceRequest);
+            instanceId = spotInstanceRequest.getInstanceId();
+        }
+        else
+        {
+            log.error(name + " - Spot Request was not fullfilled. " + spotInstanceRequest);
+        }
+        return instanceId;     
     }
 
     /**
      * 
      */
-    private Instance waitForRunningInstance (Instance instance)
+    private Instance waitForRunningInstance (String instanceId)
     {
         long start = System.currentTimeMillis();
-        while (instance.getState().getName().equals(Ec2Helper.STATE_PENDING))
+        Instance instance = ec2Helper.getInstance(instanceId);
+        while ((instance != null) && (instance.getState().getName().equals(Ec2Helper.STATE_PENDING)))
         {
             log.info(name + " - Waiting for instance to transition to running state: " + instance);
             try
@@ -258,9 +304,24 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
             {
                 e.printStackTrace();
             }
-            instance = ec2Helper.getInstance(instance.getInstanceId());
+            instance = ec2Helper.getInstance(instanceId);
         }
-        log.info(name + " - Instance transitioned from pending state in " + (System.currentTimeMillis() - start) / 1000 + " seconds.");
+        if(instance == null)
+        {
+            log.info(name + " - Instance is not running with InstanceId: " + instanceId);
+        }
+        if(instance.getState().getName().equals(Ec2Helper.STATE_RUNNING))
+        {
+            log.info(name + " - Instance transitioned into running state after " + (System.currentTimeMillis() - start) / 1000 + " seconds.");
+        }
+        else if (instance.getState().getName().equals(Ec2Helper.STATE_PENDING))
+        {
+            log.error(name + " - Instance is not running after waiting " + (System.currentTimeMillis() - start) / 1000 + " seconds.");
+        }
+        else
+        {
+            log.error(name + " - Instance is not in a pending or running state.  " + instance);
+        }
         return instance;        
     }
     
@@ -273,6 +334,15 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
         if (instanceId == null)
         {
             log.info(name + " - No previous EC2 instanceId found.");
+            if (spotInstanceRequestId != null)
+            {
+                log.info(name + " - Checking spot instance request status.");
+                instanceId = waitForSpotRequest(spotInstanceRequestId);
+                if(instanceId != null)
+                {
+                    instance = waitForRunningInstance(instanceId);
+                }
+            }
         }
         else
         {
@@ -285,7 +355,7 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
             else if (i.getState().getName().equals(Ec2Helper.STATE_PENDING))
             {
                 log.info(name + " - Using existing instance: " + i);
-                instance = waitForRunningInstance(i);
+                instance = waitForRunningInstance(i.getInstanceId());
             }
             else if (i.getState().getName().equals(Ec2Helper.STATE_RUNNING))
             {
@@ -308,11 +378,15 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
         if (scheduleShutdown)
         {
             log.info(name + " - Scheduling shutdown: " + scheduleShutdownCommand);
-            Result result = session.runCommand(scheduleShutdownCommand, true);
+            Result result = session.runCommand(scheduleShutdownCommand);
             if (!result.isSuccess())
             {
                 log.error(name + " - Scheduling shutdown failed. Command: " + scheduleShutdownCommand + "\nResult: "
                         + result);
+            }
+            else
+            {
+                log.info(name + " - Shutdown scheduled successfully.");
             }
         }
         else
@@ -320,53 +394,10 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
             log.info(name + " - Skipping scheduled shutdown.");
         }
     }
-
-    /**
-     * 
-     */
-    public DataSource getDataSource()
-    {
-        initialize (false);
-        
-        int retryCount = 0;
-        RuntimeException ex = null;
-        while (retryCount++ <= MAX_RETRY)
-        {
-            if(ex != null)
-            {
-                log.warn(name + " - Unable to connect to database: " + ex.getMessage());
-                log.info(name + " - Checking EC2 instance status after short delay.");
-                try
-                {
-                    Thread.sleep(RETRY_WAIT);
-                }
-                catch (InterruptedException e)
-                {
-                    log.warn(e);
-                }
-                initialize(true);
-            }
-            
-            try
-            {
-                DataSource dataSource = super.getDataSource();
-                JdbcTemplate jdbcTemplate = new JdbcTemplate(super.getDataSource());
-                long time = System.currentTimeMillis();
-                String value = jdbcTemplate.queryForObject(testSql, String.class);
-                log.info (name + " - Verified database connection.  Test Sql: " + testSql + ",  Result: " + value + ",  Duration: " + (System.currentTimeMillis() - time)/1000f + "s");
-                return dataSource;
-            }
-            catch (RuntimeException e)
-            {
-                ex = e;
-            }
-        }
-        throw ex;
-    }
     
-    private synchronized void initialize (boolean force)
+    protected synchronized DataSource initializeDataSource (boolean reinitialize)
     {
-        if((!initialized) || (force))
+        if((!initialized) || (reinitialize))
         {
             Instance instance = findExistingInstance();
          
@@ -424,6 +455,7 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
             
             initialized = true;
         }
+        return super.initializeDataSource(reinitialize);
     }
 
     @Override
@@ -457,14 +489,15 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
             }
             if (++retryCount >= MAX_RETRY)
             {
-                log.error(name + " - Timed out waiting for SSH connection to succeed: " + instance);
-                break;
+                throw new RuntimeException(name + " - Timed out waiting for SSH connection to succeed: " + instance);
             }
             else
             {
                 session = new SshSession(instance.getPublicDnsName(), sshUser, keyFile);
             }
         }
+  
+        
         log.info(name + " - Created SSH connection to hostname: " + instance.getPublicDnsName());
 
         return session;
@@ -477,8 +510,10 @@ public final class Ec2TestDatabase extends SimpleTestDatabase
     {
         log.info(name + " - Searching for unused local port...");
         Integer retval = null;
-        for (int port = MIN_PORT_RANGE; port <= MAX_PORT_RANGE; port++)
+        Random random = new Random();
+        while(true)
         {
+            int port = random.nextInt(MAX_PORT_RANGE - MIN_PORT_RANGE) + MIN_PORT_RANGE;
             Socket s = null;
             try
             {

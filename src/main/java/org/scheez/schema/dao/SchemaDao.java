@@ -3,10 +3,10 @@ package org.scheez.schema.dao;
 import java.util.List;
 
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.Index;
-import org.scheez.schema.parts.Table;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Index;
+import org.scheez.schema.model.Table;
+import org.scheez.schema.model.TableName;
 
 public interface SchemaDao
 {  

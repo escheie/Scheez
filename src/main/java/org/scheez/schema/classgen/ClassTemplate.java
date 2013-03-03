@@ -2,8 +2,8 @@ package org.scheez.schema.classgen;
 
 import java.util.List;
 
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.TableName;
 
 public interface ClassTemplate
 {

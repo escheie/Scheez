@@ -10,10 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.scheez.schema.def.ColumnType;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.Index;
-import org.scheez.schema.parts.Table;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Index;
+import org.scheez.schema.model.Table;
+import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
 import org.scheez.test.junit.Scheez;
 

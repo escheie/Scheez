@@ -13,9 +13,9 @@ import org.springframework.core.io.DefaultResourceLoader;
 
 public class TestDatabaseProperties
 {
-    private Properties properties;
-    
     private String keyPrefix;
+    
+    private Properties properties;
     
     public TestDatabaseProperties ()
     {
@@ -30,13 +30,18 @@ public class TestDatabaseProperties
         
     private TestDatabaseProperties (String keyPrefix, Properties properties)
     {
-        this.properties = properties;
         this.keyPrefix = keyPrefix;
+        this.properties = properties;
     }
     
     public String getKeyPrefix ()
     {
         return keyPrefix;
+    }
+    
+    public TestDatabaseProperties all ()
+    {
+        return new TestDatabaseProperties(null, properties);
     }
     
     public TestDatabaseProperties withPrefix (String prefix)
@@ -108,8 +113,18 @@ public class TestDatabaseProperties
     
     public void setProperty (String key, String value)
     {
-        String k = (keyPrefix == null) ? key : keyPrefix + "." + key;
-        properties.setProperty(k, value);
+        
+        properties.setProperty(qualify(key), value);
+    }
+    
+    public String remove (String key)
+    {
+        return (String)properties.remove(qualify(key));
+    }
+    
+    private String qualify(String key)
+    {
+        return (keyPrefix == null) ? key : keyPrefix + "." + key;
     }
     
     public void save (File file)

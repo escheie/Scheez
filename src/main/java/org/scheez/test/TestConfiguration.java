@@ -5,8 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class TestConfiguration
 {
+    private static final Log log = LogFactory.getLog(TestConfiguration.class);
+    
     public static final String PROPERTY_DATABASES = "databases";
     
     private static TestConfiguration config;
@@ -42,6 +47,8 @@ public class TestConfiguration
 
     public void load (String resourceName) throws Exception
     {
+        log.info("Loading Test Database properties from " + resourceName + ".");
+        
         testDatabases.clear();
         TestDatabaseProperties properties = TestDatabaseProperties.load(resourceName);   
         String databases = properties.getProperty(PROPERTY_DATABASES, true, true);
@@ -60,7 +67,7 @@ public class TestConfiguration
             String type = p.getProperty("type", false, true);
             if(type == null)
             {
-                type = SimpleTestDatabase.class.getName();
+                type = DefaultTestDatabase.class.getName();
             }
             
             @SuppressWarnings("unchecked")

@@ -3,9 +3,9 @@ package org.scheez.schema.mapper;
 import java.util.List;
 
 import org.scheez.reflect.PersistentField;
-import org.scheez.schema.parts.Column;
-import org.scheez.schema.parts.Table;
-import org.scheez.schema.parts.TableName;
+import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Table;
+import org.scheez.schema.model.TableName;
 
 public interface SchemaMapper
 { 

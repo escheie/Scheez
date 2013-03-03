@@ -1,4 +1,4 @@
-package org.scheez.schema.parts;
+package org.scheez.schema.model;
 
 import org.scheez.schema.def.ColumnType;
 import org.scheez.util.BaseObject;
