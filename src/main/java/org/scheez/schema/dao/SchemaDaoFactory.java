@@ -56,7 +56,7 @@ public abstract class SchemaDaoFactory
                 {
                     if(factory.isSupported(productName, productVersion))
                     {
-                        schemaDao = factory.create (jdbcTemplate);
+                        schemaDao = factory.create (dataSource);
                         break;
                     }
                 }
@@ -73,5 +73,5 @@ public abstract class SchemaDaoFactory
     
     public abstract boolean isSupported (String databaseProduct, String databaseVersion);
     
-    public abstract SchemaDao create (JdbcTemplate jdbcTemplate);
+    public abstract SchemaDao create (DataSource dataSource);
 }

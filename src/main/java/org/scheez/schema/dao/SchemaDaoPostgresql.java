@@ -6,18 +6,12 @@ import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoPostgresql extends SchemaDaoAnsi 
 {
     public SchemaDaoPostgresql(DataSource dataSource)
     {
         super(dataSource);
-    }
-
-    public SchemaDaoPostgresql(JdbcTemplate jdbcTemplate)
-    {
-        super(jdbcTemplate);
     }
     
     protected Integer getColumnLength (Column column)
@@ -46,7 +40,7 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         sb.append(getColumnName(column.getName()));
         sb.append(" TYPE ");
         sb.append( getColumnTypeString(column));
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
     
     @Override
@@ -96,10 +90,10 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (JdbcTemplate jdbcTemplate)
+        public SchemaDao create (DataSource dataSource)
         {
-            DbC.throwIfNullArg(jdbcTemplate);
-            return new SchemaDaoPostgresql (jdbcTemplate);
+            DbC.throwIfNullArg(dataSource);
+            return new SchemaDaoHsqldb (dataSource);
         }
 
     }

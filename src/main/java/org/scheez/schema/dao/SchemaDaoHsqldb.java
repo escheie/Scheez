@@ -5,18 +5,12 @@ import javax.sql.DataSource;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoHsqldb extends SchemaDaoAnsi
 {
     public SchemaDaoHsqldb(DataSource dataSource)
     {
         super(dataSource);
-    }
-
-    public SchemaDaoHsqldb(JdbcTemplate jdbcTemplate)
-    {
-        super(jdbcTemplate);
     }
     
     @Override
@@ -58,11 +52,10 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (JdbcTemplate jdbcTemplate)
+        public SchemaDao create (DataSource dataSource)
         {
-            DbC.throwIfNullArg(jdbcTemplate);
-            DbC.throwIfNullArg(jdbcTemplate.getDataSource());
-            return new SchemaDaoHsqldb (jdbcTemplate);
+            DbC.throwIfNullArg(dataSource);
+            return new SchemaDaoHsqldb (dataSource);
         }
 
     }

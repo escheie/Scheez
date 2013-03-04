@@ -7,7 +7,6 @@ import org.scheez.schema.model.Column;
 import org.scheez.schema.model.Index;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoTeradata extends SchemaDaoAnsi
 {
@@ -23,11 +22,6 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         super(dataSource);
     }
 
-    public SchemaDaoTeradata(JdbcTemplate jdbcTemplate)
-    {
-        super(jdbcTemplate);
-    }
-
     @Override
     public void createSchema(String schemaName)
     {
@@ -36,7 +30,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         sb.append(" AS PERMANENT = ");
         sb.append(defaultPermSpace);
         sb.append(" BYTES");
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -44,10 +38,10 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
     {
         StringBuilder sb = new StringBuilder("DELETE DATABASE ");
         sb.append(schemaName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
         sb = new StringBuilder("DROP DATABASE ");
         sb.append(schemaName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
     
 
@@ -76,7 +70,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         sb.append(tableName);
         sb.append(" ADD ");
         sb.append(getColumnString(column));
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
     
     @Override
@@ -114,7 +108,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         }
         sb.append(") ON ");
         sb.append(tableName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
     
     @Override
@@ -124,7 +118,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         sb.append(indexName);
         sb.append(" ON ");
         sb.append(tableName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     
@@ -181,10 +175,10 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create(JdbcTemplate jdbcTemplate)
+        public SchemaDao create (DataSource dataSource)
         {
-            DbC.throwIfNullArg(jdbcTemplate);
-            return new SchemaDaoTeradata(jdbcTemplate);
+            DbC.throwIfNullArg(dataSource);
+            return new SchemaDaoHsqldb (dataSource);
         }
 
     }

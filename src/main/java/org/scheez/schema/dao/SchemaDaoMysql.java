@@ -8,7 +8,6 @@ import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoMysql extends SchemaDaoAnsi
 {
@@ -17,17 +16,12 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         super(dataSource);
     }
 
-    public SchemaDaoMysql(JdbcTemplate jdbcTemplate)
-    {
-        super(jdbcTemplate);
-    }
-
     @Override
     public void createSchema(String schemaName)
     {
         StringBuilder sb = new StringBuilder("CREATE DATABASE ");
         sb.append(schemaName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -35,7 +29,7 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     {
         StringBuilder sb = new StringBuilder("DROP DATABASE ");
         sb.append(schemaName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -69,7 +63,7 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         sb.append(tableName);
         sb.append(" MODIFY COLUMN ");
         sb.append(getColumnString(column));
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
     
     @Override
@@ -79,7 +73,7 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         sb.append(indexName);
         sb.append(" ON ");
         sb.append(tableName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -108,10 +102,10 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (JdbcTemplate jdbcTemplate)
+        public SchemaDao create (DataSource dataSource)
         {
-            DbC.throwIfNullArg(jdbcTemplate);
-            return new SchemaDaoMysql (jdbcTemplate);
+            DbC.throwIfNullArg(dataSource);
+            return new SchemaDaoHsqldb (dataSource);
         }
 
     }

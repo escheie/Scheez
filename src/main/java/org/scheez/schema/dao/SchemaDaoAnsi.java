@@ -34,16 +34,11 @@ public class SchemaDaoAnsi implements SchemaDao
 
     private static final int DEFAULT_SCALE = 0;
 
-    protected JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
 
     public SchemaDaoAnsi(DataSource dataSource)
     {
-        this(new JdbcTemplate(dataSource));
-    }
-
-    public SchemaDaoAnsi(JdbcTemplate jdbcTemplate)
-    {
-        this.jdbcTemplate = jdbcTemplate;
+        jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     public DataSource getDataSource()
@@ -105,13 +100,18 @@ public class SchemaDaoAnsi implements SchemaDao
         }
         return scale;
     }
+    
+    protected void execute (String sql)
+    {
+        jdbcTemplate.execute(sql);
+    }
 
     @Override
     public void createSchema(String schemaName)
     {
         StringBuilder sb = new StringBuilder("CREATE SCHEMA ");
         sb.append(schemaName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -120,7 +120,7 @@ public class SchemaDaoAnsi implements SchemaDao
         StringBuilder sb = new StringBuilder("DROP SCHEMA ");
         sb.append(schemaName);
         sb.append(" CASCADE");
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -164,7 +164,7 @@ public class SchemaDaoAnsi implements SchemaDao
     {
         StringBuilder sb = new StringBuilder("DROP TABLE ");
         sb.append(tableName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -187,7 +187,7 @@ public class SchemaDaoAnsi implements SchemaDao
             sb.append(getColumnString(column));
         }
         sb.append(")");
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -272,8 +272,7 @@ public class SchemaDaoAnsi implements SchemaDao
         sb.append(tableName);
         sb.append(" ADD ");
         sb.append(getColumnString(column));
-        jdbcTemplate.execute(sb.toString());
-
+        execute(sb.toString());
     }
 
     @Override
@@ -283,7 +282,7 @@ public class SchemaDaoAnsi implements SchemaDao
         sb.append(tableName);
         sb.append(" DROP ");
         sb.append(columnName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -314,7 +313,7 @@ public class SchemaDaoAnsi implements SchemaDao
         sb.append(tableName);
         sb.append(" ALTER ");
         sb.append(getColumnString(column));
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
     
     @Override
@@ -345,7 +344,7 @@ public class SchemaDaoAnsi implements SchemaDao
             sb.append(columnName);
         }
         sb.append(")");
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
@@ -355,7 +354,7 @@ public class SchemaDaoAnsi implements SchemaDao
         sb.append(tableName.getSchemaName());
         sb.append(".");
         sb.append(indexName);
-        jdbcTemplate.execute(sb.toString());
+        execute(sb.toString());
     }
 
     @Override
