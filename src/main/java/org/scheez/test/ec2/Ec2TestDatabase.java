@@ -630,8 +630,9 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
             sshSession = null;
         }
 
-        log.info(name + " - Starting new EC2 instance (imageId=\"" + imageId
+        log.info(name + " - Requesting new EC2 spot instance (imageId=\"" + imageId
                 + "\", instanceType=\"" + instanceType
+                + "\", spotPrice=\"" + spotPrice
                 + "\")...");
         SpotInstanceRequest request = ec2Helper.startSpotInstance(spotPrice, instanceType,
                 imageId, securityGroup, keyName);
