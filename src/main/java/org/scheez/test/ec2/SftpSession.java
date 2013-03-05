@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.scheez.test.ec2.Result.Code;
+import org.scheez.test.ec2.SshResult.Code;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
@@ -29,9 +29,9 @@ public class SftpSession
     /**
      * @inheritDoc
      */
-    public synchronized Result init()
+    public synchronized SshResult init()
     {
-        Result result = new Result(Code.SUCCESS);
+        SshResult result = new SshResult(Code.SUCCESS);
         if ((channel == null) || (!channel.isConnected()))
         {
             result = sshSession.init();
@@ -44,7 +44,7 @@ public class SftpSession
                 }
                 catch (Exception e)
                 {
-                    result = new Result(Code.FAILURE, "Unable to open sftp channel.", e);
+                    result = new SshResult(Code.FAILURE, "Unable to open sftp channel.", e);
                 }
             }
         }
@@ -53,7 +53,7 @@ public class SftpSession
 
     private void initChannel() throws SftpException
     {
-        Result result = init();
+        SshResult result = init();
         if (!result.isSuccess())
         {
             throw new SftpException(0, result.toString());
@@ -163,9 +163,9 @@ public class SftpSession
      * @param remoteFilePath
      * @return
      */
-    public Result put(String localFilePath, String remoteFilePath)
+    public SshResult put(String localFilePath, String remoteFilePath)
     {
-        Result result = init();
+        SshResult result = init();
         InputStream input = null;
         try
         {
@@ -174,11 +174,11 @@ public class SftpSession
         }
         catch (FileNotFoundException e)
         {
-            result = new Result(Result.Code.FAILURE, e.getMessage(), e);
+            result = new SshResult(SshResult.Code.FAILURE, e.getMessage(), e);
         }
         catch (SftpException e)
         {
-            result = new Result(Result.Code.FAILURE, e.getMessage(), e);
+            result = new SshResult(SshResult.Code.FAILURE, e.getMessage(), e);
         }
         finally
         {
@@ -205,9 +205,9 @@ public class SftpSession
      * @param remoteFilePath
      * @return
      */
-    public Result get(String remoteFilePath, String localFilePath)
+    public SshResult get(String remoteFilePath, String localFilePath)
     {
-        Result result = init();
+        SshResult result = init();
         OutputStream output = null;
         try
         {
@@ -216,11 +216,11 @@ public class SftpSession
         }
         catch (FileNotFoundException e)
         {
-            result = new Result(Result.Code.FAILURE, e.getMessage(), e);
+            result = new SshResult(SshResult.Code.FAILURE, e.getMessage(), e);
         }
         catch (SftpException e)
         {
-            result = new Result(Result.Code.FAILURE, e.getMessage(), e);
+            result = new SshResult(SshResult.Code.FAILURE, e.getMessage(), e);
         }
         finally
         {

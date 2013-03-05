@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import org.scheez.test.ec2.Result.Param;
+import org.scheez.test.ec2.SshResult.Param;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -117,9 +117,9 @@ public class SshSession implements Closeable
      * 
      * @return
      */
-    public synchronized Result init()
+    public synchronized SshResult init()
     {
-        Result result = new Result(Result.Code.SUCCESS);
+        SshResult result = new SshResult(SshResult.Code.SUCCESS);
         if ((session == null) || (!session.isConnected()))
         {
             JSch jsch = new JSch();
@@ -143,7 +143,7 @@ public class SshSession implements Closeable
     /**
      * Runs the specified command using SSH.
      */
-    public Result runCommand(String cmd)
+    public SshResult runCommand(String cmd)
     {
         return runCommand(cmd, false);
     }
@@ -151,10 +151,10 @@ public class SshSession implements Closeable
     /**
      * Runs the specified command using SSH.
      */
-    public Result runCommand(String cmd, boolean skipOutput)
+    public SshResult runCommand(String cmd, boolean skipOutput)
     {
         BufferedReader reader = null;
-        Result result = init();
+        SshResult result = init();
         if (result.isSuccess())
         {
             Channel channel = null;
@@ -182,25 +182,25 @@ public class SshSession implements Closeable
                 }
                 if (channel.getExitStatus() < 0)
                 {
-                    result = new Result(Result.Code.FAILURE,
+                    result = new SshResult(SshResult.Code.FAILURE,
                             "Timed out waiting on exit status from " + " command: " + cmd
                                     + "\nCommand Out:\n" + cmdOut);
                 }
                 else if (channel.getExitStatus() > 0)
                 {
-                    result = new Result(Result.Code.NON_ZERO_EXIT_CODE, "Exit Status: "
+                    result = new SshResult(SshResult.Code.NON_ZERO_EXIT_CODE, "Exit Status: "
                             + channel.getExitStatus() + "\nCommand: " + cmd + "\nCommand Out:\n"
                             + cmdOut);
                     result.setParam(Param.EXIT_CODE, channel.getExitStatus());
                 }
                 else
                 {
-                    result = new Result(Result.Code.SUCCESS, cmdOut.toString());
+                    result = new SshResult(SshResult.Code.SUCCESS, cmdOut.toString());
                 }
             }
             catch (IOException e)
             {
-                result = new Result(Result.Code.FAILURE, "Error while running command \"" + cmd
+                result = new SshResult(SshResult.Code.FAILURE, "Error while running command \"" + cmd
                         + "\"", e);
             }
             catch (JSchException e)
@@ -209,7 +209,7 @@ public class SshSession implements Closeable
             }
             catch (InterruptedException e)
             {
-                result = new Result(Result.Code.FAILURE, "Command interrupted:  " + cmd, e);
+                result = new SshResult(SshResult.Code.FAILURE, "Command interrupted:  " + cmd, e);
             }
             finally
             {
@@ -233,15 +233,15 @@ public class SshSession implements Closeable
         }
         else
         {
-            result = new Result(Result.Code.FAILURE, "Session does not exist");
+            result = new SshResult(SshResult.Code.FAILURE, "Session does not exist");
         }
 
         return result;
     }
     
-    public Result createTunnel (int localPort, String host, int remotePort)
+    public SshResult createTunnel (int localPort, String host, int remotePort)
     {
-        Result result = new Result(Result.Code.SUCCESS);
+        SshResult result = new SshResult(SshResult.Code.SUCCESS);
         try
         {
             session.setPortForwardingL(localPort, host, remotePort);
@@ -263,13 +263,13 @@ public class SshSession implements Closeable
         }
     }
 
-    protected Result mapToResult(JSchException e)
+    protected SshResult mapToResult(JSchException e)
     {
-        Result result = null;
+        SshResult result = null;
         if ((e.getCause() instanceof UnknownHostException)
                 || (e.getMessage().startsWith("java.net.UnknownHostException")))
         {
-            result = new Result(Result.Code.UNKNOWN_HOST, "The host \"" + host
+            result = new SshResult(SshResult.Code.UNKNOWN_HOST, "The host \"" + host
                     + "\" cannot be resolved to an IP address.", e);
         }
         else if (e.getCause() instanceof IllegalArgumentException)
@@ -278,17 +278,17 @@ public class SshSession implements Closeable
         }
         else if (e.getCause() instanceof SocketException)
         {
-            result = new Result(Result.Code.NO_CONNECTION, "Unable to connect to " + host
+            result = new SshResult(SshResult.Code.NO_CONNECTION, "Unable to connect to " + host
                     + " on port " + port + ".", e);
         }
         else if ((e.getMessage() != null) && (e.getMessage().trim().startsWith("Auth")))
         {
-            result = new Result(Result.Code.INVALID_CREDENTIALS,
+            result = new SshResult(SshResult.Code.INVALID_CREDENTIALS,
                     "The specified credentials are invalid.", e);
         }
         else
         {
-            result = new Result(Result.Code.FAILURE, e.getMessage(), e);
+            result = new SshResult(SshResult.Code.FAILURE, e.getMessage(), e);
         }
         return result;
     }

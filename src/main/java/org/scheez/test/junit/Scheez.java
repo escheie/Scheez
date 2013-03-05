@@ -18,7 +18,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerScheduler;
 import org.junit.runners.model.Statement;
-import org.scheez.test.TestConfiguration;
+import org.scheez.test.ScheezTestConfiguration;
 import org.scheez.test.TestDatabase;
 
 public class Scheez extends Suite
@@ -29,7 +29,7 @@ public class Scheez extends Suite
     {
         super(cls, Collections.<Runner> emptyList());
         setScheduler(new ThreadedScheduler());
-        for (TestDatabase testDatabase : TestConfiguration.getInstance().getTestDatabases())
+        for (TestDatabase testDatabase : ScheezTestConfiguration.getInstance().getTestDatabases())
         {
             runners.add(new ScheezClassRunner(cls, testDatabase));
         }

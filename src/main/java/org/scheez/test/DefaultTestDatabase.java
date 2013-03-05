@@ -26,9 +26,9 @@ public class DefaultTestDatabase implements TestDatabase
     public static final String PROPERTY_TEST_SQL = "testSql";
 
     public static final String DEFAULT_TEST_SQL = "SELECT CURRENT_TIMESTAMP";
-    
+
     private static final int MAX_RETRY = 10;
-    
+
     private static final int RETRY_WAIT = 10000;
 
     protected String name;
@@ -43,15 +43,19 @@ public class DefaultTestDatabase implements TestDatabase
 
     protected String testSql;
 
-    protected TestDatabaseProperties properties;
-
     private SingleConnectionDataSource dataSource;
 
-    public void initialize(String name, TestDatabaseProperties properties)
+    /**
+     * @param name
+     */
+    public DefaultTestDatabase(String name)
     {
         this.name = name;
-        this.properties = properties;
+        testSql = DEFAULT_TEST_SQL;
+    }
 
+    protected void initializeFromProperties(TestDatabaseProperties properties)
+    {
         url = properties.getProperty(PROPERTY_URL, true, true);
         driverClass = properties.getProperty(PROPERTY_DRIVER_CLASS, false, true);
         username = properties.getProperty(PROPERTY_USERNAME, false, true);
@@ -71,34 +75,97 @@ public class DefaultTestDatabase implements TestDatabase
         }
     }
 
-    public String getName()
-    {
-        return name;
-    }
-
+    /**
+     * @return the url
+     */
     public String getUrl()
     {
         return url;
     }
 
+    /**
+     * @param url
+     *            the url to set
+     */
+    public void setUrl(String url)
+    {
+        this.url = url;
+    }
+
+    /**
+     * @return the driverClass
+     */
     public String getDriverClass()
     {
         return driverClass;
     }
 
+    /**
+     * @param driverClass
+     *            the driverClass to set
+     */
+    public void setDriverClass(String driverClass)
+    {
+        this.driverClass = driverClass;
+    }
+
+    /**
+     * @return the username
+     */
     public String getUsername()
     {
         return username;
     }
 
+    /**
+     * @param username
+     *            the username to set
+     */
+    public void setUsername(String username)
+    {
+        this.username = username;
+    }
+
+    /**
+     * @return the password
+     */
     public String getPassword()
     {
         return password;
     }
 
-    public TestDatabaseProperties getProperties()
+    /**
+     * @param password
+     *            the password to set
+     */
+    public void setPassword(String password)
     {
-        return properties;
+        this.password = password;
+    }
+
+    /**
+     * @return the testSql
+     */
+    public String getTestSql()
+    {
+        return testSql;
+    }
+
+    /**
+     * @param testSql
+     *            the testSql to set
+     */
+    public void setTestSql(String testSql)
+    {
+        this.testSql = testSql;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName()
+    {
+        return name;
     }
 
     /**
@@ -106,7 +173,7 @@ public class DefaultTestDatabase implements TestDatabase
      */
     public DataSource getDataSource()
     {
-        DataSource dataSource = initializeDataSource (false);
+        DataSource dataSource = initializeDataSource(false);
 
         int retryCount = 0;
         RuntimeException ex = null;
@@ -124,7 +191,7 @@ public class DefaultTestDatabase implements TestDatabase
                 {
                     log.warn(e);
                 }
-                dataSource = initializeDataSource (true);
+                dataSource = initializeDataSource(true);
             }
 
             try
@@ -133,7 +200,8 @@ public class DefaultTestDatabase implements TestDatabase
                 long time = System.currentTimeMillis();
                 log.info(name + " - Verifying database connection...");
                 String value = jdbcTemplate.queryForObject(testSql, String.class);
-                log.info(name + " - Verified database connection.  Test Sql: " + testSql + ",  Result: " + value
+                log.info(name + " - Verified database connection.  Test Sql: " + testSql
+                        + ",  Result: " + value
                         + ",  Duration: " + (System.currentTimeMillis() - time) / 1000f + "s");
                 return dataSource;
             }
@@ -144,19 +212,19 @@ public class DefaultTestDatabase implements TestDatabase
         }
         throw ex;
     }
-    
-    protected synchronized DataSource initializeDataSource (boolean reinitialize)
+
+    protected synchronized DataSource initializeDataSource(boolean reinitialize)
     {
-        if((dataSource == null) || (reinitialize))
+        if ((dataSource == null) || (reinitialize))
         {
-            if(dataSource != null)
+            if (dataSource != null)
             {
                 dataSource.destroy();
             }
             dataSource = new SingleConnectionDataSource(url, username, password, true);
         }
         return dataSource;
-    } 
+    }
 
     @Override
     public void close()

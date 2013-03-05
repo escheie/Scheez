@@ -1,16 +1,13 @@
 package org.scheez.test.ec2;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.springframework.core.io.DefaultResourceLoader;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
@@ -73,46 +70,27 @@ public class Ec2Helper
         client.setEndpoint(region);
     }
 
+    public String getKeyFingerprint(String keyName)
+    {
+        String fingerprint = null;
+        DescribeKeyPairsResult result = client.describeKeyPairs(new DescribeKeyPairsRequest()
+                .withKeyNames(keyName));
+        if (!result.getKeyPairs().isEmpty())
+        {
+            fingerprint = result.getKeyPairs().get(0).getKeyFingerprint();
+        }
+        return fingerprint;
+    }
+
     public KeyPair createKeyPair(String keyName, boolean overwrite)
     {
         if (overwrite)
         {
             client.deleteKeyPair(new DeleteKeyPairRequest(keyName));
         }
-        CreateKeyPairResult result = client.createKeyPair(new CreateKeyPairRequest().withKeyName(keyName));
+        CreateKeyPairResult result = client.createKeyPair(new CreateKeyPairRequest()
+                .withKeyName(keyName));
         return result.getKeyPair();
-    }
-
-    public File initializeKeyPair(String keyName, File keyDir) throws IOException
-    {
-        KeyPair keyPair = null;
-
-        // / Load key on file system.
-        File keyFile = new File(keyDir, keyName + ".key");
-        File digestFile = new File(keyDir, keyName + ".digest");
-
-        if ((keyFile.exists()) && (digestFile.exists()))
-        {
-            String digest = FileUtils.readFileToString(digestFile);
-            String material = FileUtils.readFileToString(keyFile);
-
-            DescribeKeyPairsResult result = client
-                    .describeKeyPairs(new DescribeKeyPairsRequest().withKeyNames(keyName));
-            if ((!result.getKeyPairs().isEmpty()) && (result.getKeyPairs().get(0).getKeyFingerprint().equals(digest)))
-            {
-                keyPair = new KeyPair().withKeyFingerprint(digest).withKeyMaterial(material).withKeyName(keyName);
-            }
-        }
-
-        if (keyPair == null)
-        {
-            keyPair = createKeyPair(keyName, true);
-
-            FileUtils.writeStringToFile(keyFile, keyPair.getKeyMaterial());
-            FileUtils.writeStringToFile(digestFile, keyPair.getKeyFingerprint());
-        }
-
-        return keyFile;
     }
 
     public void createSecurityGroup(String name, String description)
@@ -136,7 +114,8 @@ public class Ec2Helper
     public void addIPPermission(String securityGroup, IpPermission ipPermission)
     {
         AuthorizeSecurityGroupIngressRequest authorizeSecurityGroupIngressRequest = new AuthorizeSecurityGroupIngressRequest();
-        authorizeSecurityGroupIngressRequest.withGroupName(securityGroup).withIpPermissions(ipPermission);
+        authorizeSecurityGroupIngressRequest.withGroupName(securityGroup).withIpPermissions(
+                ipPermission);
 
         try
         {
@@ -196,7 +175,8 @@ public class Ec2Helper
         SpotInstanceRequest request = null;
         try
         {
-            DescribeSpotInstanceRequestsResult describeResult = client.describeSpotInstanceRequests(describeRequest);
+            DescribeSpotInstanceRequestsResult describeResult = client
+                    .describeSpotInstanceRequests(describeRequest);
             request = describeResult.getSpotInstanceRequests().get(0);
         }
         catch (AmazonServiceException e)
@@ -214,11 +194,13 @@ public class Ec2Helper
         client.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceId));
     }
 
-    public Instance startInstance(String instanceType, String imageName, String securityGroup, String keyName)
+    public Instance startInstance(String instanceType, String imageName, String securityGroup,
+            String keyName)
     {
         RunInstancesRequest runInstancesRequest = new RunInstancesRequest();
 
-        runInstancesRequest.withImageId(imageName).withInstanceType(instanceType).withMinCount(1).withMaxCount(1)
+        runInstancesRequest.withImageId(imageName).withInstanceType(instanceType).withMinCount(1)
+                .withMaxCount(1)
                 .withSecurityGroups(securityGroup).withKeyName(keyName)
                 .withInstanceInitiatedShutdownBehavior(BEHAVIOR_TERMINATE);
 
@@ -227,7 +209,8 @@ public class Ec2Helper
         return runInstancesResult.getReservation().getInstances().get(0);
     }
 
-    public SpotInstanceRequest startSpotInstance(String price, String instanceType, String imageName,
+    public SpotInstanceRequest startSpotInstance(String price, String instanceType,
+            String imageName,
             String securityGroup, String keyName)
     {
         RequestSpotInstancesRequest request = new RequestSpotInstancesRequest();
@@ -256,7 +239,8 @@ public class Ec2Helper
         ArrayList<String> spotInstanceRequestIds = new ArrayList<String>();
         spotInstanceRequestIds.add(spotInstanceRequestId);
 
-        CancelSpotInstanceRequestsRequest cancelRequest = new CancelSpotInstanceRequestsRequest(spotInstanceRequestIds);
+        CancelSpotInstanceRequestsRequest cancelRequest = new CancelSpotInstanceRequestsRequest(
+                spotInstanceRequestIds);
         try
         {
             client.cancelSpotInstanceRequests(cancelRequest);

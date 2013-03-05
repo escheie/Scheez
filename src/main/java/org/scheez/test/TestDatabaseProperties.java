@@ -7,12 +7,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.scheez.util.DbC;
 import org.springframework.core.io.DefaultResourceLoader;
 
 public class TestDatabaseProperties
 {
+    private static final Pattern substitutionPattern = Pattern.compile("(\\$)?\\$\\{(.+?)\\}");
+    
     private String keyPrefix;
     
     private Properties properties;
@@ -56,19 +60,53 @@ public class TestDatabaseProperties
         String v = properties.getProperty(k);
         if ((propertyRequired) && (v == null))
         {
-            throw new IllegalArgumentException("Missing property: " + k);
+            throw new IllegalArgumentException("Missing test database property: " + k);
         }
         if (v != null)
         {
+            v = resolve(v);
             v = v.trim();
             if ((valueRequired) && (v.isEmpty()))
             {
-                throw new IllegalArgumentException("Missing value for property: " + k);
+                throw new IllegalArgumentException("Missing value for test database property: " + k);
             }
         }
         return v;
     }
     
+    /**
+     * @param v
+     * @return
+     */
+    private String resolve (String value)
+    {
+        String retval = null;
+        if (value != null)
+        {
+            Matcher m = substitutionPattern.matcher(value);
+            StringBuffer result = new StringBuffer();
+            while (m.find()) 
+            {
+                String variable = m.group(2);
+                if(m.group(1) == null)
+                {
+                    String resolved = resolve(properties.getProperty(variable));
+                    if(resolved != null)
+                    {
+                        m.appendReplacement(result, resolved);
+                    }
+                }
+                else
+                {
+                    m.appendReplacement(result, "\\${" + variable + "}");
+                }
+            }
+            m.appendTail(result);
+            retval = result.toString();
+        }
+        return retval;
+    }
+
     public String getProperty (String key, String defaultValue)
     {
         String value = getProperty(key, false, false);

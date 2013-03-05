@@ -8,8 +8,6 @@ public interface TestDatabase
     
     DataSource getDataSource();
     
-    void initialize (String name, TestDatabaseProperties properties);
-    
     void close ();
        
 }
