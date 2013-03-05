@@ -136,6 +136,8 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
     private Ec2Helper ec2Helper;
 
     private boolean initialized;
+    
+    private long startTime;
 
     private TestDatabaseProperties instanceProperties;
 
@@ -682,6 +684,7 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
             log.info(name + " - Spot Request fullfilled in " + (System.currentTimeMillis() - start)
                     / 1000 + " seconds. " + spotInstanceRequest);
             instanceId = spotInstanceRequest.getInstanceId();
+            startTime = System.currentTimeMillis();
         }
         else
         {
@@ -783,7 +786,7 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
     /**
      * @param session
      */
-    private void scheduleShutdown(SshSession session, long startTime)
+    private void scheduleShutdown(SshSession session)
     {
         if (scheduleShutdown)
         {
@@ -820,8 +823,6 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
                 loadInstanceProperties ();
             }
             
-            long startTime = System.currentTimeMillis();
-            
             Instance instance = findExistingInstance();
 
             if (instance == null)
@@ -837,7 +838,7 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
 
             if (!staged)
             {
-               stageDatabase (startTime);
+               stageDatabase ();
             }
 
             initialized = true;
@@ -871,9 +872,9 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
     /**
      * 
      */
-    private void stageDatabase(long startTime)
+    private void stageDatabase ()
     {
-        scheduleShutdown(sshSession, startTime);
+        scheduleShutdown(sshSession);
 
         for (String command : commands)
         {
