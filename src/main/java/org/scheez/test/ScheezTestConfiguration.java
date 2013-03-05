@@ -56,10 +56,12 @@ public class ScheezTestConfiguration
         TestDatabaseProperties properties = TestDatabaseProperties.load(resourceName);   
         String databases = properties.getProperty(PROPERTY_DATABASES, true, true);
         
+        log.info("Test Databases: " + databases);
+        
         StringTokenizer tokenizer = new StringTokenizer(databases, ", \t\n", false);
         if(!tokenizer.hasMoreTokens())
         {
-            throw new IllegalArgumentException("Missing value for property: databases");
+            throw new IllegalArgumentException("Missing value for property: " + PROPERTY_DATABASES);
         }
        
         while(tokenizer.hasMoreTokens())

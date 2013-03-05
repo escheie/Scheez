@@ -178,7 +178,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         public SchemaDao create (DataSource dataSource)
         {
             DbC.throwIfNullArg(dataSource);
-            return new SchemaDaoHsqldb (dataSource);
+            return new SchemaDaoTeradata (dataSource);
         }
 
     }

@@ -148,6 +148,8 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
         ec2Helper = new Ec2Helper();
         commands = new ArrayList<String>();
         
+        instanceFile = new File(TMP_DIR, name + ".properties");
+        
         instanceType = DEFAULT_INSTANCE_TYPE;
 
         securityGroup = DEFAULT_SECURITY_GROUP;
@@ -175,8 +177,7 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
     {
         super.initializeFromProperties(properties);
 
-        setInstanceFile(new File(properties.getProperty(PROPERTY_INSTANCE_FILE,
-                new File(TMP_DIR, name + ".properties").getAbsolutePath())));
+        setInstanceFile(new File(properties.getProperty(PROPERTY_INSTANCE_FILE, instanceFile.getAbsolutePath())));
 
         setImageId(properties.getProperty(PROPERTY_IMAGE_ID, true, true));
         setInstanceType(properties.getProperty(PROPERTY_INSTANCE_TYPE, instanceType));
@@ -342,25 +343,7 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
     public void setInstanceFile(File instanceFile)
     {
         DbC.throwIfNullArg("instanceFile", instanceFile);
-
         this.instanceFile = instanceFile;
-
-        if (instanceFile.exists())
-        {
-            log.info(name + " - Loading instance properties from " + instanceFile.getAbsolutePath()
-                    + ".");
-            instanceProperties = TestDatabaseProperties.load("file:"
-                    + instanceFile.getAbsolutePath());
-        }
-        else
-        {
-            log.info(name + " - No existing instance file found: " + instanceFile.getAbsolutePath());
-            instanceProperties = new TestDatabaseProperties();
-        }
-        instanceId = instanceProperties.getProperty(PROPERTY_INSTANCE_ID, instanceId);
-        spotInstanceRequestId = instanceProperties.getProperty(PROPERTY_SPOT_INSTANCE_REQUEST_ID,
-                spotInstanceRequestId);
-        staged = instanceProperties.getBoolean(PROPERTY_STAGED, staged);
     }
 
     /**
@@ -831,9 +814,9 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
     {
         if ((!initialized) || (reinitialize))
         {
-            if(instanceFile == null)
+            if(instanceProperties == null)
             {
-                setInstanceFile(new File(TMP_DIR, name + ".properties"));
+                loadInstanceProperties ();
             }
             
             long startTime = System.currentTimeMillis();
@@ -859,6 +842,29 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
             initialized = true;
         }
         return super.initializeDataSource(reinitialize);
+    }
+
+    /**
+     * 
+     */
+    private void loadInstanceProperties()
+    {
+        if (instanceFile.exists())
+        {
+            log.info(name + " - Loading instance properties from " + instanceFile.getAbsolutePath()
+                    + ".");
+            instanceProperties = TestDatabaseProperties.load("file:"
+                    + instanceFile.getAbsolutePath());
+        }
+        else
+        {
+            log.info(name + " - No existing instance file found: " + instanceFile.getAbsolutePath());
+            instanceProperties = new TestDatabaseProperties();
+        }
+        instanceId = instanceProperties.getProperty(PROPERTY_INSTANCE_ID, instanceId);
+        spotInstanceRequestId = instanceProperties.getProperty(PROPERTY_SPOT_INSTANCE_REQUEST_ID,
+                spotInstanceRequestId);
+        staged = instanceProperties.getBoolean(PROPERTY_STAGED, staged);
     }
 
     /**

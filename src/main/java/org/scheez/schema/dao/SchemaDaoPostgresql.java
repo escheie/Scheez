@@ -93,7 +93,7 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         public SchemaDao create (DataSource dataSource)
         {
             DbC.throwIfNullArg(dataSource);
-            return new SchemaDaoHsqldb (dataSource);
+            return new SchemaDaoPostgresql (dataSource);
         }
 
     }
