@@ -1,4 +1,4 @@
-package org.scheez.test.querydsl;
+package org.scheez.test.jpa;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

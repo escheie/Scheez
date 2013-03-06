@@ -3,17 +3,17 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/persistence">
 
-	<persistence-unit name="org.scheez.test.querydsl">
-		<description> Persistence unit for Query DSL tests. </description>
+	<persistence-unit name="org.scheez.test.jpa.enterprise">
+		<description> Persistence unit for JPA-based tests. </description>
         
-        <non-jta-data-source>jndi:jdbc/QueryDSLTest/DataSource</non-jta-data-source>
+        <non-jta-data-source>jndi:jdbc/Enterprise/DataSource</non-jta-data-source>
         
-		<class>org.scheez.test.querydsl.Employee</class>
-		<class>org.scheez.test.querydsl.Department</class>
-		<class>org.scheez.test.querydsl.Job</class>
+		<class>org.scheez.test.jpa.Employee</class>
+		<class>org.scheez.test.jpa.Department</class>
+		<class>org.scheez.test.jpa.Job</class>
         
 		<properties>
-		    <property name="hibernate.default_schema" value="querydsl"/>
+		    <property name="hibernate.default_schema" value="enterprise"/>
 			<property name="hibernate.show_sql" value="true" />
 			<property name="hibernate.hbm2ddl.auto" value="create" />
 		</properties>

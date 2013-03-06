@@ -1,4 +1,4 @@
-package org.scheez.test.querydsl;
+package org.scheez.test.jpa;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;

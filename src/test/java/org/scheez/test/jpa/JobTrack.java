@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * TERADATA CORPORATION CONFIDENTIAL AND TRADE SECRET
  */
-package org.scheez.test.querydsl;
+package org.scheez.test.jpa;
 
 /**
  * @author es151000

@@ -19,7 +19,7 @@ buildscript {
 sourceSets {
     test {
         java {
-            srcDirs = [ 'src/test/java', 'src/generated/java' ]
+            srcDirs = [ 'src/test/java', 'build/generated/java' ]
         }
     }
 }

@@ -5,8 +5,6 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.scheez.schema.classgen.ClassGenerator;
@@ -19,8 +17,8 @@ import org.scheez.schema.mapper.NameMapper;
 import org.scheez.schema.mapper.ObjectMapper;
 import org.scheez.schema.model.Table;
 import org.scheez.test.TestDatabase;
+import org.scheez.test.jpa.EnterprisePersistenceUnit;
 import org.scheez.test.junit.ScheezTestDatabase;
-import org.scheez.test.querydsl.QueryDSLTest;
 import org.scheez.util.BaseObject;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -29,35 +27,20 @@ public class ClassGeneratorTest
 {
     private TestDatabase testDatabase;
     
-    private QueryDSLTest queryDslTest;
-    
     private SchemaDao schemaDao;
 
     public ClassGeneratorTest (TestDatabase testDatabase)
     {
         this.testDatabase = testDatabase;
-        queryDslTest = new QueryDSLTest(testDatabase);
+        EnterprisePersistenceUnit.getInstance().getEntityManagerFactory(testDatabase);
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
-    }
-    
-    @Before
-    public void setUp() throws Exception
-    {
-        queryDslTest.setUp();
-        queryDslTest.generateTestData();
-    }
-    
-    @After
-    public void tearDown() throws Exception
-    {
-        queryDslTest.tearDown();
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     public void testClassGenerator() throws Exception
     { 
-        File srcDir = new File("src/generated/java");
+        File srcDir = new File("build/generated/java");
         srcDir.mkdirs();
         File outputDir = new File("build/classes/generated");
         outputDir.mkdirs();
@@ -66,7 +49,7 @@ public class ClassGeneratorTest
 
         final ClassGenerator codeGenerator = new ClassGenerator(srcDir, new DefaultClassTemplate());
         JdbcTemplate template = new JdbcTemplate(testDatabase.getDataSource());
-        for (Table table : schemaDao.getTables(QueryDSLTest.DEFAULT_SCHEMA))
+        for (Table table : schemaDao.getTables(EnterprisePersistenceUnit.SCHEMA))
         {
             String sql = "SELECT * FROM " + table.getTableName();
             String pkgName = "org.scheez.classgen.test." + testDatabase.getName() + "."

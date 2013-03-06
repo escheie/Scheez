@@ -1,100 +1,65 @@
-package org.scheez.test.querydsl;
-
-import static org.junit.Assert.*;
+/*
+ * Copyright (C) 2013 by Teradata Corporation. All Rights Reserved. TERADATA CORPORATION
+ * CONFIDENTIAL AND TRADE SECRET
+ */
+package org.scheez.test.jpa;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
-import org.scheez.test.ScheezTestConfiguration;
 import org.scheez.test.TestDatabase;
-import org.scheez.test.junit.ScheezTestDatabase;
+import org.scheez.test.TestPersistenceUnit;
 
 import com.mysema.query.jpa.impl.JPAQuery;
 
-@RunWith(ScheezTestDatabase.class)
-public class QueryDSLTest 
-{
-    public static final String JNDI_DATASOURCE = "jndi:jdbc/QueryDSLTest/DataSource";
+/**
+ * @author es151000
+ * @version $Id: $
+ */
+public class EnterprisePersistenceUnit extends TestPersistenceUnit
+{       
+    public static final String SCHEMA = "enterprise";
     
-    public static final String DEFAULT_SCHEMA = "querydsl";
-    
-    private EntityManagerFactory entityManagerFactory;
-    
-    private TestDatabase testDatabase;
-    
-    private SchemaDao schemaDao;
+    private static EnterprisePersistenceUnit epu;
 
-    public QueryDSLTest(TestDatabase testDatabase)
+    private EnterprisePersistenceUnit ()
     {
-        this.testDatabase = testDatabase;
-        this.schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
+        super("org.scheez.test.jpa.enterprise", "jndi:jdbc/Enterprise/DataSource");
     }
-
-    @Before
-    public void setUp() throws Exception
+    
+    public synchronized static EnterprisePersistenceUnit getInstance ()
     {
-        if(schemaDao.schemaExists(DEFAULT_SCHEMA))
+        if(epu == null)
         {
-            schemaDao.dropSchema(DEFAULT_SCHEMA);
+            epu = new EnterprisePersistenceUnit();
         }
-        schemaDao.createSchema(DEFAULT_SCHEMA);
-        
-        ScheezTestConfiguration.getInstance().resetThreadLocalJndiObjects().put(JNDI_DATASOURCE, testDatabase.getDataSource());
-        entityManagerFactory = Persistence.createEntityManagerFactory("org.scheez.test.querydsl");
+        return epu;
     }
 
-    @After
-    public void tearDown() throws Exception
+    @Override
+    public void setUp(TestDatabase testDatabase)
     {
-        if(entityManagerFactory != null)
+        SchemaDao schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
+        
+        if(schemaDao.schemaExists(SCHEMA))
         {
-            entityManagerFactory.close();
+            schemaDao.dropSchema(SCHEMA);
         }
+        schemaDao.createSchema(SCHEMA);
     }
 
-    @Test
-    public void testQueryDSL ()
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public void load (TestDatabase testDatabase, EntityManagerFactory factory)
     {
-        generateTestData();
-       
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        QEmployee employee = QEmployee.employee;
-       
-        JPAQuery query = new JPAQuery(entityManager);
-        List<Employee> employees = query.from(employee).where(employee.job.jobTrack.eq(JobTrack.SECURITY)).orderBy(employee.firstName.asc()).list(employee);
-        assertEquals(2, employees.size());
-        assertEquals("Natasha", employees.get(0).getFirstName());
-        assertEquals("Worf", employees.get(1).getFirstName());
-        
-        assertEquals("Bridge", employees.get(0).getDepartment().getName());
-        assertEquals("Picard", employees.get(1).getManager().getLastName());
-        
-        query = new JPAQuery(entityManager);
-        List<Object[]> results = query.from(employee).groupBy(employee.job.jobTrack, employee.department.name).orderBy(
-                employee.count().desc(), employee.salary.sum().desc()).list(employee.job.jobTrack,
-                employee.department.name, employee.salary.sum(), employee.count());
-        assertEquals(5, results.size());
-        assertEquals(JobTrack.COMMAND, results.get(0)[0]);
-        assertEquals(JobTrack.TECHNICAL, results.get(1)[0]);
-        assertEquals(JobTrack.MEDICAL, results.get(2)[0]);
-        assertEquals(JobTrack.SECURITY, results.get(3)[0]);
-        assertEquals(JobTrack.MEDICAL, results.get(4)[0]);
-    }
-    
-    public void generateTestData ()
-    {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityManager entityManager = factory.createEntityManager();
         entityManager.getTransaction().begin();
         
         String departments[] = {"Engineering", "Bridge", "SickBay", "CargoBay", "Security", "Counseling" };
@@ -118,7 +83,6 @@ public class QueryDSLTest
                 entityManager.persist(job);
             }
         }
-        
         
         QDepartment department = QDepartment.department;
         
@@ -168,6 +132,5 @@ public class QueryDSLTest
         entityManager.persist(e);
         return e;
     }
-    
-    
+
 }
