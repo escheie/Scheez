@@ -15,11 +15,11 @@ import org.scheez.schema.mapper.NameMapper;
 import org.scheez.schema.mapper.ObjectMapper;
 import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
-import org.scheez.test.junit.Scheez;
+import org.scheez.test.junit.ScheezTestDatabase;
 import org.scheez.util.BaseObject;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@RunWith(Scheez.class)
+@RunWith(ScheezTestDatabase.class)
 public class ClassGeneratorTest
 {
     private TestDatabase testDatabase;
@@ -33,9 +33,9 @@ public class ClassGeneratorTest
     @Test
     public void testClassGenerator() throws Exception
     {
-        File srcDir = new File("build/tmp/ClassGenerator/src");
+        File srcDir = new File("src/generated/java");
         srcDir.mkdirs();
-        File outputDir = new File("build/tmp/ClassGenerator/build");
+        File outputDir = new File("build/classes/generated");
         outputDir.mkdirs();
 
         NameMapper nameMapper = new DefaultNameMapper();

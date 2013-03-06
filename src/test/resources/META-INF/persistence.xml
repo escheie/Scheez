@@ -3,18 +3,16 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/persistence">
 
-	<persistence-unit name="org.scheez.hibernate.tutorial">
-		<description> Persistence unit for the Hibernate Tutorial. </description>
-		<class>org.scheez.hibernate.tutorial.Employee</class>
-		<class>org.scheez.hibernate.tutorial.Department</class>
-		<class>org.scheez.hibernate.tutorial.Job</class>
-		<class>org.scheez.hibernate.tutorial.JobHistory</class>
-		
+	<persistence-unit name="org.scheez.test.querydsl">
+		<description> Persistence unit for Query DSL tests. </description>
+        
+        <non-jta-data-source>jndi:jdbc/postgresql.ec2/DataSource</non-jta-data-source>
+        
+		<class>org.scheez.test.querydsl.Employee</class>
+		<class>org.scheez.test.querydsl.Department</class>
+		<class>org.scheez.test.querydsl.Job</class>
+        
 		<properties>
-		    <property name="javax.persistence.jdbc.driverClass" value="org.postgresql.Driver"/>
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/scheez" />
-			<property name="javax.persistence.jdbc.user" value="postgres" />
-			<property name="javax.persistence.jdbc.password" value="dbc" />
 			<property name="hibernate.show_sql" value="true" />
 			<property name="hibernate.hbm2ddl.auto" value="create" />
 		</properties>

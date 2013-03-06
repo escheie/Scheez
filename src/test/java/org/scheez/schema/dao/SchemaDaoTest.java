@@ -15,9 +15,9 @@ import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
-import org.scheez.test.junit.Scheez;
+import org.scheez.test.junit.ScheezTestDatabase;
 
-@RunWith(Scheez.class)
+@RunWith(ScheezTestDatabase.class)
 public class SchemaDaoTest 
 {
     private static final String TEST_SCHEMA = "scheez_test";

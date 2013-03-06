@@ -24,10 +24,10 @@ import org.scheez.schema.diff.UnknownTable;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
-import org.scheez.test.junit.Scheez;
+import org.scheez.test.junit.ScheezTestDatabase;
 import org.scheez.test.schema.Person;
 
-@RunWith (Scheez.class)
+@RunWith (ScheezTestDatabase.class)
 public class BasicSchemaManagerTest 
 {
     private static final Log log = LogFactory.getLog(BasicSchemaManagerTest.class);
