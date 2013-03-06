@@ -83,26 +83,14 @@ public class QueryDSLTest
         
         Department tcpe = query.from(department).where(department.name.eq("TCPE")).uniqueResult(department);
         
-        Employee e = newEmployee (entityManager, "Carson", "Schmidt", null, getJob(query, JobTrack.MANAGEMENT, 9), tcpe);
+        Employee e = newEmployee (entityManager, "Carson", "Schmidt", null, JobTrack.MANAGEMENT, 9, tcpe);
         tcpe.setManager(e);
         
-        e = newEmployee (entityManager, "Keith", "Sweetnam", e, getJob(query, JobTrack.MANAGEMENT, 8), tcpe);
-        e = newEmployee (entityManager, "Blaise", "McEvoy", e, getJob(query, JobTrack.MANAGEMENT, 7), tcpe);
-        e = newEmployee (entityManager, "Eric", "Scheie", e, getJob(query, JobTrack.TECHNICAL, 5), tcpe);
+        e = newEmployee (entityManager, "Keith", "Sweetnam", e, JobTrack.MANAGEMENT, 8, tcpe);
+        e = newEmployee (entityManager, "Blaise", "McEvoy", e, JobTrack.MANAGEMENT, 7, tcpe);
+        e = newEmployee (entityManager, "Eric", "Scheie", e, JobTrack.TECHNICAL, 5, tcpe);
         
         entityManager.getTransaction().commit();
-    }
-
-    /**
-     * @param query
-     * @param management
-     * @param i
-     * @return
-     */
-    private Job getJob(JPAQuery query, JobTrack track, int grade)
-    {
-        QJob job = QJob.job;
-        return query.from(job).where(job.jobTrack.eq(track).and(job.grade.eq(grade))).uniqueResult(job);
     }
 
     /**
@@ -111,8 +99,11 @@ public class QueryDSLTest
      * @param tcpe
      * @return
      */
-    private Employee newEmployee (EntityManager entityManager, String firstName, String lastName, Employee manager, Job job, Department department)
+    private Employee newEmployee (EntityManager entityManager, String firstName, String lastName, Employee manager, JobTrack track, int grade, Department department)
     {
+        JPAQuery query = new JPAQuery(entityManager);
+        QJob job = QJob.job;
+        
         Employee e = new Employee();
         e.setFirstName(firstName);
         e.setLastName(lastName);
@@ -121,7 +112,7 @@ public class QueryDSLTest
         e.setHireDate(new Timestamp(System.currentTimeMillis()));
         e.setDepartment(department);
         e.setManager(manager);
-        e.setJob(job);
+        e.setJob(query.from(job).where(job.jobTrack.eq(track).and(job.grade.eq(grade))).uniqueResult(job));
         entityManager.persist(e);
         return e;
     }
