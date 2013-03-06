@@ -11,13 +11,11 @@ package org.scheez.test.querydsl;
  */
 public enum JobTrack
 { 
-    MANAGEMENT,
+    COMMAND,
     
     TECHNICAL,
     
-    SALES,
+    MEDICAL,
     
-    CUSTOMER_SUPPORT,
-    
-    PROFESSIONAL_SERVICES
+    SECURITY
 }

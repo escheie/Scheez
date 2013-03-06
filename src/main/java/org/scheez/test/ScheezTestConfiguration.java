@@ -32,6 +32,8 @@ public class ScheezTestConfiguration implements InitialContextFactoryBuilder
     private List<TestDatabase> testDatabases;
     
     private Hashtable<String, Object> jndiObjects;
+    
+    private ThreadLocal<Hashtable<String, Object>> threadLocalJndiObjects;
 
     public synchronized static ScheezTestConfiguration getInstance()
     {
@@ -55,6 +57,7 @@ public class ScheezTestConfiguration implements InitialContextFactoryBuilder
     {
         testDatabases = new LinkedList<TestDatabase>();
         jndiObjects = new Hashtable<String, Object>();
+        threadLocalJndiObjects = new ThreadLocal<Hashtable<String, Object>> ();
     }
     
     public List<TestDatabase> getTestDatabases ()
@@ -104,6 +107,23 @@ public class ScheezTestConfiguration implements InitialContextFactoryBuilder
             jndiObjects.put(jndiName, new TestDataSourceProxy(testdb));
         }
     }
+    
+    public Hashtable<String, Object> resetThreadLocalJndiObjects ()
+    {   
+        Hashtable<String, Object> local = new Hashtable<String, Object>(jndiObjects);
+        threadLocalJndiObjects.set(local);
+        return local;
+    }
+    
+    private Hashtable<String, Object> getThreadLocalJndiObjects ()
+    {
+        Hashtable<String, Object> local = threadLocalJndiObjects.get();
+        if(local == null)
+        {
+            local = jndiObjects;
+        }
+        return local;
+    }
 
     /** 
      * @inheritDoc
@@ -114,7 +134,7 @@ public class ScheezTestConfiguration implements InitialContextFactoryBuilder
     {
         return new InitialContextFactory() {
             public Context getInitialContext(Hashtable<?, ?> environment) {
-                return new SimpleNamingContext("", jndiObjects, environment)
+                return new SimpleNamingContext("", getThreadLocalJndiObjects(), environment)
                 {
                     /** 
                      * @inheritDoc

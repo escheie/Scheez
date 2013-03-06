@@ -20,10 +20,10 @@ public class Job extends BaseObject
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column
+    @Column (nullable=false)
     private JobTrack jobTrack;
 
-    @Column
+    @Column (nullable=false)
     private Integer grade;
 
     @Column(nullable = false)

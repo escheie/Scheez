@@ -3,7 +3,6 @@ package org.scheez.test.querydsl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,8 +19,10 @@ public class Employee extends BaseObject
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column (nullable = false)
     private String firstName;
 
+    @Column (nullable = false)
     private String lastName;
 
     private Character middleInitial;
@@ -33,18 +34,18 @@ public class Employee extends BaseObject
 
     private String phoneNumber;
 
-    @Column(precision = 7, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal salary;
 
     private Timestamp hireDate;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private Employee manager;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne (optional=false)
     private Department department;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne (optional=false)
     private Job job;
 
     public Long getId()

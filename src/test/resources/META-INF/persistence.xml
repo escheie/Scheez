@@ -6,13 +6,14 @@
 	<persistence-unit name="org.scheez.test.querydsl">
 		<description> Persistence unit for Query DSL tests. </description>
         
-        <non-jta-data-source>jndi:jdbc/postgresql.ec2/DataSource</non-jta-data-source>
+        <non-jta-data-source>jndi:jdbc/QueryDSLTest/DataSource</non-jta-data-source>
         
 		<class>org.scheez.test.querydsl.Employee</class>
 		<class>org.scheez.test.querydsl.Department</class>
 		<class>org.scheez.test.querydsl.Job</class>
         
 		<properties>
+		    <property name="hibernate.default_schema" value="querydsl"/>
 			<property name="hibernate.show_sql" value="true" />
 			<property name="hibernate.hbm2ddl.auto" value="create" />
 		</properties>

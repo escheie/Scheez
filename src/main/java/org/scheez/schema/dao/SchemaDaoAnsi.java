@@ -227,9 +227,30 @@ public class SchemaDaoAnsi implements SchemaDao
                 DatabaseMetaData metaData = con.getMetaData();
                 List<Table> tables = new LinkedList<Table>();
                 ResultSet rs = metaData.getTables(getCatalogName(tableName), getSchemaName(tableName),
-                        getTableName(tableName), null);
+                        getTableName(tableName), new String[] { "TABLE" });
                 while (rs.next())
                 {
+                    if (log.isDebugEnabled())
+                    {
+                        ResultSetMetaData rsmd = rs.getMetaData();
+                        StringBuilder sb = new StringBuilder("Column: ");
+                        boolean first = true;
+                        for (int index = 1; index <= rsmd.getColumnCount(); index++)
+                        {
+                            if (first)
+                            {
+                                first = false;
+                            }
+                            else
+                            {
+                                sb.append(",");
+                            }
+                            sb.append(rsmd.getColumnLabel(index));
+                            sb.append("=");
+                            sb.append(rs.getObject(index));
+                        }
+                        log.debug(sb.toString());
+                    }
                     Table table = new Table(new TableName(schemaName, rs.getString(TableMetaDataKey.TABLE_NAME
                             .toString())));
                     getTableDetails (table, metaData);
