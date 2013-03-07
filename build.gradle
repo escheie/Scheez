@@ -58,6 +58,10 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'commons-dbcp:commons-dbcp:1.4'
     
+    compile ("org.eclipse.ltk.core:refactoring:3.3.0-v20070606-0010") {
+    	transitive = false
+    }
+
     // Logging classes used by Test.
     testCompile 'log4j:log4j:1.2.17'
     testCompile 'org.slf4j:slf4j-log4j12:1.7.2'

@@ -1,4 +1,4 @@
-package org.scheez.classgen;
+package org.scheez.schema.classgen;
 
 import static org.junit.Assert.*;
 
@@ -49,7 +49,7 @@ public class ClassGeneratorTest
         
         for (Table table : schemaDao.getTables(EnterpriseSchema.SCHEMA))
         {
-            String pkgName = "org.scheez.classgen.test." + testDatabase.getName();
+            String pkgName = "org.scheez.schema.classgen.test." + testDatabase.getName();
             
             GeneratedClass generatedClass = codeGenerator.generateClass(pkgName, table);
             assertNotNull(generatedClass);
@@ -82,7 +82,7 @@ public class ClassGeneratorTest
         String query = "SELECT e1.*, d1.name as department_name FROM enterprise.employee e1 " +
         		"INNER JOIN enterprise.department d1 ON e1.department_id = d1.id where d1.name = 'Bridge'";
             
-        String clsName = "org.scheez.classgen.test." + testDatabase.getName() + ".EnterpriseBridgeCrew";
+        String clsName = "org.scheez.schema.classgen.test." + testDatabase.getName() + ".EnterpriseBridgeCrew";
                     
         GeneratedClass generatedClass = template.query(query, codeGenerator.generateClass(clsName));
         assertNotNull(generatedClass);
