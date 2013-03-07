@@ -58,10 +58,4 @@ public class Index extends BaseObject
         }
         return index;
     }
-
-    @Override
-    public int hashCode()
-    {
-        return toLowerCase().hashCode();
-    }
 }

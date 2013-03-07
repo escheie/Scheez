@@ -21,7 +21,7 @@ public class QueryDSLTest
 
     public QueryDSLTest(TestDatabase testDatabase)
     {
-        entityManagerFactory = EnterprisePersistenceUnit.getInstance().getEntityManagerFactory(testDatabase);
+        entityManagerFactory = EnterpriseSchema.getInstance().getEntityManagerFactory(testDatabase);
     }
     
     @Test

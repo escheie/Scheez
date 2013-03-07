@@ -50,8 +50,6 @@ public class ScheezTestDatabase extends Suite
     {
         private TestDatabase testDatabase;
 
-        private Object testClass;
-
         public ScheezClassRunner(Class<?> cls, TestDatabase testDatabase) throws InitializationError
         {
             super(cls);
@@ -61,11 +59,7 @@ public class ScheezTestDatabase extends Suite
         @Override
         protected Object createTest() throws Exception
         {
-            if (testClass == null)
-            {
-                testClass = getTestClass().getOnlyConstructor().newInstance(testDatabase);
-            }
-            return testClass;
+            return getTestClass().getOnlyConstructor().newInstance(testDatabase);
         }
 
         @Override

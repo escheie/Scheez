@@ -11,7 +11,7 @@ import org.scheez.schema.model.TableName;
 
 public class DefaultClassTemplate implements ClassTemplate
 {
-    private NameMapper nameMapper;
+    protected NameMapper nameMapper;
    
     public DefaultClassTemplate()
     {

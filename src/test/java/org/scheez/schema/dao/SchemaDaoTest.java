@@ -15,6 +15,7 @@ import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
+import org.scheez.test.jpa.EnterpriseSchema;
 import org.scheez.test.junit.ScheezTestDatabase;
 
 @RunWith(ScheezTestDatabase.class)
@@ -277,5 +278,16 @@ public class SchemaDaoTest
         
         assertNotNull(column2);
         assertEquals(ColumnType.BIGINT, column2.getType());
+    }
+    
+    @Test
+    public void testGetPrimaryKey ()
+    {
+        List<Table> tables = schemaDao.getTables(EnterpriseSchema.SCHEMA);
+        assertEquals(EnterpriseSchema.TABLE_COUNT, tables.size());
+        
+        
+        
+        
     }
 }
