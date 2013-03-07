@@ -28,7 +28,7 @@ import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class SchemaDaoAnsi implements SchemaDao
-{
+{  
     private static final Log log = LogFactory.getLog(SchemaDaoAnsi.class);
 
     private static final int DEFAULT_LENGTH = 255;
@@ -528,12 +528,32 @@ public class SchemaDaoAnsi implements SchemaDao
             column.setPrecision(resultSet.getInt(ColumnMetaDataKey.COLUMN_SIZE.name()));
             column.setScale(resultSet.getInt(ColumnMetaDataKey.DECIMAL_DIGITS.name()));
         }
+        column.setNullable(getBoolean(resultSet, ColumnMetaDataKey.IS_NULLABLE.toString()));
+        column.setNullable(getBoolean(resultSet, ColumnMetaDataKey.IS_AUTOINCREMENT.toString()));
         return column;
+    }
+
+    private Boolean getBoolean (ResultSet resultSet, String columnName) throws SQLException
+    {
+        Boolean retval = null;
+        String value = resultSet.getString(columnName);
+        if(value != null)
+        {
+            if(value.equalsIgnoreCase("YES"))
+            {
+                retval = Boolean.TRUE;
+            }
+            else if (value.equalsIgnoreCase("NO"))
+            {
+                retval = Boolean.FALSE;
+            }
+        }
+        return retval;
     }
 
     protected Index getIndex(ResultSet resultSet, Index lastIndex) throws SQLException
     {
-        if (log.isInfoEnabled())
+        if (log.isDebugEnabled())
         {
             ResultSetMetaData rsmd = resultSet.getMetaData();
             StringBuilder sb = new StringBuilder("Index: ");
@@ -552,7 +572,7 @@ public class SchemaDaoAnsi implements SchemaDao
                 sb.append("=");
                 sb.append(resultSet.getObject(index));
             }
-            log.info(sb.toString());
+            log.debug(sb.toString());
         }
         String indexName = resultSet.getString(IndexMetaDataKey.INDEX_NAME.name());
         Index index = null;
@@ -563,6 +583,7 @@ public class SchemaDaoAnsi implements SchemaDao
         else if (indexName != null)
         {
             index = new Index(indexName);
+            index.setUnique(!resultSet.getBoolean(IndexMetaDataKey.NON_UNIQUE.toString()));
         }
         if (index != null)
         {

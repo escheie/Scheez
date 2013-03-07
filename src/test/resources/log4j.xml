@@ -8,6 +8,10 @@
       <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/> 
     </layout> 
   </appender> 
+  
+  <logger name="org.scheez.schema.dao.SchemaDaoAnsi">
+  	   <level value="debug"/>
+  </logger>
 
   <root> 
     <priority value ="info" /> 

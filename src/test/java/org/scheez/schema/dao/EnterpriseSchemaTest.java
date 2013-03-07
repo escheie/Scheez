@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.scheez.schema.model.Column;
 import org.scheez.schema.model.ForeignKey;
 import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Table;
@@ -37,6 +38,21 @@ public class EnterpriseSchemaTest
             System.out.println(index);
         }
     }
+    
+    @Test
+    public void testNullable ()
+    {
+        Table jobTable = schemaDao.getTable(new TableName(EnterpriseSchema.SCHEMA, EnterpriseSchema.TABLE_JOB));
+        assertNotNull(jobTable);
+        
+        for(Column column : jobTable.getColumns())
+        {
+            if(!column.getName().equalsIgnoreCase(EnterpriseSchema.COLUMN_ID))
+            {
+                assertFalse(column.isNullable());
+            }
+        }
+    }
         
     @Test
     public void testKeys ()
@@ -50,7 +66,7 @@ public class EnterpriseSchemaTest
             assertNotNull(table.getPrimaryKey().getKeyName());
             assertNotNull(table.getPrimaryKey().getColumnNames());
             assertEquals(1, table.getPrimaryKey().getColumnNames().size());
-            assertTrue(table.getPrimaryKey().getColumnNames().get(0).equalsIgnoreCase("id"));
+            assertTrue(table.getPrimaryKey().getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_ID));
             
             int count = 0;
             if(table.getName().equalsIgnoreCase(EnterpriseSchema.TABLE_EMPLOYEE))
@@ -60,26 +76,25 @@ public class EnterpriseSchemaTest
                 {
                     assertNotNull(fk.getKeyName());
                     assertNotNull(fk.getReferencedPrimaryKey());
-                    assertNotNull(fk.getReferencedPrimaryKey().getKeyName());
                     assertEquals(1, fk.getColumnNames().size());
                     assertEquals(1, fk.getReferencedPrimaryKey().getColumnNames().size());
                     
-                    if(fk.getColumnNames().get(0).equalsIgnoreCase("department_id"))
+                    if(fk.getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_DEPARTMENT_ID))
                     {
                         assertTrue(fk.getReferencedPrimaryKey().getTableName().getTableName().equalsIgnoreCase(EnterpriseSchema.TABLE_DEPARTMENT));
-                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase("id"));
+                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_ID));
                         count++;
                     }
-                    else if(fk.getColumnNames().get(0).equalsIgnoreCase("manager_id"))
+                    else if(fk.getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_MANAGER_ID))
                     {
                         assertTrue(fk.getReferencedPrimaryKey().getTableName().getTableName().equalsIgnoreCase(EnterpriseSchema.TABLE_EMPLOYEE));
-                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase("id"));
+                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_ID));
                         count++;
                     }
-                    else if(fk.getColumnNames().get(0).equalsIgnoreCase("job_id"))
+                    else if(fk.getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_JOB_ID))
                     {
-                        assertTrue(fk.getReferencedPrimaryKey().getTableName().getTableName().equalsIgnoreCase("job"));
-                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase("id"));
+                        assertTrue(fk.getReferencedPrimaryKey().getTableName().getTableName().equalsIgnoreCase(EnterpriseSchema.TABLE_JOB));
+                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_ID));
                         count++;
                     }
                     
@@ -97,14 +112,13 @@ public class EnterpriseSchemaTest
                 {
                     assertNotNull(fk.getKeyName());
                     assertNotNull(fk.getReferencedPrimaryKey());
-                    assertNotNull(fk.getReferencedPrimaryKey().getKeyName());
                     assertEquals(1, fk.getColumnNames().size());
                     assertEquals(1, fk.getReferencedPrimaryKey().getColumnNames().size());
                     
-                    if(fk.getColumnNames().get(0).equalsIgnoreCase("manager_id"))
+                    if(fk.getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_MANAGER_ID))
                     {
                         assertTrue(fk.getReferencedPrimaryKey().getTableName().getTableName().equalsIgnoreCase(EnterpriseSchema.TABLE_EMPLOYEE));
-                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase("id"));
+                        assertTrue(fk.getReferencedPrimaryKey().getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_ID));
                         count++;
                     }                   
                 }

@@ -24,9 +24,9 @@ import com.mysema.query.jpa.impl.JPAQuery;
 public class EnterpriseSchema extends TestPersistenceUnit
 {
     public static final String SCHEMA = "enterprise";
-    
+
     public static final int BRIDGE_CREW_COUNT = 7;
-    
+
     public static final int TABLE_COUNT = 3;
 
     public static final String TABLE_DEPARTMENT = "department";
@@ -34,6 +34,14 @@ public class EnterpriseSchema extends TestPersistenceUnit
     public static final String TABLE_EMPLOYEE = "employee";
 
     public static final String TABLE_JOB = "job";
+
+    public static final String COLUMN_ID = "id";
+
+    public static final String COLUMN_DEPARTMENT_ID = "department_id";
+
+    public static final String COLUMN_MANAGER_ID = "manager_id";
+
+    public static final String COLUMN_JOB_ID = "job_id";
 
     private static EnterpriseSchema epu;
 
@@ -77,8 +85,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
         EntityManager entityManager = factory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        String departments[] = { "Engineering", "Bridge", "SickBay", "CargoBay", "Security",
-                "Counseling" };
+        String departments[] = { "Engineering", "Bridge", "SickBay", "CargoBay", "Security", "Counseling" };
 
         for (String name : departments)
         {
@@ -103,11 +110,9 @@ public class EnterpriseSchema extends TestPersistenceUnit
         QDepartment department = QDepartment.department;
 
         JPAQuery query = new JPAQuery(entityManager);
-        Department bridge = query.from(department).where(department.name.eq("Bridge"))
-                .uniqueResult(department);
+        Department bridge = query.from(department).where(department.name.eq("Bridge")).uniqueResult(department);
 
-        Employee captain = newEmployee(entityManager, "Jean-Luc", "Picard", null, JobTrack.COMMAND,
-                10, bridge);
+        Employee captain = newEmployee(entityManager, "Jean-Luc", "Picard", null, JobTrack.COMMAND, 10, bridge);
         bridge.setManager(captain);
 
         newEmployee(entityManager, "Willam", "Riker", captain, JobTrack.COMMAND, 9, bridge);
@@ -118,8 +123,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
         newEmployee(entityManager, "Deanna", "Troi", captain, JobTrack.MEDICAL, 5, bridge);
 
         query = new JPAQuery(entityManager);
-        Department sickBay = query.from(department).where(department.name.eq("SickBay"))
-                .uniqueResult(department);
+        Department sickBay = query.from(department).where(department.name.eq("SickBay")).uniqueResult(department);
 
         newEmployee(entityManager, "Katherine Pulaski", "", captain, JobTrack.MEDICAL, 6, sickBay);
         newEmployee(entityManager, "Beverly", "Crusher", captain, JobTrack.MEDICAL, 6, sickBay);
@@ -133,8 +137,8 @@ public class EnterpriseSchema extends TestPersistenceUnit
      * @param tcpe
      * @return
      */
-    private Employee newEmployee(EntityManager entityManager, String firstName, String lastName,
-            Employee manager, JobTrack track, int grade, Department department)
+    private Employee newEmployee(EntityManager entityManager, String firstName, String lastName, Employee manager,
+            JobTrack track, int grade, Department department)
     {
         JPAQuery query = new JPAQuery(entityManager);
         QJob job = QJob.job;
@@ -148,8 +152,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
         e.setHireDate(new Timestamp(System.currentTimeMillis()));
         e.setDepartment(department);
         e.setManager(manager);
-        e.setJob(query.from(job).where(job.jobTrack.eq(track).and(job.grade.eq(grade)))
-                .uniqueResult(job));
+        e.setJob(query.from(job).where(job.jobTrack.eq(track).and(job.grade.eq(grade))).uniqueResult(job));
         entityManager.persist(e);
         return e;
     }

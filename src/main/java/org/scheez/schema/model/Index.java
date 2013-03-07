@@ -14,8 +14,10 @@ public class Index extends BaseObject
     private String name;
 
     private List<String> columnNames;
-    
-    public Index (String name, String... columnNames)
+
+    private boolean unique;
+
+    public Index(String name, String... columnNames)
     {
         DbC.throwIfNullArg("name", name);
         this.name = name;
@@ -37,8 +39,8 @@ public class Index extends BaseObject
     {
         return Collections.unmodifiableList(columnNames);
     }
-    
-    public void addColumnName (String columnName)
+
+    public void addColumnName(String columnName)
     {
         columnNames.add(columnName);
     }
@@ -48,11 +50,21 @@ public class Index extends BaseObject
         this.columnNames.clear();
         this.columnNames.addAll(columnNames);
     }
-    
-    public Index toLowerCase ()
+
+    public boolean isUnique()
+    {
+        return unique;
+    }
+
+    public void setUnique(boolean unique)
+    {
+        this.unique = unique;
+    }
+
+    public Index toLowerCase()
     {
         Index index = new Index(name.toLowerCase());
-        for(String columnName : columnNames)
+        for (String columnName : columnNames)
         {
             index.addColumnName(columnName.toLowerCase());
         }

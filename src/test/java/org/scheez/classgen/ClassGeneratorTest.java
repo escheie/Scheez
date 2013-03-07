@@ -46,6 +46,7 @@ public class ClassGeneratorTest
         final ClassGenerator codeGenerator = new ClassGenerator(srcDir, new JpaClassTemplate());
         
         JdbcTemplate template = new JdbcTemplate(testDatabase.getDataSource());
+        
         for (Table table : schemaDao.getTables(EnterpriseSchema.SCHEMA))
         {
             String pkgName = "org.scheez.classgen.test." + testDatabase.getName();

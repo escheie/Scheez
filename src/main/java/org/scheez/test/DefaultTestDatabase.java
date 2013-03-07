@@ -1,15 +1,16 @@
 package org.scheez.test;
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.scheez.schema.model.TableName;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 public class DefaultTestDatabase implements TestDatabase
 {
@@ -43,7 +44,7 @@ public class DefaultTestDatabase implements TestDatabase
 
     protected String testSql;
 
-    private SingleConnectionDataSource dataSource;
+    private BasicDataSource dataSource;
 
     /**
      * @param name
@@ -219,9 +220,19 @@ public class DefaultTestDatabase implements TestDatabase
         {
             if (dataSource != null)
             {
-                dataSource.destroy();
+                try
+                {
+                    dataSource.close();
+                }
+                catch (SQLException e)
+                {
+                    log.error(e);
+                }
             }
-            dataSource = new SingleConnectionDataSource(url, username, password, true);
+            dataSource = new BasicDataSource();
+            dataSource.setUrl(url);
+            dataSource.setUsername(username);
+            dataSource.setPassword(password);
         }
         return dataSource;
     }
@@ -229,7 +240,14 @@ public class DefaultTestDatabase implements TestDatabase
     @Override
     public void close()
     {
-        dataSource.destroy();
+        try
+        {
+            dataSource.close();
+        }
+        catch (SQLException e)
+        {
+            log.error(e);
+        }
     }
 
     public List<TableName> getSystemTableNames()
