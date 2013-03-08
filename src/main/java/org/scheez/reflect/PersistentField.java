@@ -47,7 +47,7 @@ public class PersistentField
     {
         ColumnType type = ColumnType.getType(field.getType());
         if (type == null)
-        {
+        {     
             throw new UnsupportedOperationException("The java type " + field.getType() + " is not supported");
         }
         return type;

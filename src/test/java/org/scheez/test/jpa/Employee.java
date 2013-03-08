@@ -27,7 +27,7 @@ public class Employee extends BaseObject
 
     private Character middleInitial;
 
-    private String title;
+    private String jobTitle;
 
     @Column(unique = true)
     private String email;
@@ -96,20 +96,20 @@ public class Employee extends BaseObject
     }
 
     /**
-     * @return the title
+     * @return the jobTitle
      */
-    public String getTitle()
+    public String getJobTitle()
     {
-        return title;
+        return jobTitle;
     }
 
     /**
-     * @param title
-     *            the title to set
+     * @param jobTitle
+     *            the jobTitle to set
      */
-    public void setTitle(String title)
+    public void setJobTitle(String title)
     {
-        this.title = title;
+        this.jobTitle = title;
     }
 
     public String getEmail()

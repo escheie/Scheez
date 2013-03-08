@@ -6,14 +6,18 @@ package org.scheez.test.jpa;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
+import org.scheez.schema.dao.SchemaDaoTeradata;
 import org.scheez.test.TestDatabase;
 import org.scheez.test.TestPersistenceUnit;
+import org.scheez.util.BaseObject;
 
 import com.mysema.query.jpa.impl.JPAQuery;
 
@@ -23,7 +27,7 @@ import com.mysema.query.jpa.impl.JPAQuery;
  */
 public class EnterpriseSchema extends TestPersistenceUnit
 {
-    public static final String SCHEMA = "enterprise";
+    public static final String DEFAULT_SCHEMA = "enterprise";
 
     public static final int BRIDGE_CREW_COUNT = 7;
 
@@ -43,25 +47,55 @@ public class EnterpriseSchema extends TestPersistenceUnit
 
     public static final String COLUMN_JOB_ID = "job_id";
 
-    private static EnterpriseSchema epu;
+    private static Map<Context, EnterpriseSchema> schemas = new HashMap<Context, EnterpriseSchema>();
 
-    private EnterpriseSchema()
+    private Context context;
+
+    private EnterpriseSchema(Context context)
     {
         super("org.scheez.test.jpa.enterprise", "jndi:jdbc/Enterprise/DataSource");
+        this.context = context;
+        getProperties().put("hibernate.default_schema", context.getSchemaName());
+        getProperties().put("hibernate.show_sql", "true");
+        if(context.isHbm2ddl())
+        {
+            getProperties().put("hibernate.hbm2ddl.auto", "create");
+        }
     }
 
     public synchronized static EnterpriseSchema getInstance()
     {
-        if (epu == null)
+        return getInstance(DEFAULT_SCHEMA, true);
+    }
+
+    public synchronized static EnterpriseSchema getInstance(String schemaName, boolean hbm2ddl)
+    {
+        Context context = new Context (schemaName, hbm2ddl);
+        
+        EnterpriseSchema schema = schemas.get(context);
+        if (schema == null)
         {
-            epu = new EnterpriseSchema();
+            schema = new EnterpriseSchema(context);
+            schemas.put(context, schema);
         }
-        return epu;
+        return schema;
+    }
+    
+    public String getSchemaName ()
+    {
+        return context.getSchemaName();
     }
 
     public void init(TestDatabase testDatabase)
     {
-        getEntityManagerFactory(testDatabase);
+        if (context.isHbm2ddl())
+        {
+            getEntityManagerFactory(testDatabase);
+        }
+        else
+        {
+            setUp(testDatabase);
+        }
     }
 
     @Override
@@ -69,11 +103,16 @@ public class EnterpriseSchema extends TestPersistenceUnit
     {
         SchemaDao schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
 
-        if (schemaDao.schemaExists(SCHEMA))
+        if (schemaDao.schemaExists(context.getSchemaName()))
         {
-            schemaDao.dropSchema(SCHEMA);
+            schemaDao.dropSchema(context.getSchemaName());
         }
-        schemaDao.createSchema(SCHEMA);
+        schemaDao.createSchema(context.getSchemaName());
+        
+        if (schemaDao instanceof SchemaDaoTeradata)
+        {
+            getProperties().setProperty("hibernate.dialect", "org.hibernate.dialect.TeradataDialect");
+        }
     }
 
     /**
@@ -85,7 +124,8 @@ public class EnterpriseSchema extends TestPersistenceUnit
         EntityManager entityManager = factory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        String departments[] = { "Engineering", "Bridge", "SickBay", "CargoBay", "Security", "Counseling" };
+        String departments[] = { "Engineering", "Bridge", "SickBay", "CargoBay", "Security",
+                "Counseling" };
 
         for (String name : departments)
         {
@@ -110,9 +150,11 @@ public class EnterpriseSchema extends TestPersistenceUnit
         QDepartment department = QDepartment.department;
 
         JPAQuery query = new JPAQuery(entityManager);
-        Department bridge = query.from(department).where(department.name.eq("Bridge")).uniqueResult(department);
+        Department bridge = query.from(department).where(department.name.eq("Bridge"))
+                .uniqueResult(department);
 
-        Employee captain = newEmployee(entityManager, "Jean-Luc", "Picard", null, JobTrack.COMMAND, 10, bridge);
+        Employee captain = newEmployee(entityManager, "Jean-Luc", "Picard", null, JobTrack.COMMAND,
+                10, bridge);
         bridge.setManager(captain);
 
         newEmployee(entityManager, "Willam", "Riker", captain, JobTrack.COMMAND, 9, bridge);
@@ -123,7 +165,8 @@ public class EnterpriseSchema extends TestPersistenceUnit
         newEmployee(entityManager, "Deanna", "Troi", captain, JobTrack.MEDICAL, 5, bridge);
 
         query = new JPAQuery(entityManager);
-        Department sickBay = query.from(department).where(department.name.eq("SickBay")).uniqueResult(department);
+        Department sickBay = query.from(department).where(department.name.eq("SickBay"))
+                .uniqueResult(department);
 
         newEmployee(entityManager, "Katherine Pulaski", "", captain, JobTrack.MEDICAL, 6, sickBay);
         newEmployee(entityManager, "Beverly", "Crusher", captain, JobTrack.MEDICAL, 6, sickBay);
@@ -137,7 +180,8 @@ public class EnterpriseSchema extends TestPersistenceUnit
      * @param tcpe
      * @return
      */
-    private Employee newEmployee(EntityManager entityManager, String firstName, String lastName, Employee manager,
+    private Employee newEmployee(EntityManager entityManager, String firstName, String lastName,
+            Employee manager,
             JobTrack track, int grade, Department department)
     {
         JPAQuery query = new JPAQuery(entityManager);
@@ -152,9 +196,40 @@ public class EnterpriseSchema extends TestPersistenceUnit
         e.setHireDate(new Timestamp(System.currentTimeMillis()));
         e.setDepartment(department);
         e.setManager(manager);
-        e.setJob(query.from(job).where(job.jobTrack.eq(track).and(job.grade.eq(grade))).uniqueResult(job));
+        e.setJob(query.from(job).where(job.jobTrack.eq(track).and(job.grade.eq(grade)))
+                .uniqueResult(job));
         entityManager.persist(e);
         return e;
     }
 
+    private static class Context extends BaseObject
+    {
+        private String schemaName;
+
+        private boolean hbm2ddl;
+
+        public Context(String schemaName, boolean hbm2ddl)
+        {
+            super();
+            this.schemaName = schemaName;
+            this.hbm2ddl = hbm2ddl;
+        }
+
+        /**
+         * @return the schemaName
+         */
+        public String getSchemaName()
+        {
+            return schemaName;
+        }
+
+        /**
+         * @return the hbm2ddl
+         */
+        public boolean isHbm2ddl()
+        {
+            return hbm2ddl;
+        }
+
+    }
 }

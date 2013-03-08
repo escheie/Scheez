@@ -1,15 +1,17 @@
 package org.scheez.test;
 
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.scheez.schema.model.TableName;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class DefaultTestDatabase implements TestDatabase
@@ -31,6 +33,8 @@ public class DefaultTestDatabase implements TestDatabase
     private static final int MAX_RETRY = 10;
 
     private static final int RETRY_WAIT = 10000;
+    
+    private static final int TIMEOUT = 30;
 
     protected String name;
 
@@ -44,7 +48,7 @@ public class DefaultTestDatabase implements TestDatabase
 
     protected String testSql;
 
-    private BasicDataSource dataSource;
+    protected DataSource dataSource;
 
     /**
      * @param name
@@ -194,45 +198,71 @@ public class DefaultTestDatabase implements TestDatabase
                 }
                 dataSource = initializeDataSource(true);
             }
+            
+            final DataSource ds = dataSource;
+
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            Future<DataSource> future = executorService.submit(new Callable<DataSource>()
+            {
+
+                /** 
+                 * @inheritDoc
+                 */
+                @Override
+                public DataSource call() throws Exception
+                {
+                    JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
+                    long time = System.currentTimeMillis();
+                    log.info(name + " - Verifying database connection...");
+                    String value = jdbcTemplate.queryForObject(testSql, String.class);
+                    log.info(name + " - Verified database connection.  Test Sql: " + testSql
+                            + ",  Result: " + value
+                            + ",  Duration: " + (System.currentTimeMillis() - time) / 1000f + "s");
+                    return ds;
+                } 
+                   
+            });
 
             try
             {
-                JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-                long time = System.currentTimeMillis();
-                log.info(name + " - Verifying database connection...");
-                String value = jdbcTemplate.queryForObject(testSql, String.class);
-                log.info(name + " - Verified database connection.  Test Sql: " + testSql
-                        + ",  Result: " + value
-                        + ",  Duration: " + (System.currentTimeMillis() - time) / 1000f + "s");
-                return dataSource;
+                return future.get(TIMEOUT, TimeUnit.SECONDS);
             }
-            catch (RuntimeException e)
+            catch (Exception e)
             {
-                ex = e;
+                executorService.submit(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        close(ds);
+                    }
+                });
+                if(e instanceof RuntimeException)
+                {
+                    ex = (RuntimeException) e; 
+                }
+                else
+                {
+                    ex = new RuntimeException(e);
+                }
+            }
+            finally
+            {
+                executorService.shutdown();
             }
         }
         throw ex;
     }
 
-    protected synchronized DataSource initializeDataSource(boolean reinitialize)
+    protected synchronized DataSource initializeDataSource (boolean reinitialize)
     {
         if ((dataSource == null) || (reinitialize))
         {
-            if (dataSource != null)
-            {
-                try
-                {
-                    dataSource.close();
-                }
-                catch (SQLException e)
-                {
-                    log.error(e);
-                }
-            }
-            dataSource = new BasicDataSource();
+            BasicDataSource dataSource = new BasicDataSource();
             dataSource.setUrl(url);
             dataSource.setUsername(username);
             dataSource.setPassword(password);
+            this.dataSource = dataSource;
         }
         return dataSource;
     }
@@ -240,21 +270,25 @@ public class DefaultTestDatabase implements TestDatabase
     @Override
     public void close()
     {
-        try
+        if(dataSource != null)
         {
-            dataSource.close();
-        }
-        catch (SQLException e)
-        {
-            log.error(e);
+            close(dataSource);
         }
     }
 
-    public List<TableName> getSystemTableNames()
+    /**
+     * @param dataSource2
+     */
+    protected void close(DataSource dataSource)
     {
-        List<TableName> tableNames = new LinkedList<TableName>();
-        tableNames.add(new TableName("INFORMATION_SCHEMA", "TABLES"));
-        return tableNames;
+        try
+        {
+            ((BasicDataSource)dataSource).close();
+        }
+        catch (SQLException e)
+        {
+            log.warn(e);
+        }
     }
 
     /**

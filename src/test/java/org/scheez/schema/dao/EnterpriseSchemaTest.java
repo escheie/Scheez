@@ -21,16 +21,19 @@ public class EnterpriseSchemaTest
 { 
     private SchemaDao schemaDao;
     
+    private EnterpriseSchema schema;
+    
     public EnterpriseSchemaTest (TestDatabase testDatabase)
     {
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
-        EnterpriseSchema.getInstance().init(testDatabase);
+        schema = EnterpriseSchema.getInstance();
+        schema.init(testDatabase);
     }
     
     @Test
     public void testUniqueness ()
     {
-        Table jobTable = schemaDao.getTable(new TableName(EnterpriseSchema.SCHEMA, EnterpriseSchema.TABLE_DEPARTMENT));
+        Table jobTable = schemaDao.getTable(new TableName(schema.getSchemaName(), EnterpriseSchema.TABLE_DEPARTMENT));
         assertNotNull(jobTable);
         
         for(Index index : jobTable.getIndexes())
@@ -42,7 +45,7 @@ public class EnterpriseSchemaTest
     @Test
     public void testNullable ()
     {
-        Table jobTable = schemaDao.getTable(new TableName(EnterpriseSchema.SCHEMA, EnterpriseSchema.TABLE_JOB));
+        Table jobTable = schemaDao.getTable(new TableName(schema.getSchemaName(), EnterpriseSchema.TABLE_JOB));
         assertNotNull(jobTable);
         
         for(Column column : jobTable.getColumns())
@@ -57,7 +60,7 @@ public class EnterpriseSchemaTest
     @Test
     public void testKeys ()
     {
-        List<Table> tables = schemaDao.getTables(EnterpriseSchema.SCHEMA);
+        List<Table> tables = schemaDao.getTables(schema.getSchemaName());
         assertEquals(EnterpriseSchema.TABLE_COUNT, tables.size());
         
         for(Table table : tables)

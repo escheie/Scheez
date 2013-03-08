@@ -17,8 +17,6 @@ public class Column extends BaseObject
 
     private Boolean nullable;
 
-    private Boolean autoIncremented;
-
     public Column(String name, ColumnType type)
     {
         this(name, type, null);
@@ -115,22 +113,4 @@ public class Column extends BaseObject
     {
         this.nullable = nullable;
     }
-
-    /**
-     * @return the autoIncremented
-     */
-    public boolean isAutoIncremented()
-    {
-        return autoIncremented;
-    }
-
-    /**
-     * @param autoIncremented
-     *            the autoIncremented to set
-     */
-    public void setAutoIncremented(Boolean autoIncremented)
-    {
-        this.autoIncremented = autoIncremented;
-    }
-
 }

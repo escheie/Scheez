@@ -27,11 +27,14 @@ public class ClassGeneratorTest
     private TestDatabase testDatabase;
     
     private SchemaDao schemaDao;
+    
+    private EnterpriseSchema schema;
 
     public ClassGeneratorTest (TestDatabase testDatabase)
     {
         this.testDatabase = testDatabase;
-        EnterpriseSchema.getInstance().init(testDatabase);
+        schema = EnterpriseSchema.getInstance();
+        schema.init(testDatabase);
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
     }
     
@@ -47,7 +50,7 @@ public class ClassGeneratorTest
         
         JdbcTemplate template = new JdbcTemplate(testDatabase.getDataSource());
         
-        for (Table table : schemaDao.getTables(EnterpriseSchema.SCHEMA))
+        for (Table table : schemaDao.getTables(schema.getSchemaName()))
         {
             String pkgName = "org.scheez.schema.classgen.test." + testDatabase.getName();
             

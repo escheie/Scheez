@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +16,6 @@ import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
-import org.scheez.test.jpa.EnterpriseSchema;
 import org.scheez.test.junit.ScheezTestDatabase;
 
 @RunWith(ScheezTestDatabase.class)
@@ -258,6 +258,8 @@ public class SchemaDaoTest
     @Test
     public void testAlterColumnType ()
     {
+        Assume.assumeFalse(schemaDao instanceof SchemaDaoTeradata);
+        
         TableName tableName = new TableName (TEST_SCHEMA, "table1");
         Table table = new Table(tableName);
         Column column1 = new Column("changable", ColumnType.INTEGER);
@@ -278,16 +280,5 @@ public class SchemaDaoTest
         
         assertNotNull(column2);
         assertEquals(ColumnType.BIGINT, column2.getType());
-    }
-    
-    @Test
-    public void testGetPrimaryKey ()
-    {
-        List<Table> tables = schemaDao.getTables(EnterpriseSchema.SCHEMA);
-        assertEquals(EnterpriseSchema.TABLE_COUNT, tables.size());
-        
-        
-        
-        
     }
 }

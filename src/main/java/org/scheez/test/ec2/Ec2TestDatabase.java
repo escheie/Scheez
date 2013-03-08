@@ -626,12 +626,6 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
             ec2Helper.cancelSpotInstanceRequest(spotInstanceRequestId);
         }
 
-        if (sshSession != null)
-        {
-            sshSession.close();
-            sshSession = null;
-        }
-
         log.info(name + " - Requesting new EC2 spot instance (imageId=\"" + imageId
                 + "\", instanceType=\"" + instanceType
                 + "\", spotPrice=\"" + spotPrice
@@ -823,18 +817,21 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
                 loadInstanceProperties ();
             }
             
+            if(sshSession != null)
+            {
+               sshSession.close();
+               sshSession = null;
+            }
+            
             Instance instance = findExistingInstance();
 
             if (instance == null)
             {
                 instance = startNewInstance();
             }
-
-            if (sshSession == null)
-            {
-                sshSession = getSshSession(instance);
-                setupSshTunnel(instance);
-            }
+            
+            sshSession = getSshSession(instance);
+            setupSshTunnel(instance);
 
             if (!staged)
             {

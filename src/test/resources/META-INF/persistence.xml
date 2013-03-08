@@ -11,12 +11,7 @@
 		<class>org.scheez.test.jpa.Employee</class>
 		<class>org.scheez.test.jpa.Department</class>
 		<class>org.scheez.test.jpa.Job</class>
-        
-		<properties>
-		    <property name="hibernate.default_schema" value="enterprise"/>
-			<property name="hibernate.show_sql" value="true" />
-			<property name="hibernate.hbm2ddl.auto" value="create" />
-		</properties>
+      
 	</persistence-unit>
 	
 </persistence>

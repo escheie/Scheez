@@ -529,7 +529,6 @@ public class SchemaDaoAnsi implements SchemaDao
             column.setScale(resultSet.getInt(ColumnMetaDataKey.DECIMAL_DIGITS.name()));
         }
         column.setNullable(getBoolean(resultSet, ColumnMetaDataKey.IS_NULLABLE.toString()));
-        column.setNullable(getBoolean(resultSet, ColumnMetaDataKey.IS_AUTOINCREMENT.toString()));
         return column;
     }
 
