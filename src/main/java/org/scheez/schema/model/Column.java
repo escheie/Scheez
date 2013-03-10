@@ -17,6 +17,8 @@ public class Column extends BaseObject
 
     private Boolean nullable;
 
+    private String defaultValue;
+
     public Column(String name, ColumnType type)
     {
         this(name, type, null);
@@ -28,6 +30,7 @@ public class Column extends BaseObject
         this.name = name;
         this.type = type;
         this.length = length;
+        nullable = true;
     }
 
     public void setName(String name)
@@ -85,7 +88,7 @@ public class Column extends BaseObject
      */
     public boolean isNullable()
     {
-        return nullable;
+        return (nullable == null) || (nullable.booleanValue());
     }
 
     /**
@@ -97,20 +100,14 @@ public class Column extends BaseObject
         this.nullable = nullable;
     }
 
-    /**
-     * @return the nullable
-     */
-    public Boolean getNullable()
+    public String getDefaultValue()
     {
-        return nullable;
+        return defaultValue;
     }
 
-    /**
-     * @param nullable
-     *            the nullable to set
-     */
-    public void setNullable(Boolean nullable)
+    public void setDefaultValue(String defaultValue)
     {
-        this.nullable = nullable;
+        this.defaultValue = defaultValue;
     }
+
 }

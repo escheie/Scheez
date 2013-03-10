@@ -26,10 +26,10 @@ public class Job extends BaseObject
     @Column (nullable=false)
     private Integer grade;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal minSalary;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal maxSalary;
 
     public Long getId()

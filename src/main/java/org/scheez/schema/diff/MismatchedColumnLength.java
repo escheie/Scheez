@@ -22,15 +22,14 @@ public class MismatchedColumnLength extends SchemaDifferenceColumn
     @Override
     public String getDescription()
     {
-        return "Column \"" + existingColumn.getName() + "\" of table \"" + table.getTableName()
-                + "\" has length " + existingColumn.getLength() + " but the expected length is "
-                + expectedColumn.getLength() + ".";
+        return "Column \"" + existingColumn.getName() + "\" of table \"" + table.getTableName() + "\" has length "
+                + existingColumn.getLength() + " but the expected length is " + expectedColumn.getLength() + ".";
     }
 
     @Override
     public void resolveDifference(SchemaDao schemaDao)
     {
-        schemaDao.alterColumnType(table.getTableName(), expectedColumn);
+        schemaDao.alterColumn(table.getTableName(), expectedColumn);
     }
 
 }

@@ -33,7 +33,7 @@ public class BasicSchemaManagerTest
     private static final Log log = LogFactory.getLog(BasicSchemaManagerTest.class);
     
     private static final String TEST_SCHEMA = "scheez_test";
-
+   
     private SchemaDao schemaDao;
 
     public BasicSchemaManagerTest(TestDatabase testDatabase)
@@ -56,7 +56,7 @@ public class BasicSchemaManagerTest
      * {@link org.scheez.schema.manger.BasicSchemaManager#findDifferences()}.
      */
     @Test
-    public void testMissingAndUnknownTable()
+    public void testMissingAndUnknownTable() throws Exception
     {
         SchemaClasses classes = new SchemaClasses();
         classes.include(Person.class);
@@ -193,7 +193,7 @@ public class BasicSchemaManagerTest
         TableName tableName = new TableName (TEST_SCHEMA, "persons");
         
         Column column = new Column("first_name", ColumnType.CHAR);
-        schemaDao.alterColumnType(tableName, column);
+        schemaDao.alterColumn(tableName, column);
         
         List<SchemaDifference> differences = schemaManager.findDifferences();
         
@@ -237,7 +237,7 @@ public class BasicSchemaManagerTest
         TableName tableName = new TableName (TEST_SCHEMA, "persons");
         
         Column column = new Column("first_name", ColumnType.VARCHAR, 128);
-        schemaDao.alterColumnType(tableName, column);
+        schemaDao.alterColumn(tableName, column);
         
         List<SchemaDifference> differences = schemaManager.findDifferences();
         
@@ -283,7 +283,7 @@ public class BasicSchemaManagerTest
         Column column = new Column("iq", ColumnType.DECIMAL);
         column.setPrecision(6);
         column.setScale(4);
-        schemaDao.alterColumnType(tableName, column);
+        schemaDao.alterColumn(tableName, column);
         
         List<SchemaDifference> differences = schemaManager.findDifferences();
         

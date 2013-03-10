@@ -850,7 +850,7 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
     {
         if (instanceFile.exists())
         {
-            log.info(name + " - Loading instance properties from " + instanceFile.getAbsolutePath()
+            log.info(name + " - Loading EC2 instance properties from " + instanceFile.getAbsolutePath()
                     + ".");
             instanceProperties = TestDatabaseProperties.load("file:"
                     + instanceFile.getAbsolutePath());

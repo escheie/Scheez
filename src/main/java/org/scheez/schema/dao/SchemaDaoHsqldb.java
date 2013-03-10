@@ -40,7 +40,7 @@ public class SchemaDaoHsqldb extends SchemaDaoAnsi
     {
         return columnName.toUpperCase();
     }
-    
+
     public static class Factory extends SchemaDaoFactory
     {
 

@@ -30,7 +30,7 @@ public class MismatchedColumnType extends SchemaDifferenceColumn
     @Override
     public void resolveDifference(SchemaDao schemaDao)
     {
-        schemaDao.alterColumnType(table.getTableName(), expectedColumn);
+        schemaDao.alterColumn(table.getTableName(), expectedColumn);
     }
 
 }

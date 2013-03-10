@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.scheez.schema.model.Column;
@@ -19,6 +21,8 @@ import org.scheez.test.junit.ScheezTestDatabase;
 @RunWith(ScheezTestDatabase.class)
 public class EnterpriseSchemaTest 
 { 
+    private static final Log log = LogFactory.getLog(EnterpriseSchemaTest.class);
+    
     private SchemaDao schemaDao;
     
     private EnterpriseSchema schema;
@@ -31,19 +35,27 @@ public class EnterpriseSchemaTest
     }
     
     @Test
-    public void testUniqueness ()
+    public void testDiscoverUniqueColumns ()
     {
         Table jobTable = schemaDao.getTable(new TableName(schema.getSchemaName(), EnterpriseSchema.TABLE_DEPARTMENT));
         assertNotNull(jobTable);
         
         for(Index index : jobTable.getIndexes())
         {
-            System.out.println(index);
+            log.info(index);
+            if(index.getColumnNames().get(0).equalsIgnoreCase(EnterpriseSchema.COLUMN_MANAGER_ID))
+            {
+                assertFalse(index.isUnique());
+            }
+            else
+            {
+                assertTrue(index.isUnique());
+            }
         }
     }
     
     @Test
-    public void testNullable ()
+    public void testDiscoverNullableColumns ()
     {
         Table jobTable = schemaDao.getTable(new TableName(schema.getSchemaName(), EnterpriseSchema.TABLE_JOB));
         assertNotNull(jobTable);
@@ -58,7 +70,7 @@ public class EnterpriseSchemaTest
     }
         
     @Test
-    public void testKeys ()
+    public void testDiscoverPrimaryAndForeignKeys ()
     {
         List<Table> tables = schemaDao.getTables(schema.getSchemaName());
         assertEquals(EnterpriseSchema.TABLE_COUNT, tables.size());

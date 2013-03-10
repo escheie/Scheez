@@ -4,10 +4,10 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
+import org.springframework.dao.DataRetrievalFailureException;
 
 public class SchemaDaoMysql extends SchemaDaoAnsi
 {
@@ -57,7 +57,7 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     }
 
     @Override
-    public void alterColumnType(TableName tableName, Column column)
+    public void alterColumn(TableName tableName, Column column)
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
@@ -66,6 +66,27 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         execute(sb.toString());
     }
     
+    @Override
+    public void renameColumn(TableName tableName, String oldName, String newName)
+    {
+        Column column = getColumn(tableName, oldName);
+        if(column != null)
+        {
+            column.setName(newName);
+            StringBuilder sb = new StringBuilder("ALTER TABLE ");
+            sb.append(tableName);
+            sb.append(" CHANGE ");
+            sb.append(oldName);
+            sb.append(" ");
+            sb.append(getColumnString(column));
+            execute(sb.toString());
+        }
+        else
+        {
+            throw new DataRetrievalFailureException("Column \"" + oldName + "\" not found in table " + tableName + ".");
+        }
+    }
+
     @Override
     public void dropIndex(TableName tableName, String indexName)
     {
@@ -83,7 +104,14 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         switch (column.getType())
         {
             case TIMESTAMP:
-                typeStr = ColumnType.TIMESTAMP.name();
+                if(column.isNullable())
+                {
+                    typeStr = "TIMESTAMP NULL";
+                }
+                else
+                {
+                    typeStr = "TIMESTAMP";
+                }
                 break;
             default:
                 typeStr = super.getColumnTypeString(column);
@@ -102,10 +130,10 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (DataSource dataSource)
+        public SchemaDao create(DataSource dataSource)
         {
             DbC.throwIfNullArg(dataSource);
-            return new SchemaDaoMysql (dataSource);
+            return new SchemaDaoMysql(dataSource);
         }
 
     }

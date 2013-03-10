@@ -27,11 +27,14 @@ package org.scheez.schema.dao;
 
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
+import org.springframework.dao.DataAccessException;
 
 /**
  * <p>
@@ -119,6 +122,8 @@ public interface SchemaDao
      * @throw DataAccessException if an error occurs while creating the table.
      */
     void createTable(Table table);
+    
+    void renameTable (TableName oldName, TableName newName);
 
     void dropTable(TableName tableName);
 
@@ -127,12 +132,14 @@ public interface SchemaDao
     List<Table> getTables(String schemaName);
 
     void addColumn(TableName tableName, Column column);
+    
+    void renameColumn (TableName tableName, String oldName, String newName);
 
     void dropColumn(TableName tableName, String columnName);
 
     Column getColumn(TableName tableName, String columnName);
 
-    void alterColumnType(TableName tableName, Column column);
+    void alterColumn (TableName tableName, Column column);
 
     ColumnType getExpectedColumnType(ColumnType columnType);
 
@@ -141,4 +148,10 @@ public interface SchemaDao
     void dropIndex(TableName tableName, String indexName);
 
     Index getIndex(TableName tableName, String indexName);
+    
+    void setSchemaDdlExecutor (SchemaDdlExecutor executor);
+    
+    SchemaDdlExecutor getSchemaDdlExecutor();
+    
+    DataSource getDataSource();
 }

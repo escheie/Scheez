@@ -7,6 +7,8 @@ public interface SchemaDifference
 {
     enum Type 
     {
+        MISSING_SCHEMA,
+        
         MISSING_TABLE,
         
         MISSING_COLUMN,

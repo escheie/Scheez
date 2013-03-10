@@ -11,6 +11,7 @@ import org.scheez.schema.diff.MismatchedColumnLength;
 import org.scheez.schema.diff.MismatchedColumnPrecision;
 import org.scheez.schema.diff.MismatchedColumnType;
 import org.scheez.schema.diff.MissingColumn;
+import org.scheez.schema.diff.MissingSchema;
 import org.scheez.schema.diff.MissingTable;
 import org.scheez.schema.diff.SchemaDifference;
 import org.scheez.schema.diff.UnknownColumn;
@@ -53,6 +54,11 @@ public class BasicSchemaManager implements SchemaManager
     public List<SchemaDifference> findDifferences()
     {
         List<SchemaDifference> diff = new LinkedList<SchemaDifference>();
+        
+        if(!schemaDao.schemaExists(schemaName))
+        {
+            diff.add(new MissingSchema(schemaName));
+        }
 
         List<Table> tables = schemaDao.getTables(schemaName);
 

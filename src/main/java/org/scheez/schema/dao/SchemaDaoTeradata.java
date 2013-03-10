@@ -64,7 +64,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
     }
     
     @Override
-    public void alterColumnType(TableName tableName, Column column)
+    public void alterColumn (TableName tableName, Column column)
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
