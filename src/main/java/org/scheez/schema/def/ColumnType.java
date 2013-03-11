@@ -102,26 +102,19 @@ public enum ColumnType
     public static ColumnType getType (Class<?> cls)
     {
         ColumnType type = null;
-        if(cls.isEnum())
+        for (ColumnType t : values())
         {
-            type = ColumnType.VARCHAR;
-        }
-        else
-        {
-            for (ColumnType t : values())
+            for (Class<?> c : t.getTypeClasses())
             {
-                for (Class<?> c : t.getTypeClasses())
+                if(c.equals(cls))
                 {
-                    if(c.equals(cls))
-                    {
-                        type = t;
-                        break;
-                    }
-                }
-                if (type != null)
-                {
+                    type = t;
                     break;
                 }
+            }
+            if (type != null)
+            {
+                break;
             }
         }
         return type;

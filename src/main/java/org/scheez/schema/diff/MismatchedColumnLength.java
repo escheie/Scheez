@@ -22,7 +22,7 @@ public class MismatchedColumnLength extends SchemaDifferenceColumn
     @Override
     public String getDescription()
     {
-        return "Column \"" + existingColumn.getName() + "\" of table \"" + table.getTableName() + "\" has length "
+        return "Column \"" + expectedColumn.getName() + "\" of table \"" + table.getTableName() + "\" has length "
                 + existingColumn.getLength() + " but the expected length is " + expectedColumn.getLength() + ".";
     }
 

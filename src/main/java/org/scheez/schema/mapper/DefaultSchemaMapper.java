@@ -1,8 +1,6 @@
 package org.scheez.schema.mapper;
 
-import java.util.List;
-
-import org.atteo.evo.inflector.English;
+import org.scheez.reflect.PersistentClass;
 import org.scheez.reflect.PersistentField;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.Table;
@@ -26,40 +24,26 @@ public class DefaultSchemaMapper implements SchemaMapper
     }
 
     @Override
-    public String mapClassToTableName(Class<?> cls)
+    public String mapClassToTableName(PersistentClass cls)
     {
         DbC.throwIfNullArg(cls);
-        
-        javax.persistence.Table config = cls.getAnnotation(javax.persistence.Table.class);
 
-        String name = nameMapper.mapJavaNameToDatabaseName(cls.getSimpleName());
-        if ((config != null) && (config.name() != null) && (!config.name().isEmpty()))
+        String name = cls.getTableName();
+        if (name == null)
         {
-            name = config.name();
-        }
-        else
-        {
-            int index = name.lastIndexOf('_');
-            if (index < 0)
-            {
-                name = English.plural(name);
-            }
-            else
-            {
-                name = name.substring(0, index + 1) + English.plural(name.substring(index + 1));
-            }
+            name = nameMapper.mapClassNameToTableName(cls.getType().getSimpleName());
         }
         return name;
     }
 
     @Override
-    public Table mapClassToTable(TableName tableName, Class<?> cls)
+    public Table mapClassToTable(TableName tableName, PersistentClass cls)
     {
         DbC.throwIfNullArg(tableName, cls);
         
         Table table = new Table (tableName);
         
-        for (PersistentField field : getPersistentFields(cls))
+        for (PersistentField field : cls.getPersistentFields())
         {
             table.addColumn(mapFieldToColumn(field));
         }
@@ -75,7 +59,13 @@ public class DefaultSchemaMapper implements SchemaMapper
         String name = field.getColumnName();
         if (name == null)
         {
-            name = nameMapper.mapJavaNameToDatabaseName(field.getName());
+            name = nameMapper.mapFieldNameToColumnName(field.getName());
+            PersistentField reference = field.getReference();
+            if(reference != null)
+            {
+                Column refCol = mapFieldToColumn(reference);
+                name += "_" + refCol.getName();
+            }
         }
 
         Column column = new Column(name, field.getType());
@@ -89,25 +79,23 @@ public class DefaultSchemaMapper implements SchemaMapper
             column.setPrecision(field.getPrecision());
             column.setScale(field.getScale());
         }
+        
+        if(field.isId())
+        {
+            column.setAutoIncrementing(true);
+        }
 
         return column;
     }
 
     @Override
-    public List<PersistentField> getPersistentFields(Class<?> cls)
-    {
-        DbC.throwIfNullArg(cls);
-        return PersistentField.getPersistentFields(cls);
-    }
-
-    @Override
-    public PersistentField mapColumnToField(Class<?> cls, String name)
+    public PersistentField mapColumnToField(PersistentClass cls, String name)
     {
         DbC.throwIfNullArg(cls, name);
-        String fieldName = nameMapper.mapDatabaseNameToJavaName(name);
+        String fieldName = nameMapper.mapColumnNameToFieldName(name);
 
         PersistentField retval = null;
-        for (PersistentField field : getPersistentFields(cls))
+        for (PersistentField field : cls.getPersistentFields())
         {
             PersistentField f = null;
             String columnName = field.getColumnName();
@@ -126,7 +114,7 @@ public class DefaultSchemaMapper implements SchemaMapper
             {
                 if (retval != null)
                 {
-                    throw new DuplicateKeyException("There are more than one field in " + cls.getName()
+                    throw new DuplicateKeyException("There are more than one field in " + cls.getType().getName()
                             + " or its super classes that map to the column \"" + name + "\".");
                 }
                 retval = f;

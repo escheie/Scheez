@@ -2,17 +2,18 @@ package org.scheez.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collection;
 
 import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.Transient;
 
+import org.scheez.persistence.Rename;
 import org.scheez.schema.def.ColumnType;
 import org.springframework.util.ReflectionUtils;
 
 public class PersistentField
-{
+{  
     private Field field;
 
     private Column config;
@@ -48,6 +49,22 @@ public class PersistentField
         ColumnType type = ColumnType.getType(field.getType());
         if (type == null)
         {     
+            if (field.getType().isEnum())
+            {
+                type = ColumnType.VARCHAR;
+            }
+            else 
+            {
+                PersistentClass cls = new PersistentClass (field.getType());
+                PersistentField id = cls.getIdField();
+                if (id != null)
+                {
+                    type = id.getType();
+                }
+            }
+        }
+        if (type == null)   
+        {
             throw new UnsupportedOperationException("The java type " + field.getType() + " is not supported");
         }
         return type;
@@ -64,6 +81,11 @@ public class PersistentField
             }
         }
         return retval;
+    }
+    
+    public boolean isCollection ()
+    {
+        return Collection.class.isAssignableFrom(field.getType());
     }
     
     public Integer getLength ()
@@ -96,6 +118,32 @@ public class PersistentField
         return scale;
     }
     
+    public String[] getPreviousNames ()
+    {
+        String previousNames[] = new String[0];
+        Rename rename = field.getAnnotation(Rename.class);
+        if(rename != null)
+        {
+            previousNames = rename.previousNames();
+        }
+        return previousNames;
+    }
+    
+    public PersistentField getReference ()
+    {
+        return new PersistentClass(field.getType()).getIdField();
+    }
+    
+    public PersistentClass getDeclaringClass ()
+    {
+        return new PersistentClass(field.getDeclaringClass());
+    }
+    
+    public boolean isId()
+    {
+        return field.getAnnotation(Id.class) != null;
+    }
+    
     public void set (Object target, Object value)
     {
         if(!Modifier.isPublic(field.getModifiers()))
@@ -105,21 +153,5 @@ public class PersistentField
         ReflectionUtils.setField(field, target, value);
     }
 
-    public static List<PersistentField> getPersistentFields(Class<?> cls)
-    {
-        List<PersistentField> fields = new LinkedList<PersistentField>();
-        while (cls != null)
-        {
-            for (Field field : cls.getDeclaredFields())
-            {
-                PersistentField f = new PersistentField(field);
-                if (!f.isTransient())
-                {
-                    fields.add(f);
-                }
-            }
-            cls = cls.getSuperclass();
-        }
-        return fields;
-    }
+   
 }

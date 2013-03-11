@@ -22,7 +22,7 @@ public class MismatchedColumnPrecision extends SchemaDifferenceColumn
     @Override
     public String getDescription()
     {
-        return "Column \"" + existingColumn.getName() + "\" of table \"" + table.getTableName()
+        return "Column \"" + expectedColumn.getName() + "\" of table \"" + table.getTableName()
                 + "\" has precision (" + existingColumn.getPrecision() + ", " + existingColumn.getScale() + ") but the expected precision is ("
                 + expectedColumn.getPrecision() + ", " + expectedColumn.getScale()  + ").";
     }

@@ -2,19 +2,52 @@ package org.scheez.schema.mapper;
 
 import java.util.StringTokenizer;
 
+import org.modeshape.common.text.Inflector;
 import org.scheez.util.DbC;
 
 public class DefaultNameMapper implements NameMapper
 {
+    private Inflector inflector = Inflector.getInstance();
     
     @Override
-    public String mapDatabaseNameToJavaName (String name)
+    public String mapClassNameToTableName(String name)
+    {
+        name = mapFieldNameToColumnName(name);
+        int index = name.lastIndexOf('_');
+        if (index < 0)
+        {
+            name = inflector.pluralize(name);
+        }
+        else
+        {
+            name = name.substring(0, index + 1) + inflector.pluralize(name.substring(index + 1));
+        }
+        return name;
+    }
+
+    @Override
+    public String mapTableNameToClassName(String name)
+    {
+        int index = name.lastIndexOf('_');
+        if (index < 0)
+        {
+            name = inflector.singularize(name);
+        }
+        else
+        {
+            name = name.substring(0, index + 1) + inflector.singularize(name.substring(index + 1));
+        }
+        name = mapColumnNameToFieldName(name);
+        return name.substring(0 , 1).toUpperCase() + name.substring(1);
+    }
+
+    @Override
+    public String mapColumnNameToFieldName(String name)
     {
         DbC.throwIfNullArg(name);
-        
+
         boolean first = true;
-        StringTokenizer tokenizer = new StringTokenizer(
-                name.toLowerCase(), "_");
+        StringTokenizer tokenizer = new StringTokenizer(name.toLowerCase(), "_");
         StringBuilder sb = new StringBuilder();
         while (tokenizer.hasMoreTokens())
         {
@@ -35,20 +68,20 @@ public class DefaultNameMapper implements NameMapper
         }
         return sb.toString();
     }
-    
+
     @Override
-    public String mapJavaNameToDatabaseName (String name)
+    public String mapFieldNameToColumnName(String name)
     {
         DbC.throwIfNullArg(name);
-        
+
         StringBuilder sb = new StringBuilder();
         boolean lastCapital = true;
-        for(int index = 0; index < name.length(); index++)
+        for (int index = 0; index < name.length(); index++)
         {
             char ch = name.charAt(index);
-            if(Character.isUpperCase(ch))
+            if (Character.isUpperCase(ch))
             {
-                if(!lastCapital)
+                if (!lastCapital)
                 {
                     sb.append("_");
                 }
@@ -63,4 +96,5 @@ public class DefaultNameMapper implements NameMapper
         }
         return sb.toString();
     }
+
 }

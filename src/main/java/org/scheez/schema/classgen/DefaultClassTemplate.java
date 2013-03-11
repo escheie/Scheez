@@ -26,8 +26,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getClassName (TableName tableName)
     {
-        String clsName = nameMapper.mapDatabaseNameToJavaName(tableName.getTableName());
-        return clsName.substring(0 , 1).toUpperCase() + clsName.substring(1);
+        return nameMapper.mapTableNameToClassName(tableName.getTableName());
     }
 
     @Override
@@ -95,7 +94,7 @@ public class DefaultClassTemplate implements ClassTemplate
     public String getMemberVariable(Column column)
     {
         return "    private " + column.getType().getTypeClass().getSimpleName()
-                + " " + nameMapper.mapDatabaseNameToJavaName(column.getName()) + ";";
+                + " " + nameMapper.mapColumnNameToFieldName(column.getName()) + ";";
     }
 
     @Override
@@ -107,7 +106,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getSetterComment(Column column)
     {
-        String columnName = nameMapper.mapDatabaseNameToJavaName(column.getName());
+        String columnName = nameMapper.mapColumnNameToFieldName(column.getName());
         return "    /**\n" + "     * Setter for " + columnName + ".\n"
                 + "     *\n" + "     * @param " + columnName
                 + "  The value to set.\n" + "     */";
@@ -116,7 +115,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getSetter(Column column)
     {
-        String columnName = nameMapper.mapDatabaseNameToJavaName(column.getName());
+        String columnName = nameMapper.mapColumnNameToFieldName(column.getName());
         return "    public void set"
                 + Character.toUpperCase(columnName.charAt(0))
                 + columnName.substring(1) + "("
@@ -130,7 +129,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getGetterComment(Column column)
     {
-        String columnName = nameMapper.mapDatabaseNameToJavaName(column.getName());
+        String columnName = nameMapper.mapColumnNameToFieldName(column.getName());
         return "    /**\n" + "     * Getter for " + columnName + ".\n"
                 + "     *\n" + "     * @return The value of "
                 + columnName + ".\n" + "     */";
@@ -139,7 +138,7 @@ public class DefaultClassTemplate implements ClassTemplate
     @Override
     public String getGetter(Column column)
     {
-        String columnName = nameMapper.mapDatabaseNameToJavaName(column.getName());
+        String columnName = nameMapper.mapColumnNameToFieldName(column.getName());
         return "    public " + column.getType().getTypeClass().getSimpleName() + " get"
                 + Character.toUpperCase(columnName.charAt(0))
                 + columnName.substring(1) + "()\n" +

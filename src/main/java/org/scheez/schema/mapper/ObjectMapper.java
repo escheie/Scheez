@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.scheez.reflect.PersistentClass;
 import org.scheez.reflect.PersistentField;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.util.DbC;
@@ -81,7 +82,7 @@ public class ObjectMapper<T> implements RowMapper<T>
         PersistentField field = cache.get(columnName);
         if((field == null) && (!cache.containsKey(columnName)))
         {
-            field = schemaMapper.mapColumnToField(cls, columnName);
+            field = schemaMapper.mapColumnToField(new PersistentClass(cls), columnName);
             cache.put(columnName, field);
         }
         return field;

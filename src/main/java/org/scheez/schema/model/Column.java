@@ -16,6 +16,8 @@ public class Column extends BaseObject
     private Integer scale;
 
     private Boolean nullable;
+    
+    private Boolean autoIncrementing;
 
     private String defaultValue;
 
@@ -110,4 +112,13 @@ public class Column extends BaseObject
         this.defaultValue = defaultValue;
     }
 
+    public boolean isAutoIncrementing()
+    {
+        return (autoIncrementing != null) && (autoIncrementing.booleanValue()); 
+    }
+
+    public void setAutoIncrementing(Boolean autoIncrementing)
+    {
+        this.autoIncrementing = autoIncrementing;
+    }
 }

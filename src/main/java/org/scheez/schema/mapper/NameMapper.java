@@ -2,8 +2,12 @@ package org.scheez.schema.mapper;
 
 
 public interface NameMapper
-{
-    String mapDatabaseNameToJavaName (String name);
+{ 
+    String mapClassNameToTableName (String name);
     
-    String mapJavaNameToDatabaseName (String name);
+    String mapTableNameToClassName (String name);
+    
+    String mapColumnNameToFieldName (String name);
+    
+    String mapFieldNameToColumnName (String name);
 }

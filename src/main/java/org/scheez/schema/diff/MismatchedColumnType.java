@@ -22,7 +22,7 @@ public class MismatchedColumnType extends SchemaDifferenceColumn
     @Override
     public String getDescription()
     {
-        return "Column \"" + existingColumn.getName() + "\" of table \"" + table.getTableName()
+        return "Column \"" + expectedColumn.getName() + "\" of table \"" + table.getTableName()
                 + "\" has type " + existingColumn.getType().name() + " but the expected type is "
                 + expectedColumn.getType().name() + ".";
     }

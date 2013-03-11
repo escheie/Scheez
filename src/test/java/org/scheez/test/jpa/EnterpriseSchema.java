@@ -4,9 +4,12 @@
  */
 package org.scheez.test.jpa;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -15,6 +18,11 @@ import javax.persistence.EntityManagerFactory;
 import org.scheez.schema.dao.SchemaDao;
 import org.scheez.schema.dao.SchemaDaoFactory;
 import org.scheez.schema.dao.SchemaDaoTeradata;
+import org.scheez.schema.diff.SchemaDifference;
+import org.scheez.schema.manger.BasicSchemaManager;
+import org.scheez.schema.manger.SchemaClasses;
+import org.scheez.schema.mapper.HibernateNamingStrategy;
+import org.scheez.schema.reports.HtmlReport;
 import org.scheez.test.TestDatabase;
 import org.scheez.test.TestPersistenceUnit;
 import org.scheez.util.BaseObject;
@@ -57,6 +65,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
         this.context = context;
         getProperties().put("hibernate.default_schema", context.getSchemaName());
         getProperties().put("hibernate.show_sql", "true");
+        getProperties().put("hibernate.ejb.naming_strategy", HibernateNamingStrategy.class.getName());
         if(context.isHbm2ddl())
         {
             getProperties().put("hibernate.hbm2ddl.auto", "create");
@@ -65,7 +74,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
 
     public synchronized static EnterpriseSchema getInstance()
     {
-        return getInstance(DEFAULT_SCHEMA, true);
+        return getInstance(DEFAULT_SCHEMA, false);
     }
 
     public synchronized static EnterpriseSchema getInstance(String schemaName, boolean hbm2ddl)
@@ -86,7 +95,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
         return context.getSchemaName();
     }
 
-    public void init(TestDatabase testDatabase)
+    public void init (TestDatabase testDatabase)
     {
         if (context.isHbm2ddl())
         {
@@ -112,6 +121,31 @@ public class EnterpriseSchema extends TestPersistenceUnit
         if (schemaDao instanceof SchemaDaoTeradata)
         {
             getProperties().setProperty("hibernate.dialect", "org.hibernate.dialect.TeradataDialect");
+        }
+        
+        if (!context.isHbm2ddl())
+        {
+            SchemaClasses schemaClasses = new SchemaClasses();
+            schemaClasses.include(Employee.class);
+            schemaClasses.include(Department.class);
+            schemaClasses.include(Job.class);
+            
+            BasicSchemaManager basicSchemaManager = new BasicSchemaManager(context.getSchemaName(), schemaDao, schemaClasses);
+            
+            List<SchemaDifference> differences = basicSchemaManager.findDifferences();            
+            
+            try
+            {
+                HtmlReport.generate (schemaDao, differences, new File(
+                        "build/reports/ddl/enterprise/" + testDatabase.getName() + ".html"));
+            }
+            catch (IOException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            basicSchemaManager.resolveDifferences(differences);
         }
     }
 

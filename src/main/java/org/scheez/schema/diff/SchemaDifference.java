@@ -17,6 +17,10 @@ public interface SchemaDifference
         
         UNKNOWN_COLUMN,
         
+        RENAMED_TABLE,
+        
+        RENAMED_COLUMN,
+        
         MISMATCHED_COLUMN_TYPE,
         
         MISMATCHED_COLUMN_LENGTH,
