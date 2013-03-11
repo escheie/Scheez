@@ -62,6 +62,34 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         return exists;
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public void renameTable(TableName oldName, TableName newName)
+    {
+        StringBuilder sb = new StringBuilder("RENAME TABLE ");
+        sb.append(oldName);
+        sb.append(" TO ");
+        sb.append(newName);
+        execute(sb.toString());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public void renameColumn(TableName tableName, String oldName, String newName)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" RENAME ");
+        sb.append(oldName);
+        sb.append(" TO ");
+        sb.append(newName);
+        execute(sb.toString());
+    }
+
     @Override
     public void alterColumn(TableName tableName, Column column)
     {

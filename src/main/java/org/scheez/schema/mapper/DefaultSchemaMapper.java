@@ -3,6 +3,7 @@ package org.scheez.schema.mapper;
 import org.scheez.reflect.PersistentClass;
 import org.scheez.reflect.PersistentField;
 import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Key;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
@@ -88,6 +89,14 @@ public class DefaultSchemaMapper implements SchemaMapper
             {
                 table.setPrimaryKey(new Key(table.getTableName(), "pk_" + column.getName()));
                 table.getPrimaryKey().addColumnName(1, column.getName());
+            }
+        }
+        
+        if(field.isIndex())
+        {
+            if(table != null)
+            {
+                table.addIndex(new Index(column.getName() + "_idx", column.getName()));
             }
         }
 

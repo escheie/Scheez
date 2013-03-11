@@ -23,7 +23,7 @@ public class MissingTable extends SchemaDifferenceTable
     }
 
     @Override
-    public void resolveDifference (SchemaDao schemaDao)
+    public void reconcileDifferences (SchemaDao schemaDao)
     {
         schemaDao.createTable(table);
     }

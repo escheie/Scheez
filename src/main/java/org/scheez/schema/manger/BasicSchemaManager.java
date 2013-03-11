@@ -1,3 +1,4 @@
+
 package org.scheez.schema.manger;
 
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import org.scheez.schema.diff.MismatchedColumnLength;
 import org.scheez.schema.diff.MismatchedColumnPrecision;
 import org.scheez.schema.diff.MismatchedColumnType;
 import org.scheez.schema.diff.MissingColumn;
+import org.scheez.schema.diff.MissingIndex;
 import org.scheez.schema.diff.MissingSchema;
 import org.scheez.schema.diff.MissingTable;
 import org.scheez.schema.diff.RenamedColumn;
@@ -22,6 +24,7 @@ import org.scheez.schema.diff.UnknownTable;
 import org.scheez.schema.mapper.DefaultSchemaMapper;
 import org.scheez.schema.mapper.SchemaMapper;
 import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
@@ -45,11 +48,11 @@ public class BasicSchemaManager implements SchemaManager
     }
 
     @Override
-    public void resolveDifferences(List<SchemaDifference> differences)
+    public void reconcileDifferences(List<SchemaDifference> differences)
     {
         for (SchemaDifference difference : differences)
         {
-            difference.resolveDifference(schemaDao);
+            difference.reconcileDifferences(schemaDao);
         }
     }
 
@@ -95,6 +98,7 @@ public class BasicSchemaManager implements SchemaManager
             else
             {
                 diffColumns(table, persistentClass, diff);
+                diffIndexes(table, persistentClass, diff);
                 if (!table.getName().equalsIgnoreCase(expectedName))
                 {
                     diff.add(new RenamedTable(table, cls, expectedName));
@@ -110,6 +114,34 @@ public class BasicSchemaManager implements SchemaManager
         return diff;
     }
 
+    /**
+     * @param table
+     * @param persistentClass
+     * @param diff
+     */
+    private void diffIndexes(Table table, PersistentClass persistentClass,
+            List<SchemaDifference> diff)
+    {
+        Table expectedTable = schemaMapper.mapClassToTable(table.getTableName(), persistentClass);
+        
+        for (Index index : expectedTable.getIndexes())
+        {
+            boolean match = false;
+            for (Index existing : table.getIndexes())
+            {
+                if(index.getColumnNames().equals(existing.getColumnNames()))
+                {
+                    match = true;
+                    break;
+                }
+            }
+            if(!match)
+            {
+                diff.add(new MissingIndex(table, persistentClass.getType(), index));
+            }
+        }
+    }
+
     private void diffColumns(Table table, PersistentClass cls, List<SchemaDifference> diff)
     {
         Map<String, Column> map = new HashMap<String, Column>();
@@ -120,7 +152,7 @@ public class BasicSchemaManager implements SchemaManager
 
         for (PersistentField field : cls.getPersistentFields())
         {
-            Column expectedColumn = schemaMapper.mapFieldToColumn(table, field);
+            Column expectedColumn = schemaMapper.mapFieldToColumn(null, field);
 
             Column existingColumn = map.remove(expectedColumn.getName().toLowerCase());
             if (existingColumn == null)

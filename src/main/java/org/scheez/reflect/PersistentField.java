@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
+import org.scheez.persistence.Index;
 import org.scheez.persistence.Rename;
 import org.scheez.schema.def.ColumnType;
 import org.springframework.util.ReflectionUtils;
@@ -142,6 +143,11 @@ public class PersistentField
     public boolean isId()
     {
         return field.getAnnotation(Id.class) != null;
+    }
+    
+    public boolean isIndex ()
+    {
+        return field.getAnnotation(Index.class) != null;
     }
     
     public void set (Object target, Object value)

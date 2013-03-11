@@ -27,7 +27,7 @@ public class RenamedTable extends SchemaDifferenceTable
     }
 
     @Override
-    public void resolveDifference(SchemaDao schemaDao)
+    public void reconcileDifferences(SchemaDao schemaDao)
     {
         schemaDao.renameTable(table.getTableName(), new TableName(table.getSchemaName(), newName));
     }

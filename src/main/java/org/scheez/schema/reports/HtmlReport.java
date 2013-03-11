@@ -60,7 +60,7 @@ public class HtmlReport
             for (SchemaDifference schemaDifference : schemaDifferences)
             {
                 exportComment(writer, schemaDifference.toString());
-                schemaDifference.resolveDifference(schemaDao);
+                schemaDifference.reconcileDifferences(schemaDao);
             }
             
             writer.write("</body></html>");

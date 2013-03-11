@@ -26,7 +26,7 @@ public class RenamedColumn extends SchemaDifferenceColumn
     }
 
     @Override
-    public void resolveDifference(SchemaDao schemaDao)
+    public void reconcileDifferences(SchemaDao schemaDao)
     {
         schemaDao.renameColumn(table.getTableName(), existingColumn.getName(), expectedColumn.getName());
     }

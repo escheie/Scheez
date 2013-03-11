@@ -100,7 +100,7 @@ public class BasicSchemaManagerTest
         assertTrue(jobTable);
         assertTrue(departmentTable);
         
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         
         differences = schemaManager.findDifferences();
         
@@ -122,7 +122,7 @@ public class BasicSchemaManagerTest
         assertNotNull(unknownTable.getTable());
         assertNotNull(unknownTable.getDescription());
         
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         
         differences = schemaManager.findDifferences();
         
@@ -167,7 +167,7 @@ public class BasicSchemaManagerTest
         assertNotNull(missingColumn.getField());
         assertEquals("middleInitial", missingColumn.getField().getName());
         
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         
         differences = schemaManager.findDifferences();
         
@@ -194,7 +194,7 @@ public class BasicSchemaManagerTest
         assertEquals(newColumn.getName(), newColumn.getName());
         assertEquals(newColumn.getType(), newColumn.getType());
         
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         
         differences = schemaManager.findDifferences();
         
@@ -239,7 +239,7 @@ public class BasicSchemaManagerTest
         assertNotNull(mismatchedColumnType.getDescription());
         assertNotNull(mismatchedColumnType.getField());
         
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         
         differences = schemaManager.findDifferences();
         
@@ -283,7 +283,7 @@ public class BasicSchemaManagerTest
         assertNotNull(mismatchedColumnLength.getDescription());
         assertNotNull(mismatchedColumnLength.getField());
         
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         
         differences = schemaManager.findDifferences();
         
@@ -331,7 +331,7 @@ public class BasicSchemaManagerTest
         assertNotNull(mismatchedColumnPrecision.getDescription());
         assertNotNull(mismatchedColumnPrecision.getField());
         
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         
         differences = schemaManager.findDifferences();
         
@@ -343,7 +343,7 @@ public class BasicSchemaManagerTest
     {
         List<SchemaDifference> differences = schemaManager.findDifferences();
         assertNotNull(differences);
-        schemaManager.resolveDifferences(differences);
+        schemaManager.reconcileDifferences(differences);
         differences = schemaManager.findDifferences();
         assertNotNull(differences);
         assertEquals(0, differences.size());

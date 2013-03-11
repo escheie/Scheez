@@ -64,7 +64,7 @@ public class HtmlReportTest
         HtmlReport.generate (schemaDao, differences, new File(
                 "build/reports/ddl/" + testDatabase.getName() + ".html"));
         
-        basicSchemaManager.resolveDifferences(differences);
+        basicSchemaManager.reconcileDifferences(differences);
     }
 
 }

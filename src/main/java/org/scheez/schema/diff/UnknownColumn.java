@@ -24,7 +24,7 @@ public class UnknownColumn extends SchemaDifferenceColumn
     }
 
     @Override
-    public void resolveDifference(SchemaDao schemaDao)
+    public void reconcileDifferences(SchemaDao schemaDao)
     {
         schemaDao.dropColumn(table.getTableName(), existingColumn.getName());
     }

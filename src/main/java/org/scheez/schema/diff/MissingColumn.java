@@ -25,7 +25,7 @@ public class MissingColumn extends SchemaDifferenceColumn
     }
 
     @Override
-    public void resolveDifference(SchemaDao schemaDao)
+    public void reconcileDifferences(SchemaDao schemaDao)
     {
         schemaDao.addColumn(table.getTableName(), expectedColumn);
     }

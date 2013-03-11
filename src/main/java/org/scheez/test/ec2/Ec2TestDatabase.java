@@ -585,10 +585,13 @@ public final class Ec2TestDatabase extends DefaultTestDatabase
                 String fingerprint = ec2Helper.getKeyFingerprint(keyName);
                 if ((fingerprint != null) && (fingerprint.equals(digest)))
                 {
-                    log.warn(name + " - Existing key digest (" + keyDigest.getAbsolutePath()
-                            + ") does not match the current EC2 key with keyName: " + keyName);
                     keyPair = new KeyPair().withKeyFingerprint(digest).withKeyMaterial(material)
                             .withKeyName(keyName);
+                }
+                else
+                {
+                    log.warn(name + " - Existing key digest (" + keyDigest.getAbsolutePath()
+                            + ") does not match the current EC2 key with keyName: " + keyName);
                 }
             }
 

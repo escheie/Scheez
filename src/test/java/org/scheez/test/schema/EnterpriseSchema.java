@@ -140,7 +140,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
                 e.printStackTrace();
             }
             
-            basicSchemaManager.resolveDifferences(differences);
+            basicSchemaManager.reconcileDifferences(differences);
             
             schemaDao.createSequence(new Sequence(new SequenceName(context.getSchemaName(), "hibernate_sequence")));
         }

@@ -242,6 +242,8 @@ public class SchemaDaoTest
     @Test
     public void testAlterVarcharColumnLength ()
     {
+        Assume.assumeFalse(schemaDao instanceof SchemaDaoTeradata);
+        
         TableName tableName = new TableName (TEST_SCHEMA, "table1");
         Table table = new Table(tableName);
         Column column1 = new Column("string", ColumnType.VARCHAR, 1024);
@@ -276,6 +278,8 @@ public class SchemaDaoTest
     @Test
     public void testAlterDecimalPrecision ()
     {
+        Assume.assumeFalse(schemaDao instanceof SchemaDaoTeradata);
+        
         TableName tableName = new TableName (TEST_SCHEMA, "table1");
         Table table = new Table(tableName);
         Column column1 = new Column("PRECISION_TEST", ColumnType.DECIMAL);
@@ -345,6 +349,8 @@ public class SchemaDaoTest
     @Test
     public void testAlterIntToDecimal ()
     {    
+        Assume.assumeFalse(schemaDao instanceof SchemaDaoTeradata);
+        
         TableName tableName = new TableName (TEST_SCHEMA, "table1");
         Table table = new Table(tableName);
         Column column1 = new Column("changable", ColumnType.INTEGER);

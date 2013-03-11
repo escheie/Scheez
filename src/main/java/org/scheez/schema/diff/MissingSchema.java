@@ -28,7 +28,7 @@ public class MissingSchema extends SchemaDifferenceTable
     }
 
     @Override
-    public void resolveDifference(SchemaDao schemaDao)
+    public void reconcileDifferences(SchemaDao schemaDao)
     {
         schemaDao.createSchema(schemaName);
     }

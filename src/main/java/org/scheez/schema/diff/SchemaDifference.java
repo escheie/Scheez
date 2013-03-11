@@ -13,9 +13,13 @@ public interface SchemaDifference
         
         MISSING_COLUMN,
         
+        MISSING_INDEX,
+        
         UNKNOWN_TABLE,
         
         UNKNOWN_COLUMN,
+        
+        UNKNOWN_INDEX,
         
         RENAMED_TABLE,
         
@@ -36,5 +40,5 @@ public interface SchemaDifference
     
     Class<?> getTableClass ();
     
-    void resolveDifference (SchemaDao schemaDao);
+    void reconcileDifferences (SchemaDao schemaDao);
 }

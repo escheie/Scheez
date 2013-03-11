@@ -27,7 +27,7 @@ public class MismatchedColumnLength extends SchemaDifferenceColumn
     }
 
     @Override
-    public void resolveDifference(SchemaDao schemaDao)
+    public void reconcileDifferences(SchemaDao schemaDao)
     {
         schemaDao.alterColumn(table.getTableName(), expectedColumn);
     }

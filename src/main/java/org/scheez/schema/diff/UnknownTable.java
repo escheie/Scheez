@@ -23,7 +23,7 @@ public class UnknownTable extends SchemaDifferenceTable
     }
 
     @Override
-    public void resolveDifference(SchemaDao schemaDao)
+    public void reconcileDifferences(SchemaDao schemaDao)
     {
         schemaDao.dropTable(table.getTableName());
     }

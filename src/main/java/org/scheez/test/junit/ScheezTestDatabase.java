@@ -81,7 +81,7 @@ public class ScheezTestDatabase extends Suite
             if (gripe)
             {
                 errors.add(new Exception(
-                        "Test class should have exactly one public constructor that takes a single Test Database argument."));
+                        "Test class should have exactly one public constructor that takes a single TestDatabase argument."));
             }
         }
 
