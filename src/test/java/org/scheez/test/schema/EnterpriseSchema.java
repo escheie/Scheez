@@ -156,7 +156,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
         entityManager.getTransaction().begin();
 
         String departments[] = { "Engineering", "Bridge", "SickBay", "CargoBay", "Security",
-                "Counseling" };
+                "Counseling", "TenForward" };
 
         for (String name : departments)
         {
@@ -189,9 +189,9 @@ public class EnterpriseSchema extends TestPersistenceUnit
         bridge.setManager(captain);
 
         newEmployee(entityManager, "Willam", "Riker", captain, JobTrack.COMMAND, 9, bridge);
-        newEmployee(entityManager, "Data", "", captain, JobTrack.TECHNICAL, 8, bridge);
+        newEmployee(entityManager, "Data", null, captain, JobTrack.TECHNICAL, 8, bridge);
         newEmployee(entityManager, "Geordi", "La Forge", captain, JobTrack.TECHNICAL, 7, bridge);
-        newEmployee(entityManager, "Worf", "", captain, JobTrack.SECURITY, 5, bridge);
+        newEmployee(entityManager, "Worf", null, captain, JobTrack.SECURITY, 5, bridge);
         newEmployee(entityManager, "Natasha", "Yar", captain, JobTrack.SECURITY, 5, bridge);
         newEmployee(entityManager, "Deanna", "Troi", captain, JobTrack.MEDICAL, 5, bridge);
 
@@ -199,8 +199,13 @@ public class EnterpriseSchema extends TestPersistenceUnit
         Department sickBay = query.from(department).where(department.name.eq("SickBay"))
                 .uniqueResult(department);
 
-        newEmployee(entityManager, "Katherine Pulaski", "", captain, JobTrack.MEDICAL, 6, sickBay);
+        newEmployee(entityManager, "Katherine", "Pulaski", captain, JobTrack.MEDICAL, 6, sickBay);
         newEmployee(entityManager, "Beverly", "Crusher", captain, JobTrack.MEDICAL, 6, sickBay);
+        
+        query = new JPAQuery(entityManager);
+        Department tenForward = query.from(department).where(department.name.eq("TenForward")).uniqueResult(department);
+        
+        newEmployee(entityManager, "Guinan", null, captain, JobTrack.CIVILIAN, 3, tenForward);
 
         entityManager.getTransaction().commit();
     }
@@ -221,7 +226,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
         Employee e = new Employee();
         e.setFirstName(firstName);
         e.setLastName(lastName);
-        e.setEmail(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@teradata.com");
+        e.setEmail(firstName.toLowerCase() + ((lastName != null) ? "." + lastName.toLowerCase() : "") + "@teradata.com");
         e.setPhoneNumber("(555) 555-5555");
         e.setSalary(BigDecimal.valueOf(grade * 20000));
         e.setHireDate(new Timestamp(System.currentTimeMillis()));

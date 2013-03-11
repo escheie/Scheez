@@ -165,27 +165,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 boolean exists = false;
                 while(rs.next())
                 {
-                    if (log.isDebugEnabled())
-                    {
-                        ResultSetMetaData rsmd = rs.getMetaData();
-                        StringBuilder sb = new StringBuilder("Column: ");
-                        boolean first = true;
-                        for (int index = 1; index <= rsmd.getColumnCount(); index++)
-                        {
-                            if (first)
-                            {
-                                first = false;
-                            }
-                            else
-                            {
-                                sb.append(",");
-                            }
-                            sb.append(rsmd.getColumnLabel(index));
-                            sb.append("=");
-                            sb.append(rs.getObject(index));
-                        }
-                        log.debug(sb.toString());
-                    }
+                    log(rs);
                     exists = true;
                 }
                 return exists;
@@ -206,6 +186,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 LinkedList<String> schemaNames = new LinkedList<String>();
                 while (resultSet.next())
                 {
+                    log(resultSet);
                     schemaNames.add(resultSet.getString(TableMetaDataKey.TABLE_SCHEM.toString()));
                 }
                 return schemaNames;
@@ -290,8 +271,9 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 Table table = null;
                 ResultSet tableResultSet = metaData.getTables(getCatalogName(tableName), getSchemaName(tableName),
                         getObjectName(tableName), null);
-                if (tableResultSet.next())
+                while (tableResultSet.next())
                 {
+                    log(tableResultSet);
                     table = new Table(tableName);
                 }
                 if (table != null)
@@ -318,27 +300,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                         getObjectName(tableName), new String[] { "TABLE" });
                 while (rs.next())
                 {
-                    if (log.isDebugEnabled())
-                    {
-                        ResultSetMetaData rsmd = rs.getMetaData();
-                        StringBuilder sb = new StringBuilder("Column: ");
-                        boolean first = true;
-                        for (int index = 1; index <= rsmd.getColumnCount(); index++)
-                        {
-                            if (first)
-                            {
-                                first = false;
-                            }
-                            else
-                            {
-                                sb.append(",");
-                            }
-                            sb.append(rsmd.getColumnLabel(index));
-                            sb.append("=");
-                            sb.append(rs.getObject(index));
-                        }
-                        log.debug(sb.toString());
-                    }
+                    log(rs);
                     Table table = new Table(new TableName(schemaName, rs.getString(TableMetaDataKey.TABLE_NAME
                             .toString())));
                     getTableDetails(table, metaData);
@@ -355,6 +317,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 getSchemaName(table.getTableName()), getObjectName(table.getTableName()), null);
         while (columns.next())
         {
+            log(columns);
             table.addColumn(getColumn(columns));
         }
         ResultSet indexes = metaData.getIndexInfo(getCatalogName(table.getTableName()),
@@ -362,6 +325,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         Index lastIndex = null;
         while (indexes.next())
         {
+            log(indexes);
             Index index = getIndex(indexes, lastIndex);
             if (index != null)
             {
@@ -377,6 +341,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         Key primaryKey = null;
         while (pk.next())
         {
+            log(pk);
             if (primaryKey == null)
             {
                 primaryKey = new Key(table.getTableName(), pk.getString(ReferenceMetaDataKey.PK_NAME.toString()));
@@ -391,6 +356,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         ForeignKey foreignKey = null;
         while (fks.next())
         {
+            log(fks);
             int keySeq = fks.getInt(ReferenceMetaDataKey.KEY_SEQ.toString());
             if (lastKeySeq >= keySeq)
             {
@@ -455,6 +421,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 Column column = null;
                 if (columns.next())
                 {
+                    log(columns);
                     column = getColumn(columns);
                 }
                 return column;
@@ -528,6 +495,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 Index index = null, lastIndex = null;
                 while (indexes.next())
                 {
+                    log(indexes);
                     lastIndex = getIndex(indexes, lastIndex);
                     if ((lastIndex != null) && (lastIndex.getName().equalsIgnoreCase(indexName)))
                     {
@@ -550,32 +518,13 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 DatabaseMetaData metaData = con.getMetaData();
                 ResultSet rs = metaData.getTables(getCatalogName(sequenceName), getSchemaName(sequenceName),
                         getObjectName(sequenceName), new String[] { "SEQUENCES" });
+                Sequence sequence = null;
                 while (rs.next())
                 {
-                    if (log.isDebugEnabled())
-                    {
-                        ResultSetMetaData rsmd = rs.getMetaData();
-                        StringBuilder sb = new StringBuilder("Column: ");
-                        boolean first = true;
-                        for (int index = 1; index <= rsmd.getColumnCount(); index++)
-                        {
-                            if (first)
-                            {
-                                first = false;
-                            }
-                            else
-                            {
-                                sb.append(",");
-                            }
-                            sb.append(rsmd.getColumnLabel(index));
-                            sb.append("=");
-                            sb.append(rs.getObject(index));
-                        }
-                        log.debug(sb.toString());
-                    }
-                    return new Sequence (sequenceName);
+                    log(rs);
+                    sequence = new Sequence (sequenceName);
                 }
-                return null;
+                return sequence;
            }
         });
     }
@@ -608,6 +557,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 LinkedList<String> schemaNames = new LinkedList<String>();
                 while (resultSet.next())
                 {
+                    log(resultSet);
                     schemaNames.add(resultSet.getString(TableMetaDataKey.TABLE_CAT.toString()));
                 }
                 return schemaNames;
@@ -627,6 +577,7 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 ResultSet resultSet = metaData.getCatalogs();
                 while (resultSet.next())
                 {
+                    log(resultSet);
                     if (catalogName.equalsIgnoreCase(resultSet.getString(TableMetaDataKey.TABLE_CAT.name())))
                     {
                         exists = true;
@@ -640,27 +591,6 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
 
     protected Column getColumn(ResultSet resultSet) throws SQLException
     {
-        if (log.isDebugEnabled())
-        {
-            ResultSetMetaData rsmd = resultSet.getMetaData();
-            StringBuilder sb = new StringBuilder("Column: ");
-            boolean first = true;
-            for (int index = 1; index <= rsmd.getColumnCount(); index++)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.append(",");
-                }
-                sb.append(rsmd.getColumnLabel(index));
-                sb.append("=");
-                sb.append(resultSet.getObject(index));
-            }
-            log.debug(sb.toString());
-        }
         Column column = new Column(resultSet.getString(ColumnMetaDataKey.COLUMN_NAME.name()),
                 ColumnType.getType(resultSet.getInt(ColumnMetaDataKey.DATA_TYPE.name())));
         if (column.getType().isLengthSupported())
@@ -696,27 +626,6 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
 
     protected Index getIndex(ResultSet resultSet, Index lastIndex) throws SQLException
     {
-        if (log.isDebugEnabled())
-        {
-            ResultSetMetaData rsmd = resultSet.getMetaData();
-            StringBuilder sb = new StringBuilder("Index: ");
-            boolean first = true;
-            for (int index = 1; index <= rsmd.getColumnCount(); index++)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.append(",");
-                }
-                sb.append(rsmd.getColumnLabel(index));
-                sb.append("=");
-                sb.append(resultSet.getObject(index));
-            }
-            log.debug(sb.toString());
-        }
         String indexName = resultSet.getString(IndexMetaDataKey.INDEX_NAME.name());
         Index index = null;
         if ((lastIndex != null) && (lastIndex.getName().equalsIgnoreCase(indexName)))
@@ -826,5 +735,30 @@ public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 typeStr = column.getType().name();
         }
         return typeStr;
+    }
+    
+    private void log (ResultSet rs) throws SQLException
+    {
+        if (log.isDebugEnabled())
+        {
+            ResultSetMetaData rsmd = rs.getMetaData();
+            StringBuilder sb = new StringBuilder("Column: ");
+            boolean first = true;
+            for (int index = 1; index <= rsmd.getColumnCount(); index++)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    sb.append(",");
+                }
+                sb.append(rsmd.getColumnLabel(index));
+                sb.append("=");
+                sb.append(rs.getObject(index));
+            }
+            log.debug(sb.toString());
+        }
     }
 }

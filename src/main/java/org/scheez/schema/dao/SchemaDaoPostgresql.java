@@ -1,10 +1,5 @@
 package org.scheez.schema.dao;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import javax.sql.DataSource;
 
 import org.scheez.schema.def.ColumnType;
@@ -12,8 +7,6 @@ import org.scheez.schema.model.Column;
 import org.scheez.schema.model.ObjectName;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ConnectionCallback;
 
 public class SchemaDaoPostgresql extends SchemaDaoAnsi
 {

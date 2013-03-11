@@ -60,11 +60,58 @@ public class SchemaDaoOracle extends SchemaDaoAnsi
     {
         return objectName.toUpperCase().getObjectName();
     }
+    
+    @Override
+    protected String getColumnName(String columnName)
+    {
+        return columnName.toUpperCase();
+    }
 
     @Override
     protected String getIndexName(TableName tableName, Index index)
     {
         return tableName.getSchemaName() + "." + index.getName();
+    }
+    
+    
+    
+    @Override
+    public void renameTable(TableName oldName, TableName newName)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(oldName);
+        sb.append(" RENAME TO ");
+        if(oldName.getSchemaName().equalsIgnoreCase(newName.getSchemaName()))
+        {
+            sb.append(newName.getObjectName());
+        }
+        else
+        {
+            sb.append(newName);
+        }
+        execute(sb.toString());
+    }
+    
+    @Override
+    public void renameColumn(TableName tableName, String oldName, String newName)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" RENAME COLUMN ");
+        sb.append(oldName);
+        sb.append(" TO ");
+        sb.append(newName);
+        execute(sb.toString());
+    }
+
+    @Override
+    public void alterColumn(TableName tableName, Column column)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" MODIFY ");
+        sb.append(getColumnString(column));
+        execute(sb.toString());
     }
 
     @Override

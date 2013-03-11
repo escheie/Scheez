@@ -10,7 +10,7 @@
   </appender> 
   
   <logger name="org.scheez.schema.dao">
-  	   <level value="info"/>
+  	   <level value="debug"/>
   </logger>
 
   <root> 

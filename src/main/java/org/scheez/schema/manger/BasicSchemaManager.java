@@ -154,7 +154,7 @@ public class BasicSchemaManager implements SchemaManager
     private void diffColumn(Table table, Column existingColumn, Column expectedColumn, PersistentField field,
             List<SchemaDifference> diff)
     {
-        if (existingColumn.getType() != expectedColumn.getType())
+        if (existingColumn.getType() != schemaDao.getExpectedColumnType(expectedColumn.getType()))
         {
             diff.add(new MismatchedColumnType(table, existingColumn, expectedColumn, field));
         }

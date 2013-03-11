@@ -197,7 +197,11 @@ public class SchemaDaoTest
             assertNotNull(index.getName());
             int i = Integer.parseInt(index.getName().substring(5));
             assertEquals(1, index.getColumnNames().size());
-            assertTrue(index.getColumnNames().get(0).equalsIgnoreCase("col" + i));
+            
+            if((!(schemaDao instanceof SchemaDaoOracle)) || (i != 10))
+            {
+                assertTrue(index.getColumnNames().get(0).equalsIgnoreCase("col" + i));
+            }
             
             assertNotNull(schemaDao.getIndex(tableName, index.getName()));
             
@@ -314,6 +318,7 @@ public class SchemaDaoTest
     public void testAlterIntToBigInt ()
     {
         Assume.assumeFalse(schemaDao instanceof SchemaDaoTeradata);
+        Assume.assumeFalse(schemaDao instanceof SchemaDaoOracle);
         
         TableName tableName = new TableName (TEST_SCHEMA, "table1");
         Table table = new Table(tableName);
@@ -325,7 +330,7 @@ public class SchemaDaoTest
         Column column2 = schemaDao.getColumn(tableName, column1.getName());
         
         assertNotNull(column2);
-        assertEquals(ColumnType.INTEGER, column2.getType());
+        assertEquals(schemaDao.getExpectedColumnType(ColumnType.INTEGER), column2.getType());
         
         column1.setType(ColumnType.BIGINT);
         
@@ -334,12 +339,12 @@ public class SchemaDaoTest
         column2 = schemaDao.getColumn(tableName, column1.getName());
         
         assertNotNull(column2);
-        assertEquals(ColumnType.BIGINT, column2.getType());
+        assertEquals(schemaDao.getExpectedColumnType(ColumnType.BIGINT), column2.getType());
     }
     
     @Test
     public void testAlterIntToDecimal ()
-    { 
+    {    
         TableName tableName = new TableName (TEST_SCHEMA, "table1");
         Table table = new Table(tableName);
         Column column1 = new Column("changable", ColumnType.INTEGER);
@@ -347,10 +352,12 @@ public class SchemaDaoTest
         
         schemaDao.createTable(table);
         
+        assertNotNull(schemaDao.getTable(table.getTableName()));
+        
         Column column2 = schemaDao.getColumn(tableName, column1.getName());
         
         assertNotNull(column2);
-        assertEquals(ColumnType.INTEGER, column2.getType());
+        assertEquals(schemaDao.getExpectedColumnType(ColumnType.INTEGER), column2.getType());
         
         column1.setType(ColumnType.DECIMAL);
         
@@ -386,7 +393,7 @@ public class SchemaDaoTest
         column2 = schemaDao.getColumn(tableName, column1.getName());
         
         assertNotNull(column2);
-        assertEquals(ColumnType.INTEGER, column2.getType());
+        assertEquals(schemaDao.getExpectedColumnType(ColumnType.INTEGER), column2.getType());
     }
     
     @Test

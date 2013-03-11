@@ -17,5 +17,7 @@ public enum JobTrack
     
     MEDICAL,
     
-    SECURITY
+    SECURITY,
+    
+    CIVILIAN
 }

@@ -22,7 +22,7 @@ public class Employee extends BaseObject
     @Column (nullable = false)
     private String firstName;
 
-    @Column (nullable = false)
+    @Column 
     private String lastName;
 
     private Character middleInitial;
