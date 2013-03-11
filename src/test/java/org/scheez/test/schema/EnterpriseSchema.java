@@ -22,6 +22,8 @@ import org.scheez.schema.diff.SchemaDifference;
 import org.scheez.schema.manger.BasicSchemaManager;
 import org.scheez.schema.manger.SchemaClasses;
 import org.scheez.schema.mapper.HibernateNamingStrategy;
+import org.scheez.schema.model.Sequence;
+import org.scheez.schema.model.SequenceName;
 import org.scheez.schema.reports.HtmlReport;
 import org.scheez.test.TestDatabase;
 import org.scheez.test.TestPersistenceUnit;
@@ -139,6 +141,8 @@ public class EnterpriseSchema extends TestPersistenceUnit
             }
             
             basicSchemaManager.resolveDifferences(differences);
+            
+            schemaDao.createSequence(new Sequence(new SequenceName(context.getSchemaName(), "hibernate_sequence")));
         }
     }
 

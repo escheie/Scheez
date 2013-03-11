@@ -12,7 +12,7 @@ public interface SchemaMapper
     
     Table mapClassToTable (TableName tableName, PersistentClass cls);
     
-    Column mapFieldToColumn (PersistentField field);
+    Column mapFieldToColumn (Table table, PersistentField field);
     
     PersistentField mapColumnToField (PersistentClass cls, String columnName);
 }

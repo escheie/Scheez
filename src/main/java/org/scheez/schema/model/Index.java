@@ -17,7 +17,7 @@ public class Index extends BaseObject
 
     private boolean unique;
 
-    public Index(String name, String... columnNames)
+    public Index (String name, String... columnNames)
     {
         DbC.throwIfNullArg("name", name);
         this.name = name;

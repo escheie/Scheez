@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.Index;
+import org.scheez.schema.model.ObjectName;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
 
@@ -49,15 +50,15 @@ public class SchemaDaoOracle extends SchemaDaoAnsi
     }
 
     @Override
-    protected String getSchemaName(TableName tableName)
+    protected String getSchemaName(ObjectName objectName)
     {
-        return tableName.toUpperCase().getSchemaName();
+       return objectName.toUpperCase().getSchemaName();
     }
 
     @Override
-    protected String getTableName(TableName tableName)
+    protected String getObjectName(ObjectName objectName)
     {
-        return tableName.toUpperCase().getTableName();
+        return objectName.toUpperCase().getObjectName();
     }
 
     @Override
@@ -115,6 +116,12 @@ public class SchemaDaoOracle extends SchemaDaoAnsi
         return typeStr;
     }
 
+    @Override
+    protected String getAutoIncrement()
+    {
+        return "";
+    }
+
     public String getDefaultPasword()
     {
         return defaultPassword;
@@ -136,10 +143,10 @@ public class SchemaDaoOracle extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (DataSource dataSource)
+        public SchemaDao create(DataSource dataSource)
         {
             DbC.throwIfNullArg(dataSource);
-            return new SchemaDaoOracle (dataSource);
+            return new SchemaDaoOracle(dataSource);
         }
 
     }

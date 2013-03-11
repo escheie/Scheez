@@ -1,52 +1,120 @@
 package org.scheez.schema.dao;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import javax.sql.DataSource;
 
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.Column;
+import org.scheez.schema.model.ObjectName;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
 
-public class SchemaDaoPostgresql extends SchemaDaoAnsi 
+public class SchemaDaoPostgresql extends SchemaDaoAnsi
 {
     public SchemaDaoPostgresql(DataSource dataSource)
     {
         super(dataSource);
     }
-    
-    protected Integer getColumnLength (Column column)
+   
+    @Override
+    public void renameTable(TableName oldName, TableName newName)
     {
-        Integer length = super.getColumnLength(column);;
-        if(column.getType() != ColumnType.VARCHAR)
+        if (!oldName.getSchemaName().equalsIgnoreCase(newName.getSchemaName()))
         {
-            /// Don't use default length as postgresql supports VARCHAR without requiring a specific length.
+            StringBuilder sb = new StringBuilder("ALTER TABLE ");
+            sb.append(oldName);
+            sb.append(" SET SCHEMA ");
+            sb.append(newName.getSchemaName());
+            execute(sb.toString());
+            oldName = new TableName(newName.getSchemaName(), oldName.getTableName());
+        }
+        if (!oldName.getTableName().equalsIgnoreCase(newName.getTableName()))
+        {
+            StringBuilder sb = new StringBuilder("ALTER TABLE ");
+            sb.append(oldName);
+            sb.append(" RENAME TO ");
+            sb.append(newName.getTableName());
+            execute(sb.toString());
+        }
+    }
+
+    @Override
+    public void renameColumn(TableName tableName, String oldName, String newName)
+    {
+        StringBuilder sb = new StringBuilder("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" RENAME COLUMN ");
+        sb.append(oldName);
+        sb.append(" TO ");
+        sb.append(newName);
+        execute(sb.toString());
+    }
+    
+    @Override
+    public boolean schemaExists(final String schemaName)
+    {
+        return super.schemaExists(schemaName);
+    }
+
+    @Override
+    protected String getAutoIncrement()
+    {
+        return "";
+    }
+
+    protected Integer getColumnLength(Column column)
+    {
+        Integer length = super.getColumnLength(column);
+        ;
+        if (column.getType() != ColumnType.VARCHAR)
+        {
+            // / Don't use default length as postgresql supports VARCHAR without
+            // requiring a specific length.
             length = column.getLength();
         }
         return length;
     }
     
     @Override
-    protected String getColumnName (String columnName)
+    protected String getSchemaName(ObjectName objectName)
+    {
+        return objectName.toLowerCase().getSchemaName();
+    }
+
+    @Override
+    protected String getObjectName (ObjectName objectName)
+    {
+        return objectName.toLowerCase().getObjectName();
+    }
+
+    @Override
+    protected String getColumnName(String columnName)
     {
         return columnName.toLowerCase();
     }
-    
+
     @Override
-    public void alterColumn (TableName tableName, Column column)
+    public void alterColumn(TableName tableName, Column column)
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
         sb.append(" ALTER COLUMN ");
         sb.append(getColumnName(column.getName()));
         sb.append(" TYPE ");
-        sb.append( getColumnTypeString(column));
+        sb.append(getColumnTypeString(column));
         execute(sb.toString());
     }
-    
+
     @Override
     public ColumnType getExpectedColumnType(ColumnType columnType)
     {
-        if(columnType == ColumnType.TINYINT)
+        if (columnType == ColumnType.TINYINT)
         {
             columnType = ColumnType.SMALLINT;
         }
@@ -64,7 +132,7 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         switch (column.getType())
         {
             case TINYINT:
-                typeStr = ColumnType.SMALLINT.name(); 
+                typeStr = ColumnType.SMALLINT.name();
                 break;
             case DOUBLE:
                 typeStr = "DOUBLE PRECISION";
@@ -74,11 +142,11 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
                 break;
             default:
                 typeStr = super.getColumnTypeString(column);
-                
+
         }
         return typeStr;
     }
-    
+
     public static class Factory extends SchemaDaoFactory
     {
 
@@ -90,10 +158,10 @@ public class SchemaDaoPostgresql extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (DataSource dataSource)
+        public SchemaDao create(DataSource dataSource)
         {
             DbC.throwIfNullArg(dataSource);
-            return new SchemaDaoPostgresql (dataSource);
+            return new SchemaDaoPostgresql(dataSource);
         }
 
     }

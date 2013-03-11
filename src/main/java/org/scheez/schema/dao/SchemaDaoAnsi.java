@@ -21,15 +21,18 @@ import org.scheez.schema.model.Column;
 import org.scheez.schema.model.ForeignKey;
 import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Key;
+import org.scheez.schema.model.ObjectName;
+import org.scheez.schema.model.Sequence;
+import org.scheez.schema.model.SequenceName;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
+public abstract class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
 {
-    private static final Log log = LogFactory.getLog(SchemaDaoAnsi.class);
+    private final Log log = LogFactory.getLog(getClass());
 
     private static final int DEFAULT_LENGTH = 255;
 
@@ -38,7 +41,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
     private static final int DEFAULT_SCALE = 0;
 
     private JdbcTemplate jdbcTemplate;
-    
+
     private SchemaDdlExecutor schemaDdlExecutor;
 
     public SchemaDaoAnsi(DataSource dataSource)
@@ -51,19 +54,19 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         return jdbcTemplate.getDataSource();
     }
 
-    protected String getCatalogName(TableName tableName)
+    protected String getCatalogName(ObjectName objectName)
     {
         return null;
     }
 
-    protected String getSchemaName(TableName tableName)
+    protected String getSchemaName(ObjectName objectName)
     {
-        return tableName.getSchemaName();
+        return objectName.getSchemaName();
     }
 
-    protected String getTableName(TableName tableName)
+    protected String getObjectName(ObjectName objectName)
     {
-        return tableName.getTableName();
+        return objectName.getObjectName();
     }
 
     protected String getColumnName(String columnName)
@@ -105,8 +108,6 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         }
         return scale;
     }
-    
-    
 
     @Override
     public void setSchemaDdlExecutor(SchemaDdlExecutor executor)
@@ -122,12 +123,13 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
 
     public void execute(String sql)
     {
-        if(schemaDdlExecutor != null)
+        if (schemaDdlExecutor != null)
         {
             schemaDdlExecutor.execute(sql);
-        }   
+        }
         else
         {
+            log.info(sql);
             jdbcTemplate.execute(sql);
         }
     }
@@ -159,8 +161,34 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
             {
                 TableName tableName = new TableName(schemaName, null);
                 DatabaseMetaData metaData = con.getMetaData();
-                ResultSet resultSet = metaData.getSchemas(getCatalogName(tableName), getSchemaName(tableName));
-                return resultSet.next();
+                ResultSet rs = metaData.getSchemas(getCatalogName(tableName), getSchemaName(tableName));
+                boolean exists = false;
+                while(rs.next())
+                {
+                    if (log.isDebugEnabled())
+                    {
+                        ResultSetMetaData rsmd = rs.getMetaData();
+                        StringBuilder sb = new StringBuilder("Column: ");
+                        boolean first = true;
+                        for (int index = 1; index <= rsmd.getColumnCount(); index++)
+                        {
+                            if (first)
+                            {
+                                first = false;
+                            }
+                            else
+                            {
+                                sb.append(",");
+                            }
+                            sb.append(rsmd.getColumnLabel(index));
+                            sb.append("=");
+                            sb.append(rs.getObject(index));
+                        }
+                        log.debug(sb.toString());
+                    }
+                    exists = true;
+                }
+                return exists;
             }
         });
     }
@@ -195,7 +223,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
 
     @Override
     public void renameTable(TableName oldName, TableName newName)
-    {       
+    {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(oldName);
         sb.append(" RENAME TO ");
@@ -222,8 +250,32 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
             }
             sb.append(getColumnString(column));
         }
+        if (table.getPrimaryKey() != null)
+        {
+            sb.append(getPrimaryKey(table.getPrimaryKey()));
+        }
         sb.append(")");
         execute(sb.toString());
+    }
+
+    private String getPrimaryKey(Key primaryKey)
+    {
+        boolean first = true;
+        StringBuffer sb = new StringBuffer(", PRIMARY KEY (");
+        for (String column : primaryKey.getColumnNames())
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                sb.append(", ");
+            }
+            sb.append(column);
+        }
+        sb.append(")");
+        return sb.toString();
     }
 
     @Override
@@ -237,7 +289,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 DatabaseMetaData metaData = con.getMetaData();
                 Table table = null;
                 ResultSet tableResultSet = metaData.getTables(getCatalogName(tableName), getSchemaName(tableName),
-                        getTableName(tableName), null);
+                        getObjectName(tableName), null);
                 if (tableResultSet.next())
                 {
                     table = new Table(tableName);
@@ -263,7 +315,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 DatabaseMetaData metaData = con.getMetaData();
                 List<Table> tables = new LinkedList<Table>();
                 ResultSet rs = metaData.getTables(getCatalogName(tableName), getSchemaName(tableName),
-                        getTableName(tableName), new String[] { "TABLE" });
+                        getObjectName(tableName), new String[] { "TABLE" });
                 while (rs.next())
                 {
                     if (log.isDebugEnabled())
@@ -300,13 +352,13 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
     protected void getTableDetails(Table table, DatabaseMetaData metaData) throws SQLException
     {
         ResultSet columns = metaData.getColumns(getCatalogName(table.getTableName()),
-                getSchemaName(table.getTableName()), getTableName(table.getTableName()), null);
+                getSchemaName(table.getTableName()), getObjectName(table.getTableName()), null);
         while (columns.next())
         {
             table.addColumn(getColumn(columns));
         }
         ResultSet indexes = metaData.getIndexInfo(getCatalogName(table.getTableName()),
-                getSchemaName(table.getTableName()), getTableName(table.getTableName()), false, false);
+                getSchemaName(table.getTableName()), getObjectName(table.getTableName()), false, false);
         Index lastIndex = null;
         while (indexes.next())
         {
@@ -321,7 +373,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
             }
         }
         ResultSet pk = metaData.getPrimaryKeys(getCatalogName(table.getTableName()),
-                getSchemaName(table.getTableName()), getTableName(table.getTableName()));
+                getSchemaName(table.getTableName()), getObjectName(table.getTableName()));
         Key primaryKey = null;
         while (pk.next())
         {
@@ -334,7 +386,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         }
         table.setPrimaryKey(primaryKey);
         ResultSet fks = metaData.getImportedKeys(getCatalogName(table.getTableName()),
-                getSchemaName(table.getTableName()), getTableName(table.getTableName()));
+                getSchemaName(table.getTableName()), getObjectName(table.getTableName()));
         int lastKeySeq = 1;
         ForeignKey foreignKey = null;
         while (fks.next())
@@ -399,7 +451,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
             {
                 DatabaseMetaData metaData = con.getMetaData();
                 ResultSet columns = metaData.getColumns(getCatalogName(tableName), getSchemaName(tableName),
-                        getTableName(tableName), getColumnName(columnName));
+                        getObjectName(tableName), getColumnName(columnName));
                 Column column = null;
                 if (columns.next())
                 {
@@ -411,7 +463,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
     }
 
     @Override
-    public void alterColumn (TableName tableName, Column column)
+    public void alterColumn(TableName tableName, Column column)
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
@@ -439,7 +491,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         {
             if (first)
             {
-                
+
                 first = false;
             }
             else
@@ -472,7 +524,7 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
             {
                 DatabaseMetaData metaData = con.getMetaData();
                 ResultSet indexes = metaData.getIndexInfo(getCatalogName(tableName), getSchemaName(tableName),
-                        getTableName(tableName), false, true);
+                        getObjectName(tableName), false, true);
                 Index index = null, lastIndex = null;
                 while (indexes.next())
                 {
@@ -485,6 +537,63 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
                 return index;
             }
         });
+    }
+
+    @Override
+    public Sequence getSequence(final SequenceName sequenceName)
+    {
+        return jdbcTemplate.execute(new ConnectionCallback<Sequence>()
+        {
+            @Override
+            public Sequence doInConnection(Connection con) throws SQLException, DataAccessException
+            {
+                DatabaseMetaData metaData = con.getMetaData();
+                ResultSet rs = metaData.getTables(getCatalogName(sequenceName), getSchemaName(sequenceName),
+                        getObjectName(sequenceName), new String[] { "SEQUENCES" });
+                while (rs.next())
+                {
+                    if (log.isDebugEnabled())
+                    {
+                        ResultSetMetaData rsmd = rs.getMetaData();
+                        StringBuilder sb = new StringBuilder("Column: ");
+                        boolean first = true;
+                        for (int index = 1; index <= rsmd.getColumnCount(); index++)
+                        {
+                            if (first)
+                            {
+                                first = false;
+                            }
+                            else
+                            {
+                                sb.append(",");
+                            }
+                            sb.append(rsmd.getColumnLabel(index));
+                            sb.append("=");
+                            sb.append(rs.getObject(index));
+                        }
+                        log.debug(sb.toString());
+                    }
+                    return new Sequence (sequenceName);
+                }
+                return null;
+           }
+        });
+    }
+
+    @Override
+    public void createSequence(Sequence sequence)
+    {
+        StringBuilder sb = new StringBuilder("CREATE SEQUENCE ");
+        sb.append(sequence.getName());
+        execute(sb.toString());
+    }
+
+    @Override
+    public void dropSequence(SequenceName sequenceName)
+    {
+        StringBuilder sb = new StringBuilder("DROP SEQUENCE ");
+        sb.append(sequenceName);
+        execute(sb.toString());
     }
 
     protected List<String> getCatalogs()
@@ -631,40 +740,37 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         StringBuilder sb = new StringBuilder(column.getName());
         sb.append(" ");
         sb.append(getColumnTypeString(column));
-        if(column.isAutoIncrementing())
+        if (column.isAutoIncrementing())
         {
-            sb.append(getAutoIncrementing());
+            sb.append(getAutoIncrement());
         }
-//        if(!column.isNullable())
-//        {
-//            sb.append(getNotNullable());
-//        }
-//        else
-//        {
-//            sb.append(getNullable());
-//        }
+        // if(!column.isNullable())
+        // {
+        // sb.append(getNotNullable());
+        // }
+        // else
+        // {
+        // sb.append(getNullable());
+        // }
         return sb.toString();
     }
-    
-    protected String getAutoIncrementing ()
-    {
-        return " GENERATED BY DEFAULT AS IDENTITY";
-    }
-    
+
+    protected abstract String getAutoIncrement();
+
     protected String getNotNullable()
     {
         return " DEFAULT NOT NULL";
     }
-    
+
     protected String getNullable()
     {
         return " NULL";
     }
 
-    protected String getDefault (Column column)
+    protected String getDefault(Column column)
     {
         String defaultValue = column.getDefaultValue();
-        if(defaultValue == null)
+        if (defaultValue == null)
         {
             switch (column.getType())
             {

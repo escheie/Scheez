@@ -5,6 +5,8 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.scheez.schema.model.Column;
+import org.scheez.schema.model.ObjectName;
+import org.scheez.schema.model.Sequence;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -45,15 +47,15 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
     }
 
     @Override
-    protected String getCatalogName(TableName tableName)
+    protected String getSchemaName(ObjectName objectName)
     {
-        return tableName.getSchemaName();
+       return null;
     }
 
     @Override
-    protected String getSchemaName(TableName tableName)
+    protected String getCatalogName(ObjectName objectName)
     {
-        return null;
+        return objectName.getSchemaName();
     }
 
     @Override
@@ -95,6 +97,20 @@ public class SchemaDaoMysql extends SchemaDaoAnsi
         sb.append(" ON ");
         sb.append(tableName);
         execute(sb.toString());
+    }
+    
+    @Override
+    protected String getAutoIncrement()
+    {
+        return " AUTO_INCREMENT";
+    }
+    
+    
+
+    @Override
+    public void createSequence(Sequence sequence)
+    {
+      
     }
 
     @Override

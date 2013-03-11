@@ -120,7 +120,7 @@ public class BasicSchemaManager implements SchemaManager
 
         for (PersistentField field : cls.getPersistentFields())
         {
-            Column expectedColumn = schemaMapper.mapFieldToColumn(field);
+            Column expectedColumn = schemaMapper.mapFieldToColumn(table, field);
 
             Column existingColumn = map.remove(expectedColumn.getName().toLowerCase());
             if (existingColumn == null)

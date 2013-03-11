@@ -32,6 +32,8 @@ import javax.sql.DataSource;
 import org.scheez.schema.def.ColumnType;
 import org.scheez.schema.model.Column;
 import org.scheez.schema.model.Index;
+import org.scheez.schema.model.Sequence;
+import org.scheez.schema.model.SequenceName;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.springframework.dao.DataAccessException;
@@ -148,6 +150,12 @@ public interface SchemaDao
     void dropIndex(TableName tableName, String indexName);
 
     Index getIndex(TableName tableName, String indexName);
+    
+    Sequence getSequence (SequenceName sequenceName);
+    
+    void createSequence (Sequence sequence);
+    
+    void dropSequence (SequenceName sequenceName);
     
     void setSchemaDdlExecutor (SchemaDdlExecutor executor);
     

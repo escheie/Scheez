@@ -9,8 +9,8 @@
     </layout> 
   </appender> 
   
-  <logger name="org.scheez.schema.dao.SchemaDaoAnsi">
-  	   <level value="debug"/>
+  <logger name="org.scheez.schema.dao">
+  	   <level value="info"/>
   </logger>
 
   <root> 

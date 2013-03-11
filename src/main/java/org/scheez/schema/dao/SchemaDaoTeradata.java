@@ -14,7 +14,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
      * DEFAULT perm space for new databases is 1 GB.
      */
     private static long DEFAULT_PERM_SPACE = 1000000000;
-    
+
     private long defaultPermSpace = DEFAULT_PERM_SPACE;
 
     public SchemaDaoTeradata(DataSource dataSource)
@@ -43,9 +43,8 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         sb.append(schemaName);
         execute(sb.toString());
     }
-    
 
-    /** 
+    /**
      * @inheritDoc
      */
     @Override
@@ -54,7 +53,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         boolean exists = false;
         for (String schema : getSchemas())
         {
-            if(schema.equalsIgnoreCase(schemaName))
+            if (schema.equalsIgnoreCase(schemaName))
             {
                 exists = true;
                 break;
@@ -62,9 +61,9 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         }
         return exists;
     }
-    
+
     @Override
-    public void alterColumn (TableName tableName, Column column)
+    public void alterColumn(TableName tableName, Column column)
     {
         StringBuilder sb = new StringBuilder("ALTER TABLE ");
         sb.append(tableName);
@@ -72,21 +71,21 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         sb.append(getColumnString(column));
         execute(sb.toString());
     }
-    
+
     @Override
     public ColumnType getExpectedColumnType(ColumnType columnType)
     {
-        if(columnType == ColumnType.DOUBLE)
+        if (columnType == ColumnType.DOUBLE)
         {
             columnType = ColumnType.FLOAT;
         }
-        else if(columnType == ColumnType.BOOLEAN)
+        else if (columnType == ColumnType.BOOLEAN)
         {
             columnType = ColumnType.TINYINT;
         }
         return columnType;
     }
-    
+
     @Override
     public void addIndex(TableName tableName, Index index)
     {
@@ -110,7 +109,7 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         sb.append(tableName);
         execute(sb.toString());
     }
-    
+
     @Override
     public void dropIndex(TableName tableName, String indexName)
     {
@@ -121,7 +120,6 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         execute(sb.toString());
     }
 
-    
     @Override
     protected String getColumnTypeString(Column column)
     {
@@ -142,9 +140,15 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
                 break;
             default:
                 typeStr = super.getColumnTypeString(column);
-                
+
         }
         return typeStr;
+    }
+
+    @Override
+    protected String getAutoIncrement()
+    {
+        return "";
     }
 
     /**
@@ -175,10 +179,10 @@ public class SchemaDaoTeradata extends SchemaDaoAnsi
         }
 
         @Override
-        public SchemaDao create (DataSource dataSource)
+        public SchemaDao create(DataSource dataSource)
         {
             DbC.throwIfNullArg(dataSource);
-            return new SchemaDaoTeradata (dataSource);
+            return new SchemaDaoTeradata(dataSource);
         }
 
     }

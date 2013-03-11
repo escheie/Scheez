@@ -111,12 +111,11 @@ public class SchemaDaoTest
         schemaDao.createTable(table);
         assertNotNull(schemaDao.getTable(tableName));
         
-        TableName newName = new TableName(tableName.getSchemaName(),
-                "newName");
+        TableName newName = new TableName(tableName.getSchemaName(), "newName");
         schemaDao.renameTable(tableName, newName);
         
         assertNull(schemaDao.getTable(tableName));
-        assertNotNull(schemaDao.getTable(newName));
+        assertNotNull(schemaDao.getTables(newName.getSchemaName()).toString(), schemaDao.getTable(newName));
     }
     
     @Test

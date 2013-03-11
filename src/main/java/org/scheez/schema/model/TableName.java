@@ -1,60 +1,30 @@
 package org.scheez.schema.model;
 
-import org.scheez.util.BaseObject;
 
-public class TableName extends BaseObject
+public class TableName extends ObjectName
 {
-    private String schemaName;
-    private String tableName;
 
-    public TableName(String tableName)
+    public TableName(String schemaName, String name)
     {
-        this(null, tableName);
+        super(schemaName, name);
+        // TODO Auto-generated constructor stub
     }
 
-    public TableName(String schemaName, String tableName)
+    public TableName(String name)
     {
-        this.schemaName = schemaName;
-        this.tableName = tableName;
-    }
-
-    public String getSchemaName()
-    {
-        return schemaName;
-    }
-
-    public String getTableName()
-    {
-        return tableName;
+        super(name);
+        // TODO Auto-generated constructor stub
     }
     
-    public TableName toUpperCase ()
+    public String getTableName ()
     {
-        String schemaNameUpper = (schemaName == null) ? null : schemaName
-                .toUpperCase();
-        String tableNameUpper = (tableName == null) ? null : tableName
-                .toUpperCase();
-        return new TableName(schemaNameUpper, tableNameUpper);
-    }
-    
-    public TableName toLowerCase ()
-    {
-        String schemaNameLower = (schemaName == null) ? null : schemaName
-                .toLowerCase();
-        String tableNameLower = (tableName == null) ? null : tableName
-                .toLowerCase();
-        return new TableName(schemaNameLower, tableNameLower);
+        return name;
     }
 
-    public String toString()
+    @Override
+    protected TableName newInstance(String schemaName, String tableName)
     {
-        StringBuilder sb = new StringBuilder();
-        if (schemaName != null)
-        {
-            sb.append(schemaName);
-            sb.append(".");
-        }
-        sb.append(tableName);
-        return sb.toString();
+        return new TableName(schemaName, tableName);
     }
+
 }

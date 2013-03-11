@@ -3,6 +3,7 @@ package org.scheez.schema.mapper;
 import org.scheez.reflect.PersistentClass;
 import org.scheez.reflect.PersistentField;
 import org.scheez.schema.model.Column;
+import org.scheez.schema.model.Key;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.scheez.util.DbC;
@@ -45,14 +46,14 @@ public class DefaultSchemaMapper implements SchemaMapper
         
         for (PersistentField field : cls.getPersistentFields())
         {
-            table.addColumn(mapFieldToColumn(field));
+            table.addColumn(mapFieldToColumn(table, field));
         }
         
         return table;
     }
 
     @Override
-    public Column mapFieldToColumn(PersistentField field)
+    public Column mapFieldToColumn(Table table, PersistentField field)
     {
         DbC.throwIfNullArg(field);
         
@@ -63,7 +64,7 @@ public class DefaultSchemaMapper implements SchemaMapper
             PersistentField reference = field.getReference();
             if(reference != null)
             {
-                Column refCol = mapFieldToColumn(reference);
+                Column refCol = mapFieldToColumn(null, reference);
                 name += "_" + refCol.getName();
             }
         }
@@ -83,6 +84,11 @@ public class DefaultSchemaMapper implements SchemaMapper
         if(field.isId())
         {
             column.setAutoIncrementing(true);
+            if(table != null)
+            {
+                table.setPrimaryKey(new Key(table.getTableName(), "pk_" + column.getName()));
+                table.getPrimaryKey().addColumnName(1, column.getName());
+            }
         }
 
         return column;
