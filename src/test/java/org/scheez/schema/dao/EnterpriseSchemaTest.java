@@ -14,8 +14,8 @@ import org.scheez.schema.model.Index;
 import org.scheez.schema.model.Table;
 import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
-import org.scheez.test.jpa.EnterpriseSchema;
 import org.scheez.test.junit.ScheezTestDatabase;
+import org.scheez.test.schema.EnterpriseSchema;
 
 
 @RunWith(ScheezTestDatabase.class)
@@ -30,7 +30,7 @@ public class EnterpriseSchemaTest
     public EnterpriseSchemaTest (TestDatabase testDatabase)
     {
         schemaDao = SchemaDaoFactory.getSchemaDao(testDatabase.getDataSource());
-        schema = EnterpriseSchema.getInstance();
+        schema = EnterpriseSchema.getInstance("hbm2dll", true);
         schema.init(testDatabase);
     }
     

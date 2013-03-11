@@ -12,10 +12,10 @@ import org.scheez.schema.diff.SchemaDifference;
 import org.scheez.schema.manger.BasicSchemaManager;
 import org.scheez.schema.manger.SchemaClasses;
 import org.scheez.test.TestDatabase;
-import org.scheez.test.jpa.Department;
-import org.scheez.test.jpa.Employee;
-import org.scheez.test.jpa.Job;
 import org.scheez.test.junit.ScheezTestDatabase;
+import org.scheez.test.schema.Department;
+import org.scheez.test.schema.Employee;
+import org.scheez.test.schema.Job;
 
 @RunWith (ScheezTestDatabase.class)
 public class HtmlReportTest

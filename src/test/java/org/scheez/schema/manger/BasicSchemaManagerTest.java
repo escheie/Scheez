@@ -25,7 +25,10 @@ import org.scheez.schema.model.Column;
 import org.scheez.schema.model.TableName;
 import org.scheez.test.TestDatabase;
 import org.scheez.test.junit.ScheezTestDatabase;
-import org.scheez.test.schema.Person;
+import org.scheez.test.schema.Department;
+import org.scheez.test.schema.Employee;
+import org.scheez.test.schema.EnterpriseSchema;
+import org.scheez.test.schema.Job;
 
 @RunWith (ScheezTestDatabase.class)
 public class BasicSchemaManagerTest 
@@ -59,22 +62,43 @@ public class BasicSchemaManagerTest
     public void testMissingAndUnknownTable() throws Exception
     {
         SchemaClasses classes = new SchemaClasses();
-        classes.include(Person.class);
+        classes.include(EnterpriseSchema.class.getPackage());
         
         BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
         List<SchemaDifference> differences = schemaManager.findDifferences();
         
         assertNotNull(differences);
-        assertEquals(1, differences.size());
+        assertEquals(EnterpriseSchema.TABLE_COUNT, differences.size());
         
-        MissingTable missingTable = (MissingTable)differences.get(0);
+        boolean employeeTable = false, jobTable = false, departmentTable = false;
+        for (SchemaDifference difference : differences)
+        {
+            assertEquals(Type.MISSING_TABLE, difference.getType());
+            MissingTable missingTable = (MissingTable)difference;
+                  
+            assertNotNull(missingTable.getTable());
+            assertNotNull(missingTable.getDescription());
+            
+            if(missingTable.getTable().getName().equals(EnterpriseSchema.TABLE_EMPLOYEE))
+            {
+                assertEquals(Employee.class, missingTable.getTableClass());
+                employeeTable = true;
+            }
+            else if(missingTable.getTable().getName().equals(EnterpriseSchema.TABLE_JOB))
+            {
+                assertEquals(Job.class, missingTable.getTableClass());
+                jobTable = true;
+            }
+            else if(missingTable.getTable().getName().equals(EnterpriseSchema.TABLE_DEPARTMENT))
+            {
+                assertEquals(Department.class, missingTable.getTableClass());
+                departmentTable = true;
+            }
+        }
         
-        log.info(missingTable);
-        assertEquals(Type.MISSING_TABLE, missingTable.getType());
-        assertEquals(Person.class, missingTable.getTableClass());
-        assertNotNull(missingTable.getTable());
-        assertEquals("persons", missingTable.getTable().getName());
-        assertNotNull(missingTable.getDescription());
+        assertTrue(employeeTable);
+        assertTrue(jobTable);
+        assertTrue(departmentTable);
         
         schemaManager.resolveDifferences(differences);
         
@@ -83,7 +107,7 @@ public class BasicSchemaManagerTest
         assertNotNull(differences);
         assertEquals(0, differences.size());
         
-        classes.exclude(Person.class);
+        classes.exclude(Department.class);
         schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
         differences = schemaManager.findDifferences();
         
@@ -114,14 +138,16 @@ public class BasicSchemaManagerTest
     public void testMissingAndUnknownColumns()
     {
         SchemaClasses classes = new SchemaClasses();
-        classes.include(Person.class);
+        classes.include(EnterpriseSchema.class.getPackage());
         
         BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
         installSchema(schemaManager);
         
-        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        TableName tableName = new TableName (TEST_SCHEMA, EnterpriseSchema.TABLE_EMPLOYEE);
         
-        String droppedColumn = "first_name";
+        assertNotNull(schemaDao.getTable(tableName));
+        
+        String droppedColumn = "middle_initial";
         schemaDao.dropColumn(tableName, droppedColumn);
         
         List<SchemaDifference> differences = schemaManager.findDifferences();
@@ -133,13 +159,13 @@ public class BasicSchemaManagerTest
         
         log.info(missingColumn);
         assertEquals(Type.MISSING_COLUMN, missingColumn.getType());
-        assertEquals(Person.class, missingColumn.getTableClass());
+        assertEquals(Employee.class, missingColumn.getTableClass());
         assertNotNull(missingColumn.getTable());
         assertNotNull(missingColumn.getExpectedColumn());
         assertEquals(droppedColumn, missingColumn.getExpectedColumn().getName());
         assertNotNull(missingColumn.getDescription());
         assertNotNull(missingColumn.getField());
-        assertEquals("firstName", missingColumn.getField().getName());
+        assertEquals("middleInitial", missingColumn.getField().getName());
         
         schemaManager.resolveDifferences(differences);
         
@@ -160,7 +186,7 @@ public class BasicSchemaManagerTest
         
         log.info(unknownColumn);
         assertEquals(Type.UNKNOWN_COLUMN, unknownColumn.getType());
-        assertEquals(Person.class, unknownColumn.getTableClass());
+        assertEquals(Employee.class, unknownColumn.getTableClass());
         assertNotNull(unknownColumn.getTable());
         assertNotNull(unknownColumn.getExistingColumn());
         assertNull(unknownColumn.getField());
@@ -185,12 +211,12 @@ public class BasicSchemaManagerTest
     public void testMismatchedColumnTypes()
     {
         SchemaClasses classes = new SchemaClasses();
-        classes.include(Person.class);
+        classes.include(EnterpriseSchema.class.getPackage());
         
         BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
         installSchema(schemaManager);
         
-        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        TableName tableName = new TableName (TEST_SCHEMA, EnterpriseSchema.TABLE_EMPLOYEE);
         
         Column column = new Column("first_name", ColumnType.CHAR);
         schemaDao.alterColumn(tableName, column);
@@ -204,7 +230,7 @@ public class BasicSchemaManagerTest
         
         log.info(mismatchedColumnType);
         assertEquals(Type.MISMATCHED_COLUMN_TYPE, mismatchedColumnType.getType());
-        assertEquals(Person.class, mismatchedColumnType.getTableClass());
+        assertEquals(Employee.class, mismatchedColumnType.getTableClass());
         assertNotNull(mismatchedColumnType.getTable());
         assertNotNull(mismatchedColumnType.getExistingColumn());
         assertNotNull(mismatchedColumnType.getExpectedColumn());
@@ -229,12 +255,12 @@ public class BasicSchemaManagerTest
     public void testMismatchedColumnLength()
     {
         SchemaClasses classes = new SchemaClasses();
-        classes.include(Person.class);
+        classes.include(EnterpriseSchema.class.getPackage());
         
         BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
         installSchema(schemaManager);
         
-        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        TableName tableName = new TableName (TEST_SCHEMA, EnterpriseSchema.TABLE_EMPLOYEE);
         
         Column column = new Column("first_name", ColumnType.VARCHAR, 128);
         schemaDao.alterColumn(tableName, column);
@@ -248,12 +274,12 @@ public class BasicSchemaManagerTest
         
         log.info(mismatchedColumnLength);
         assertEquals(Type.MISMATCHED_COLUMN_LENGTH, mismatchedColumnLength.getType());
-        assertEquals(Person.class, mismatchedColumnLength.getTableClass());
+        assertEquals(Employee.class, mismatchedColumnLength.getTableClass());
         assertNotNull(mismatchedColumnLength.getTable());
         assertNotNull(mismatchedColumnLength.getExistingColumn());
         assertNotNull(mismatchedColumnLength.getExpectedColumn());
         assertEquals(128, mismatchedColumnLength.getExistingColumn().getLength().intValue());
-        assertEquals(1024, mismatchedColumnLength.getExpectedColumn().getLength().intValue());
+        assertEquals(255, mismatchedColumnLength.getExpectedColumn().getLength().intValue());
         assertNotNull(mismatchedColumnLength.getDescription());
         assertNotNull(mismatchedColumnLength.getField());
         
@@ -273,15 +299,15 @@ public class BasicSchemaManagerTest
     public void testMismatchedColumnPrecision()
     {
         SchemaClasses classes = new SchemaClasses();
-        classes.include(Person.class);
+        classes.include(EnterpriseSchema.class.getPackage());
         
         BasicSchemaManager schemaManager = new BasicSchemaManager(TEST_SCHEMA, schemaDao, classes);
         installSchema(schemaManager);
         
-        TableName tableName = new TableName (TEST_SCHEMA, "persons");
+        TableName tableName = new TableName (TEST_SCHEMA, EnterpriseSchema.TABLE_EMPLOYEE);
         
-        Column column = new Column("iq", ColumnType.DECIMAL);
-        column.setPrecision(6);
+        Column column = new Column("salary", ColumnType.DECIMAL);
+        column.setPrecision(12);
         column.setScale(4);
         schemaDao.alterColumn(tableName, column);
         
@@ -294,12 +320,12 @@ public class BasicSchemaManagerTest
         
         log.info(mismatchedColumnPrecision);
         assertEquals(Type.MISMATCHED_COLUMN_PRECISION, mismatchedColumnPrecision.getType());
-        assertEquals(Person.class, mismatchedColumnPrecision.getTableClass());
+        assertEquals(Employee.class, mismatchedColumnPrecision.getTableClass());
         assertNotNull(mismatchedColumnPrecision.getTable());
         assertNotNull(mismatchedColumnPrecision.getExistingColumn());
         assertNotNull(mismatchedColumnPrecision.getExpectedColumn());
-        assertEquals(6, mismatchedColumnPrecision.getExistingColumn().getPrecision().intValue());
-        assertEquals(3, mismatchedColumnPrecision.getExpectedColumn().getPrecision().intValue());
+        assertEquals(12, mismatchedColumnPrecision.getExistingColumn().getPrecision().intValue());
+        assertEquals(10, mismatchedColumnPrecision.getExpectedColumn().getPrecision().intValue());
         assertEquals(4, mismatchedColumnPrecision.getExistingColumn().getScale().intValue());
         assertEquals(2, mismatchedColumnPrecision.getExpectedColumn().getScale().intValue());
         assertNotNull(mismatchedColumnPrecision.getDescription());

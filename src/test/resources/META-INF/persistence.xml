@@ -3,14 +3,14 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/persistence">
 
-	<persistence-unit name="org.scheez.test.jpa.enterprise">
+	<persistence-unit name="org.scheez.test.schema.enterprise">
 		<description> Persistence unit for JPA-based tests. </description>
         
         <non-jta-data-source>jndi:jdbc/Enterprise/DataSource</non-jta-data-source>
         
-		<class>org.scheez.test.jpa.Employee</class>
-		<class>org.scheez.test.jpa.Department</class>
-		<class>org.scheez.test.jpa.Job</class>
+		<class>org.scheez.test.schema.Employee</class>
+		<class>org.scheez.test.schema.Department</class>
+		<class>org.scheez.test.schema.Job</class>
       
 	</persistence-unit>
 	

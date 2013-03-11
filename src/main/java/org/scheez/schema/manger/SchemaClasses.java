@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Entity;
+
 import org.reflections.Reflections;
 
 public class SchemaClasses implements Iterable<Class<?>>
@@ -26,7 +28,7 @@ public class SchemaClasses implements Iterable<Class<?>>
         {
             Reflections reflections = new Reflections(p.getName());
             Set<Class<? extends Object>> allClasses = 
-                    reflections.getSubTypesOf(Object.class);
+                    reflections.getTypesAnnotatedWith(Entity.class);
             for (Class<? extends Object> cls : allClasses)
             {
                 includes.add(cls);

@@ -635,14 +635,14 @@ public class SchemaDaoAnsi implements SchemaDao, SchemaDdlExecutor
         {
             sb.append(getAutoIncrementing());
         }
-        if(!column.isNullable())
-        {
-            sb.append(getNotNullable());
-        }
-        else
-        {
-            sb.append(getNullable());
-        }
+//        if(!column.isNullable())
+//        {
+//            sb.append(getNotNullable());
+//        }
+//        else
+//        {
+//            sb.append(getNullable());
+//        }
         return sb.toString();
     }
     

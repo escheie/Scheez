@@ -1,4 +1,4 @@
-package org.scheez.test.jpa;
+package org.scheez.test.schema;
 
 import java.math.BigDecimal;
 

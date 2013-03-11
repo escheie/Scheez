@@ -2,7 +2,7 @@
  * Copyright (C) 2013 by Teradata Corporation. All Rights Reserved. TERADATA CORPORATION
  * CONFIDENTIAL AND TRADE SECRET
  */
-package org.scheez.test.jpa;
+package org.scheez.test.schema;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,11 +41,11 @@ public class EnterpriseSchema extends TestPersistenceUnit
 
     public static final int TABLE_COUNT = 3;
 
-    public static final String TABLE_DEPARTMENT = "department";
+    public static final String TABLE_DEPARTMENT = "departments";
 
-    public static final String TABLE_EMPLOYEE = "employee";
+    public static final String TABLE_EMPLOYEE = "employees";
 
-    public static final String TABLE_JOB = "job";
+    public static final String TABLE_JOB = "jobs";
 
     public static final String COLUMN_ID = "id";
 
@@ -61,7 +61,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
 
     private EnterpriseSchema(Context context)
     {
-        super("org.scheez.test.jpa.enterprise", "jndi:jdbc/Enterprise/DataSource");
+        super("org.scheez.test.schema.enterprise", "jndi:jdbc/Enterprise/DataSource");
         this.context = context;
         getProperties().put("hibernate.default_schema", context.getSchemaName());
         getProperties().put("hibernate.show_sql", "true");
@@ -97,14 +97,7 @@ public class EnterpriseSchema extends TestPersistenceUnit
 
     public void init (TestDatabase testDatabase)
     {
-        if (context.isHbm2ddl())
-        {
-            getEntityManagerFactory(testDatabase);
-        }
-        else
-        {
-            setUp(testDatabase);
-        }
+        getEntityManagerFactory(testDatabase);
     }
 
     @Override
